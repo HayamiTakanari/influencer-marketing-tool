@@ -12,6 +12,11 @@ import profileRoutes from './routes/profile.routes';
 import chatRoutes from './routes/chat.routes';
 import paymentRoutes from './routes/payment.routes';
 import snsRoutes from './routes/sns.routes';
+import projectRoutes from './routes/project.routes';
+import teamRoutes from './routes/team.routes';
+import notificationRoutes from './routes/notification.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import reviewRoutes from './routes/review.routes';
 
 dotenv.config();
 
@@ -57,6 +62,11 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/sns', snsRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

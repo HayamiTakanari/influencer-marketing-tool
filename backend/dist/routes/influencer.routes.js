@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const influencer_controller_1 = require("../controllers/influencer.controller");
+const router = (0, express_1.Router)();
+router.get('/search', auth_1.authenticate, influencer_controller_1.searchInfluencers);
+router.get('/categories', auth_1.authenticate, influencer_controller_1.getCategories);
+router.get('/prefectures', auth_1.authenticate, influencer_controller_1.getPrefectures);
+router.get('/:id', auth_1.authenticate, influencer_controller_1.getInfluencerById);
+router.get('/:id/stats', auth_1.authenticate, influencer_controller_1.getInfluencerStats);
+exports.default = router;

@@ -50,6 +50,9 @@ model User {
   teamMembers     TeamMember[]
   sentMessages    Message[]     @relation("sender")
   receivedMessages Message[]    @relation("receiver")
+  notifications   Notification[]
+  reviewsGiven    Review[]      @relation("ReviewGiven")
+  reviewsReceived Review[]      @relation("ReviewReceived")
 }
 
 model Client {
@@ -69,6 +72,7 @@ model Client {
   team            Team?     @relation(fields: [teamId], references: [id])
   projects        Project[]
   applications    Application[]
+  reviews         Review[]
 }
 
 model Influencer {
@@ -96,6 +100,7 @@ model Influencer {
   applications    Application[]
   projects        Project[]
   portfolio       Portfolio[]
+  reviews         Review[]
 }
 
 model SocialAccount {
@@ -170,6 +175,7 @@ model Project {
   matchedInfluencerId String?
   messages        Message[]
   transaction     Transaction?
+  reviews         Review[]
 }
 
 model Application {
@@ -231,4 +237,60 @@ model Portfolio {
 
   // Relations
   influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+}
+
+enum NotificationType {
+  APPLICATION_RECEIVED
+  APPLICATION_ACCEPTED
+  APPLICATION_REJECTED
+  PROJECT_MATCHED
+  MESSAGE_RECEIVED
+  PAYMENT_COMPLETED
+  PROJECT_STATUS_CHANGED
+  TEAM_INVITATION
+  SYSTEM_ANNOUNCEMENT
+}
+
+model Notification {
+  id              String    @id @default(cuid())
+  userId          String
+  type            NotificationType
+  title           String
+  message         String
+  isRead          Boolean   @default(false)
+  data            Json?     // Additional data for the notification
+  createdAt       DateTime  @default(now())
+  readAt          DateTime?
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model Review {
+  id              String    @id @default(cuid())
+  projectId       String
+  reviewerId      String    // User who gives the review
+  revieweeId      String    // User being reviewed (influencer or client)
+  influencerId    String?   // If reviewing influencer
+  clientId        String?   // If reviewing client
+  rating          Int       // 1-5 stars
+  comment         String?
+  isPublic        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reviewer        User      @relation("ReviewGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee        User      @relation("ReviewReceived", fields: [revieweeId], references: [id], onDelete: Cascade)
+  influencer      Influencer? @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  client          Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, reviewerId]) // One review per project per reviewer
+  @@index([revieweeId, rating])
+  @@index([influencerId, rating])
+  @@index([clientId, rating])
 }

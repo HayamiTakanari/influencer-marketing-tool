@@ -1,7 +1,30 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(cp:*)",
+      "Bash(brew install:*)",
+      "Bash(brew services start:*)",
+      "Bash(/opt/homebrew/opt/postgresql@14/bin/createdb:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma:*)",
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(npm run build:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(lsof:*)",
+      "Bash(PORT=5002 npm run dev)",
+      "Bash(pkill:*)",
+      "Bash(npm start)",
+      "Bash(npm audit:*)",
+      "Bash(chmod:*)",
+      "Bash(kill:*)",
+      "Bash(true)",
+      "Bash(./debug-start.sh:*)"
     ],
     "deny": []
   }

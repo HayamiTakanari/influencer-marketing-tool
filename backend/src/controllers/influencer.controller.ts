@@ -16,6 +16,8 @@ const searchInfluencersSchema = z.object({
   city: z.string().optional(),
   gender: z.nativeEnum(Gender).optional(),
   minEngagementRate: z.number().optional(),
+  maxEngagementRate: z.number().optional(),
+  isVerified: z.boolean().optional(),
   page: z.number().default(1),
   limit: z.number().default(20),
 });
@@ -77,8 +79,19 @@ export const searchInfluencers = async (req: Request, res: Response) => {
         };
       }
     }
-    if (query.minEngagementRate !== undefined) {
-      platformFilters.engagementRate = { gte: query.minEngagementRate };
+    if (query.minEngagementRate !== undefined || query.maxEngagementRate !== undefined) {
+      if (query.minEngagementRate !== undefined) {
+        platformFilters.engagementRate = { gte: query.minEngagementRate };
+      }
+      if (query.maxEngagementRate !== undefined) {
+        platformFilters.engagementRate = {
+          ...platformFilters.engagementRate,
+          lte: query.maxEngagementRate,
+        };
+      }
+    }
+    if (query.isVerified !== undefined) {
+      platformFilters.isVerified = query.isVerified;
     }
 
     const [influencers, total] = await Promise.all([

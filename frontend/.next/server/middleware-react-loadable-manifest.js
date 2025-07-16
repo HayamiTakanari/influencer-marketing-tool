@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"pages/register.tsx -> ../services/api\":{\"id\":\"pages/register.tsx -> ../services/api\",\"files\":[\"static/chunks/src_services_api_ts.js\"]}}"

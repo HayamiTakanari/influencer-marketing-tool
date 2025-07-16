@@ -10,10 +10,10 @@ import {
 
 const router = Router();
 
-router.get('/search', authenticate, searchInfluencers);
-router.get('/categories', authenticate, getCategories);
-router.get('/prefectures', authenticate, getPrefectures);
-router.get('/:id', authenticate, getInfluencerById);
-router.get('/:id/stats', authenticate, getInfluencerStats);
+router.get('/search', searchInfluencers);
+router.get('/categories', getCategories);
+router.get('/prefectures', getPrefectures);
+router.get('/:id', getInfluencerById);
+router.get('/:id/stats', getInfluencerStats);
 
 export default router;
