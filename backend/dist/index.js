@@ -17,6 +17,11 @@ const profile_routes_1 = __importDefault(require("./routes/profile.routes"));
 const chat_routes_1 = __importDefault(require("./routes/chat.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const sns_routes_1 = __importDefault(require("./routes/sns.routes"));
+const project_routes_1 = __importDefault(require("./routes/project.routes"));
+const team_routes_1 = __importDefault(require("./routes/team.routes"));
+const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
+const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
+const review_routes_1 = __importDefault(require("./routes/review.routes"));
 dotenv_1.default.config();
 // Configure Cloudinary
 cloudinary_1.v2.config({
@@ -52,6 +57,11 @@ app.use('/api/profile', profile_routes_1.default);
 app.use('/api/chat', chat_routes_1.default);
 app.use('/api/payments', payment_routes_1.default);
 app.use('/api/sns', sns_routes_1.default);
+app.use('/api/projects', project_routes_1.default);
+app.use('/api/teams', team_routes_1.default);
+app.use('/api/notifications', notification_routes_1.default);
+app.use('/api/analytics', analytics_routes_1.default);
+app.use('/api/reviews', review_routes_1.default);
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
 });

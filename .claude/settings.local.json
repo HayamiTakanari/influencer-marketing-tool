@@ -24,7 +24,8 @@
       "Bash(chmod:*)",
       "Bash(kill:*)",
       "Bash(true)",
-      "Bash(./debug-start.sh:*)"
+      "Bash(./debug-start.sh:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

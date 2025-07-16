@@ -16,6 +16,8 @@ const searchInfluencersSchema = zod_1.z.object({
     city: zod_1.z.string().optional(),
     gender: zod_1.z.nativeEnum(client_1.Gender).optional(),
     minEngagementRate: zod_1.z.number().optional(),
+    maxEngagementRate: zod_1.z.number().optional(),
+    isVerified: zod_1.z.boolean().optional(),
     page: zod_1.z.number().default(1),
     limit: zod_1.z.number().default(20),
 });
@@ -68,8 +70,19 @@ const searchInfluencers = async (req, res) => {
                 };
             }
         }
-        if (query.minEngagementRate !== undefined) {
-            platformFilters.engagementRate = { gte: query.minEngagementRate };
+        if (query.minEngagementRate !== undefined || query.maxEngagementRate !== undefined) {
+            if (query.minEngagementRate !== undefined) {
+                platformFilters.engagementRate = { gte: query.minEngagementRate };
+            }
+            if (query.maxEngagementRate !== undefined) {
+                platformFilters.engagementRate = {
+                    ...platformFilters.engagementRate,
+                    lte: query.maxEngagementRate,
+                };
+            }
+        }
+        if (query.isVerified !== undefined) {
+            platformFilters.isVerified = query.isVerified;
         }
         const [influencers, total] = await Promise.all([
             prisma.influencer.findMany({
