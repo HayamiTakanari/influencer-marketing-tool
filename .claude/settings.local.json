@@ -50,7 +50,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "WebFetch(domain:influencer-marketing-tool.vercel.app)"
+      "WebFetch(domain:influencer-marketing-tool.vercel.app)",
+      "WebFetch(domain:influencer-marketing-tool.onrender.com)"
     ],
     "deny": []
   }

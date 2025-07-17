@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -19,18 +19,18 @@ api.interceptors.request.use((config) => {
 
 // Auth
 export const login = async (email: string, password: string) => {
-  const response = await api.post('/auth/login', { email, password });
+  const response = await api.post('/api/auth/login', { email, password });
   return response.data;
 };
 
 export const register = async (userData: any) => {
-  const response = await api.post('/auth/register', userData);
+  const response = await api.post('/api/auth/register', userData);
   return response.data;
 };
 
 // Influencer Search
 export const searchInfluencers = async (filters: any) => {
-  const response = await api.get('/influencers/search', { params: filters });
+  const response = await api.get('/api/influencers/search', { params: filters });
   return response.data;
 };
 
