@@ -30,6 +30,11 @@ const DashboardPage: React.FC = () => {
     router.push('/');
   };
 
+  const handleNavigation = (path: string) => {
+    console.log('Navigating to:', path);
+    router.push(path);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -207,31 +212,29 @@ const DashboardPage: React.FC = () => {
             </>
           ) : (
             <>
-              <Link href="/search">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">🔍</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">インフルエンサー検索</h3>
-                  <p className="text-gray-600">条件に合うインフルエンサーを探す</p>
-                </motion.div>
-              </Link>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                onClick={() => handleNavigation('/search')}
+                className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+              >
+                <div className="text-4xl mb-4">🔍</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">インフルエンサー検索</h3>
+                <p className="text-gray-600">条件に合うインフルエンサーを探す</p>
+              </motion.div>
 
-              <Link href="/company-profile">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">🏢</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">企業プロフィール</h3>
-                  <p className="text-gray-600">会社情報とマーケティング設定</p>
-                </motion.div>
-              </Link>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                onClick={() => handleNavigation('/company-profile')}
+                className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+              >
+                <div className="text-4xl mb-4">🏢</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">企業プロフィール</h3>
+                <p className="text-gray-600">会社情報とマーケティング設定</p>
+              </motion.div>
 
               <Link href="/team-management">
                 <motion.div
