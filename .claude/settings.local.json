@@ -47,7 +47,10 @@
       "WebFetch(domain:influencer-marketing-tool-hayamitakanaris-projects.vercel.app)",
       "Bash(git init:*)",
       "Bash(git pull:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:influencer-marketing-tool.vercel.app)"
     ],
     "deny": []
   }

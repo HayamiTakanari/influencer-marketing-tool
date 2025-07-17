@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "npx prisma generate && tsc --noEmitOnError false --skipLibCheck",
-    "start": "node dist/index.js",
+    "start": "node simple-backend.js",
+    "start:prod": "node simple-backend.js",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx src/seed.ts",
     "db:generate": "prisma generate",
@@ -19,7 +20,7 @@
   "dependencies": {
     "@prisma/client": "^5.11.0",
     "@types/multer": "^2.0.0",
-    "bcrypt": "^6.0.0",
+    "bcrypt": "^5.1.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
@@ -31,7 +32,7 @@
     "helmet": "^7.1.0",
     "instagram-basic-display": "^1.0.3",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.1",
+    "multer": "^1.4.5-lts.1",
     "socket.io": "^4.7.5",
     "stripe": "^14.21.0",
     "twitter-api-v2": "^1.24.0",
