@@ -99,7 +99,7 @@ const DashboardPage: React.FC = () => {
 
         {/* 機能カード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {user.role === 'INFLUENCER' ? (
+          {user.type === 'influencer' ? (
             <>
               <Link href="/profile">
                 <motion.div
@@ -163,6 +163,45 @@ const DashboardPage: React.FC = () => {
                   <div className="text-4xl mb-4">💰</div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">収益ダッシュボード</h3>
                   <p className="text-gray-600">収益状況と実績の確認</p>
+                </motion.div>
+              </Link>
+
+              <Link href="/achievements">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">🏆</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">実績管理</h3>
+                  <p className="text-gray-600">過去の実績と成果を管理</p>
+                </motion.div>
+              </Link>
+
+              <Link href="/service-pricing">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">💸</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">料金設定</h3>
+                  <p className="text-gray-600">サービス別の料金体系管理</p>
+                </motion.div>
+              </Link>
+
+              <Link href="/bulk-inquiry">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.7 }}
+                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">📢</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">一斉問い合わせ</h3>
+                  <p className="text-gray-600">複数案件への回答管理</p>
                 </motion.div>
               </Link>
             </>
@@ -269,6 +308,32 @@ const DashboardPage: React.FC = () => {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">効果測定</h3>
                 <p className="text-gray-600">キャンペーンの成果を分析</p>
               </motion.div>
+
+              <Link href="/bulk-inquiry">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.7 }}
+                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">📢</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">一斉問い合わせ</h3>
+                  <p className="text-gray-600">複数のインフルエンサーに一斉送信</p>
+                </motion.div>
+              </Link>
+
+              <Link href="/project-schedule">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.8 }}
+                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">📅</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">スケジュール管理</h3>
+                  <p className="text-gray-600">プロジェクトの進行管理</p>
+                </motion.div>
+              </Link>
             </>
           )}
         </div>

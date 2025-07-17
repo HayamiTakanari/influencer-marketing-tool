@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI搭載インフルエンサーマーケティングツール</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .ai-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .login-container {
+            max-width: 500px;
+            margin: 5rem auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 120px);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        
+        .sidebar nav ul {
+            list-style: none;
+        }
+        
+        .sidebar nav li {
+            margin: 1rem 0;
+        }
+        
+        .sidebar nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            color: #495057;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .ai-feature {
+            position: relative;
+        }
+        
+        .ai-feature::after {
+            content: 'AI';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: #333;
+            font-size: 0.6rem;
+            font-weight: bold;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+        }
+        
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 3rem 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+        
+        .feature-card.ai-powered {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .form-group {
+            margin: 1rem 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-ai {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: #333;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .recommendation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+            position: relative;
+        }
+        
+        .ai-score {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .match-reasons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .reason-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .prediction-result {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+        }
+        
+        .confidence-indicator {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .confidence-high {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .confidence-medium {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .confidence-low {
+            background: #f44336;
+            color: white;
+        }
+        
+        .hidden { display: none; }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .hero-section h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーション -->
+    <nav class="navbar">
+        <h1>🤖 AI搭載インフルエンサーマーケティングツール <span class="ai-badge">AI POWERED</span></h1>
+        <div class="user-info">
+            <span id="user-display">ログインしてください</span>
+            <button id="logout-btn" class="btn btn-secondary hidden" onclick="logout()">ログアウト</button>
+        </div>
+    </nav>
+
+    <!-- ログイン画面 -->
+    <div id="login-screen" class="login-container">
+        <h2 style="text-align: center; margin-bottom: 2rem;">AI搭載ツールにログイン</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h3>🏢 企業ログイン</h3>
+                <form id="company-form">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" value="company@test.com" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" value="test123" readonly>
+                    </div>
+                    <button type="submit" class="btn">企業としてログイン</button>
+                </form>
+            </div>
+            
+            <div>
+                <h3>⭐ インフルエンサーログイン</h3>
+                <form id="influencer-form">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" value="influencer@test.com" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" value="test123" readonly>
+                    </div>
+                    <button type="submit" class="btn">インフルエンサーとしてログイン</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ダッシュボード -->
+    <div id="dashboard-screen" class="container hidden">
+        <div class="dashboard">
+            <!-- サイドバー -->
+            <div class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="#" onclick="showSection('home', this)" class="active">🏠 ホーム</a></li>
+                        <li class="ai-feature"><a href="#" onclick="showSection('ai-recommendation', this)">🤖 AI推薦</a></li>
+                        <li class="ai-feature"><a href="#" onclick="showSection('engagement-prediction', this)">📊 エンゲージメント予測</a></li>
+                        <li class="ai-feature"><a href="#" onclick="showSection('campaign-analytics', this)">📈 キャンペーン分析</a></li>
+                        <li><a href="#" onclick="showSection('advanced-search', this)">🔍 高度検索</a></li>
+                        <li id="company-nav" class="hidden">
+                            <a href="#" onclick="showSection('create-campaign', this)">📝 キャンペーン作成</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- メインコンテンツ -->
+            <div class="main-content">
+                <!-- ホームセクション -->
+                <div id="home-section">
+                    <div class="hero-section">
+                        <h2>🚀 AI搭載インフルエンサーマーケティング</h2>
+                        <p>人工知能による最適なマッチング・予測・分析で、マーケティング効果を最大化</p>
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card ai-powered">
+                            <div class="feature-icon">🤖</div>
+                            <h3>AI推薦システム</h3>
+                            <p>ブランドに最適なインフルエンサーをAIが自動推薦</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3>エンゲージメント予測</h3>
+                            <p>キャンペーン実行前にエンゲージメント率を予測</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">📈</div>
+                            <h3>リアルタイム分析</h3>
+                            <p>キャンペーンのROIとパフォーマンスを詳細分析</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">🎯</div>
+                            <h3>競合分析</h3>
+                            <p>競合他社のインフルエンサー戦略を分析</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI推薦セクション -->
+                <div id="ai-recommendation-section" class="hidden">
+                    <h2>🤖 AIインフルエンサー推薦</h2>
+                    
+                    <form id="recommendation-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>プロジェクト説明</label>
+                                <textarea id="project-description" rows="3" placeholder="キャンペーンの内容を詳しく説明してください..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>ターゲットオーディエンス</label>
+                                <input type="text" id="target-audience" placeholder="例: 20-30代女性, ファッション好き">
+                            </div>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>予算（円）</label>
+                                <input type="number" id="budget" placeholder="100000">
+                            </div>
+                            <div class="form-group">
+                                <label>カテゴリ</label>
+                                <select id="category">
+                                    <option value="">カテゴリを選択</option>
+                                    <option value="LIFESTYLE">ライフスタイル</option>
+                                    <option value="BEAUTY">美容</option>
+                                    <option value="FASHION">ファッション</option>
+                                    <option value="FOOD">グルメ</option>
+                                    <option value="TECH">テクノロジー</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>キャンペーン目標</label>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <label><input type="checkbox" value="SALES"> 売上向上</label>
+                                <label><input type="checkbox" value="LEAD_GEN"> リード生成</label>
+                                <label><input type="checkbox" value="AWARENESS"> 認知拡大</label>
+                                <label><input type="checkbox" value="BRAND_IMAGE"> ブランドイメージ</label>
+                                <label><input type="checkbox" value="ENGAGEMENT"> エンゲージメント</label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-ai">🤖 AI推薦を実行</button>
+                    </form>
+                    
+                    <div id="recommendation-results"></div>
+                </div>
+
+                <!-- エンゲージメント予測セクション -->
+                <div id="engagement-prediction-section" class="hidden">
+                    <h2>📊 エンゲージメント予測</h2>
+                    
+                    <form id="prediction-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>インフルエンサーID</label>
+                                <input type="text" id="influencer-id" placeholder="インフルエンサーIDを入力">
+                            </div>
+                            <div class="form-group">
+                                <label>コンテンツタイプ</label>
+                                <select id="content-type">
+                                    <option value="photo">写真投稿</option>
+                                    <option value="video">動画投稿</option>
+                                    <option value="story">ストーリー</option>
+                                    <option value="reel">リール</option>
+                                    <option value="live">ライブ配信</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>ターゲットオーディエンス</label>
+                            <input type="text" id="prediction-audience" placeholder="ターゲットの詳細">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-ai">📊 エンゲージメント予測</button>
+                    </form>
+                    
+                    <div id="prediction-results"></div>
+                </div>
+
+                <!-- キャンペーン分析セクション -->
+                <div id="campaign-analytics-section" class="hidden">
+                    <h2>📈 キャンペーン分析</h2>
+                    
+                    <form id="analytics-form">
+                        <div class="form-group">
+                            <label>プロジェクトID</label>
+                            <input type="text" id="project-id" placeholder="分析するプロジェクトIDを入力">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-ai">📈 分析実行</button>
+                    </form>
+                    
+                    <div id="analytics-results"></div>
+                </div>
+
+                <!-- 高度検索セクション -->
+                <div id="advanced-search-section" class="hidden">
+                    <h2>🔍 高度インフルエンサー検索</h2>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>カテゴリ</label>
+                            <select id="search-category">
+                                <option value="ALL">すべて</option>
+                                <option value="LIFESTYLE">ライフスタイル</option>
+                                <option value="BEAUTY">美容</option>
+                                <option value="FASHION">ファッション</option>
+                                <option value="FOOD">グルメ</option>
+                                <option value="TECH">テクノロジー</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>都道府県</label>
+                            <select id="search-prefecture">
+                                <option value="ALL">すべて</option>
+                                <option value="東京都">東京都</option>
+                                <option value="大阪府">大阪府</option>
+                                <option value="神奈川県">神奈川県</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="advancedSearch()">🔍 検索実行</button>
+                    
+                    <div id="search-results"></div>
+                </div>
+
+                <!-- キャンペーン作成セクション -->
+                <div id="create-campaign-section" class="hidden">
+                    <h2>📝 AIアシスト キャンペーン作成</h2>
+                    
+                    <form id="campaign-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>キャンペーンタイトル</label>
+                                <input type="text" id="campaign-title" placeholder="例: 新商品PR キャンペーン">
+                            </div>
+                            <div class="form-group">
+                                <label>予算（円）</label>
+                                <input type="number" id="campaign-budget" placeholder="500000">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>キャンペーン詳細</label>
+                            <textarea id="campaign-details" rows="4" placeholder="キャンペーンの詳細を記載してください..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-ai">🤖 AIアシストで作成</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        const BACKEND_URL = 'http://localhost:5002';
+        
+        // ログイン機能
+        async function login(email, password) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('dashboard-screen').classList.remove('hidden');
+                    document.getElementById('user-display').textContent = `${data.user.email} (${data.user.role})`;
+                    document.getElementById('logout-btn').classList.remove('hidden');
+                    
+                    if (data.user.role === 'CLIENT') {
+                        document.getElementById('company-nav').classList.remove('hidden');
+                    }
+                    
+                    showSection('home');
+                    
+                } else {
+                    const error = await response.json();
+                    alert(`ログインエラー: ${error.error}`);
+                }
+            } catch (error) {
+                alert(`接続エラー: ${error.message}`);
+            }
+        }
+        
+        // ログアウト
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('user-display').textContent = 'ログインしてください';
+            document.getElementById('logout-btn').classList.add('hidden');
+            document.getElementById('company-nav').classList.add('hidden');
+        }
+        
+        // セクション表示切り替え
+        function showSection(sectionName, element = null) {
+            document.querySelectorAll('[id$="-section"]').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            document.getElementById(`${sectionName}-section`).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+        
+        // AI推薦実行
+        async function getAIRecommendations(event) {
+            event.preventDefault();
+            
+            const campaignGoals = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.value);
+            
+            const requestData = {
+                projectDescription: document.getElementById('project-description').value,
+                targetAudience: document.getElementById('target-audience').value,
+                budget: document.getElementById('budget').value,
+                category: document.getElementById('category').value,
+                campaignGoals
+            };
+            
+            const resultsDiv = document.getElementById('recommendation-results');
+            resultsDiv.innerHTML = '<div class="loading"></div> AI推薦を実行中...';
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/ai/recommend-influencers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <h3>🤖 AI推薦結果: ${data.totalRecommendations}件</h3>
+                        ${data.recommendations.map(rec => `
+                            <div class="recommendation-card">
+                                <div class="ai-score">AIスコア: ${rec.aiScore}</div>
+                                <h4>👤 ${rec.displayName}</h4>
+                                <p><strong>カテゴリ:</strong> ${rec.categories.join(', ')}</p>
+                                <p><strong>所在地:</strong> ${rec.prefecture}</p>
+                                <p><strong>価格帯:</strong> ${rec.priceRange}</p>
+                                <p><strong>実績:</strong> ${rec.totalAchievements}件</p>
+                                <p><strong>SNS:</strong> ${rec.socialAccounts}プラットフォーム</p>
+                                
+                                <div class="match-reasons">
+                                    <strong>マッチング理由:</strong>
+                                    ${rec.matchReasons.map(reason => `<span class="reason-tag">${reason}</span>`).join('')}
+                                </div>
+                                
+                                ${rec.servicePricing.length > 0 ? `
+                                    <div style="margin-top: 1rem;">
+                                        <strong>サービス料金:</strong>
+                                        ${rec.servicePricing.map(sp => `
+                                            <div>${sp.serviceTypeJp}: ¥${sp.price.toLocaleString()} / ${sp.unit}</div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                                
+                                <button class="btn" onclick="predictEngagement('${rec.id}', 'photo')" style="margin-top: 1rem;">
+                                    📊 エンゲージメント予測
+                                </button>
+                            </div>
+                        `).join('')}
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<div class="error-message">❌ エラー: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error-message">❌ 接続エラー: ${error.message}</div>`;
+            }
+        }
+        
+        // エンゲージメント予測
+        async function predictEngagement(influencerId = null, contentType = null) {
+            const id = influencerId || document.getElementById('influencer-id').value;
+            const type = contentType || document.getElementById('content-type').value;
+            const audience = document.getElementById('prediction-audience')?.value || '';
+            
+            if (!id) {
+                alert('インフルエンサーIDを入力してください');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('prediction-results');
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '<div class="loading"></div> エンゲージメント予測中...';
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/ai/predict-engagement`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        influencerId: id,
+                        contentType: type,
+                        targetAudience: audience
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const prediction = data.prediction;
+                    const resultHtml = `
+                        <div class="prediction-result">
+                            <h3>📊 ${prediction.influencerName} のエンゲージメント予測</h3>
+                            
+                            <div class="analytics-grid">
+                                <div class="metric-card">
+                                    <div class="metric-value">${prediction.estimatedEngagementRate}%</div>
+                                    <div>予想エンゲージメント率</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value">${prediction.estimatedReach.toLocaleString()}</div>
+                                    <div>予想リーチ</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value">${prediction.estimatedLikes.toLocaleString()}</div>
+                                    <div>予想いいね数</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value">${prediction.estimatedComments.toLocaleString()}</div>
+                                    <div>予想コメント数</div>
+                                </div>
+                            </div>
+                            
+                            <p><strong>コンテンツタイプ:</strong> ${prediction.contentType}</p>
+                            <p><strong>信頼度:</strong> 
+                                <span class="confidence-indicator confidence-${prediction.confidenceLevel.toLowerCase()}">
+                                    ${prediction.confidenceLevel}
+                                </span>
+                            </p>
+                            <p><strong>予測根拠:</strong> ${prediction.basedOnAchievements}件の過去実績</p>
+                        </div>
+                    `;
+                    
+                    if (resultsDiv) {
+                        resultsDiv.innerHTML = resultHtml;
+                    } else {
+                        // 推薦結果内での表示
+                        alert(`エンゲージメント予測: ${prediction.estimatedEngagementRate}% (${prediction.confidenceLevel})`);
+                    }
+                } else {
+                    const errorHtml = `<div class="error-message">❌ エラー: ${data.error}</div>`;
+                    if (resultsDiv) {
+                        resultsDiv.innerHTML = errorHtml;
+                    } else {
+                        alert(`エラー: ${data.error}`);
+                    }
+                }
+            } catch (error) {
+                const errorHtml = `<div class="error-message">❌ 接続エラー: ${error.message}</div>`;
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = errorHtml;
+                } else {
+                    alert(`接続エラー: ${error.message}`);
+                }
+            }
+        }
+        
+        // キャンペーン分析
+        async function analyzeCampaign(event) {
+            event.preventDefault();
+            
+            const projectId = document.getElementById('project-id').value;
+            if (!projectId) {
+                alert('プロジェクトIDを入力してください');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('analytics-results');
+            resultsDiv.innerHTML = '<div class="loading"></div> キャンペーン分析中...';
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/analytics/campaign`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projectId })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const analytics = data.analytics;
+                    resultsDiv.innerHTML = `
+                        <div class="prediction-result">
+                            <h3>📈 ${analytics.projectTitle} 分析結果</h3>
+                            <p><strong>企業:</strong> ${analytics.companyName}</p>
+                            <p><strong>予算:</strong> ¥${analytics.budget.toLocaleString()}</p>
+                            <p><strong>ステータス:</strong> ${analytics.status}</p>
+                        </div>
+                        
+                        <h4>📊 パフォーマンス指標</h4>
+                        <div class="analytics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value">${analytics.performance.reach.toLocaleString()}</div>
+                                <div>リーチ</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${analytics.performance.impressions.toLocaleString()}</div>
+                                <div>インプレッション</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${analytics.performance.engagements.toLocaleString()}</div>
+                                <div>エンゲージメント</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${analytics.performance.conversions}</div>
+                                <div>コンバージョン</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${analytics.performance.ctr}%</div>
+                                <div>CTR</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${analytics.roi.roiPercentage}%</div>
+                                <div>ROI</div>
+                            </div>
+                        </div>
+                        
+                        <h4>💰 ROI詳細</h4>
+                        <div class="feature-card">
+                            <p><strong>投資額:</strong> ¥${analytics.roi.investment.toLocaleString()}</p>
+                            <p><strong>収益:</strong> ¥${analytics.roi.revenue.toLocaleString()}</p>
+                            <p><strong>利益:</strong> ¥${analytics.roi.profit.toLocaleString()}</p>
+                            <p><strong>ROI:</strong> ${analytics.roi.roiPercentage}%</p>
+                        </div>
+                        
+                        <h4>👥 応募分析</h4>
+                        <div class="feature-card">
+                            <p><strong>総応募数:</strong> ${analytics.applicationAnalysis.totalApplications}件</p>
+                            <p><strong>平均返答時間:</strong> ${analytics.applicationAnalysis.averageResponseTime}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<div class="error-message">❌ エラー: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error-message">❌ 接続エラー: ${error.message}</div>`;
+            }
+        }
+        
+        // 高度検索
+        async function advancedSearch() {
+            const category = document.getElementById('search-category').value;
+            const prefecture = document.getElementById('search-prefecture').value;
+            
+            try {
+                const params = new URLSearchParams();
+                if (category !== 'ALL') params.append('category', category);
+                if (prefecture !== 'ALL') params.append('prefecture', prefecture);
+                
+                const response = await fetch(`${BACKEND_URL}/api/influencers/search?${params}`);
+                const data = await response.json();
+                
+                const resultsDiv = document.getElementById('search-results');
+                
+                if (data.influencers.length === 0) {
+                    resultsDiv.innerHTML = '<p>検索条件に該当するインフルエンサーが見つかりませんでした。</p>';
+                    return;
+                }
+                
+                resultsDiv.innerHTML = `
+                    <h3>検索結果: ${data.totalResults}件</h3>
+                    ${data.influencers.map(inf => `
+                        <div class="recommendation-card">
+                            <h4>👤 ${inf.displayName}</h4>
+                            <p><strong>カテゴリ:</strong> ${inf.categories.join(', ')}</p>
+                            <p><strong>所在地:</strong> ${inf.prefecture}</p>
+                            <p><strong>価格帯:</strong> ${inf.priceRange}</p>
+                            <p><strong>プロフィール:</strong> ${inf.bio || 'なし'}</p>
+                            <p><strong>SNSアカウント:</strong> ${inf.socialAccounts}件</p>
+                            
+                            <button class="btn" onclick="predictEngagement('${inf.id}', 'photo')" style="margin-top: 1rem;">
+                                📊 エンゲージメント予測
+                            </button>
+                        </div>
+                    `).join('')}
+                `;
+            } catch (error) {
+                document.getElementById('search-results').innerHTML = 
+                    `<div class="error-message">❌ 検索エラー: ${error.message}</div>`;
+            }
+        }
+        
+        // イベントリスナー
+        document.getElementById('company-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            login('company@test.com', 'test123');
+        });
+        
+        document.getElementById('influencer-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            login('influencer@test.com', 'test123');
+        });
+        
+        document.getElementById('recommendation-form').addEventListener('submit', getAIRecommendations);
+        document.getElementById('prediction-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            predictEngagement();
+        });
+        document.getElementById('analytics-form').addEventListener('submit', analyzeCampaign);
+    </script>
+</body>
+</html>

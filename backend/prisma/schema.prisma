@@ -28,6 +28,39 @@ enum ProjectStatus {
   CANCELLED
 }
 
+enum AchievementPurpose {
+  SALES        // 売上目的
+  LEAD_GEN     // 集客目的
+  AWARENESS    // 認知拡大目的
+  BRAND_IMAGE  // ブランドイメージ向上
+  ENGAGEMENT   // エンゲージメント向上
+}
+
+enum ServiceType {
+  PHOTOGRAPHY     // 撮影
+  VIDEO_EDITING   // 動画編集
+  CONTENT_CREATION // コンテンツ制作
+  POSTING         // 投稿
+  STORY_CREATION  // ストーリー制作
+  CONSULTATION    // コンサルティング
+  LIVE_STREAMING  // ライブ配信
+  EVENT_APPEARANCE // イベント出演
+}
+
+enum InquiryStatus {
+  PENDING     // 返答待ち
+  ACCEPTED    // 承諾
+  DECLINED    // 辞退
+  EXPIRED     // 期限切れ
+}
+
+enum MilestoneType {
+  CONCEPT_APPROVAL    // 構成案承認
+  VIDEO_COMPLETION    // 動画完成
+  FINAL_APPROVAL      // 最終承認
+  PUBLISH_DATE        // 投稿日
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -73,6 +106,7 @@ model Client {
   projects        Project[]
   applications    Application[]
   reviews         Review[]
+  bulkInquiries   BulkInquiry[]
 }
 
 model Influencer {
@@ -101,6 +135,9 @@ model Influencer {
   projects        Project[]
   portfolio       Portfolio[]
   reviews         Review[]
+  achievements    Achievement[]
+  servicePricing  ServicePricing[]
+  inquiryResponses InquiryResponse[]
 }
 
 model SocialAccount {
@@ -176,6 +213,7 @@ model Project {
   messages        Message[]
   transaction     Transaction?
   reviews         Review[]
+  schedule        ProjectSchedule?
 }
 
 model Application {
@@ -293,4 +331,125 @@ model Review {
   @@index([revieweeId, rating])
   @@index([influencerId, rating])
   @@index([clientId, rating])
+}
+
+// v3.0 新機能: インフルエンサー実績管理
+model Achievement {
+  id              String    @id @default(cuid())
+  influencerId    String
+  projectName     String
+  brandName       String
+  purpose         AchievementPurpose
+  platform        Platform
+  description     String?
+  metrics         Json?     // 成果指標: {views: 1000, likes: 100, shares: 50, conversions: 5}
+  budget          Int?      // 予算
+  duration        String?   // 実施期間
+  imageUrl        String?   // 実績画像
+  link            String?   // 実績URL
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@index([influencerId, purpose])
+  @@index([platform, purpose])
+}
+
+// v3.0 新機能: インフルエンサー料金体系
+model ServicePricing {
+  id              String    @id @default(cuid())
+  influencerId    String
+  serviceType     ServiceType
+  price           Int       // 料金（円）
+  unit            String    @default("per_post") // 単位: per_post, per_hour, per_day
+  description     String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([influencerId, serviceType])
+  @@index([influencerId, isActive])
+}
+
+// v3.0 新機能: 一斉問い合わせ
+model BulkInquiry {
+  id              String    @id @default(cuid())
+  clientId        String
+  title           String
+  description     String
+  budget          Int?
+  deadline        DateTime?
+  requiredServices ServiceType[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  client          Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  responses       InquiryResponse[]
+
+  @@index([clientId, createdAt])
+}
+
+// v3.0 新機能: 問い合わせ回答
+model InquiryResponse {
+  id              String    @id @default(cuid())
+  inquiryId       String
+  influencerId    String
+  status          InquiryStatus @default(PENDING)
+  proposedPrice   Int?
+  message         String?
+  availableFrom   DateTime?
+  availableTo     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  inquiry         BulkInquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([inquiryId, influencerId])
+  @@index([inquiryId, status])
+  @@index([influencerId, status])
+}
+
+// v3.0 新機能: スケジュール管理
+model ProjectSchedule {
+  id              String    @id @default(cuid())
+  projectId       String    @unique
+  publishDate     DateTime  // 投稿日
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestones      Milestone[]
+
+  @@index([publishDate])
+}
+
+// v3.0 新機能: マイルストーン管理
+model Milestone {
+  id              String    @id @default(cuid())
+  scheduleId      String
+  type            MilestoneType
+  title           String
+  description     String?
+  dueDate         DateTime
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  notificationSent Boolean  @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  schedule        ProjectSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, dueDate])
+  @@index([dueDate, isCompleted])
+  @@index([dueDate, notificationSent])
 }

@@ -1,0 +1,1 @@
+web: cd backend && node simple-backend.js

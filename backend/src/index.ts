@@ -17,6 +17,10 @@ import teamRoutes from './routes/team.routes';
 import notificationRoutes from './routes/notification.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import reviewRoutes from './routes/review.routes';
+import achievementRoutes from './routes/achievement.routes';
+import servicePricingRoutes from './routes/servicePricing.routes';
+import bulkInquiryRoutes from './routes/bulkInquiry.routes';
+import scheduleRoutes from './routes/schedule.routes';
 
 dotenv.config();
 
@@ -31,9 +35,14 @@ const app = express();
 const httpServer = createServer(app);
 
 // Setup Socket.io server
-const io = setupSocketServer(httpServer);
+try {
+  const io = setupSocketServer(httpServer);
+  console.log('Socket.io server initialized');
+} catch (error) {
+  console.error('Socket.io initialization error:', error);
+}
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5002;
 
 // Rate limiting
 const limiter = rateLimit({
@@ -67,6 +76,10 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/service-pricing', servicePricingRoutes);
+app.use('/api/bulk-inquiries', bulkInquiryRoutes);
+app.use('/api/schedules', scheduleRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
@@ -78,6 +91,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal server error' });
 });
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`Auth endpoint: http://localhost:${PORT}/api/auth/login`);
+}).on('error', (err) => {
+  console.error('Server error:', err);
 });

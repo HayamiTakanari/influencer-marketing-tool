@@ -21,6 +21,41 @@ const RegisterPage: React.FC = () => {
     setRegistrationLoading(true);
     setRegistrationError('');
     
+    // クライアントサイドバリデーション
+    if (!formData.email || !formData.password || !formData.name) {
+      setRegistrationError('必須項目をすべて入力してください。');
+      setRegistrationLoading(false);
+      return;
+    }
+    
+    if (formData.password.length < 8) {
+      setRegistrationError('パスワードは8文字以上で入力してください。');
+      setRegistrationLoading(false);
+      return;
+    }
+    
+    // メールアドレスの形式チェック
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setRegistrationError('有効なメールアドレスを入力してください。');
+      setRegistrationLoading(false);
+      return;
+    }
+    
+    // インフルエンサーの場合のカテゴリチェック
+    if (userType === 'influencer' && !formData.category) {
+      setRegistrationError('カテゴリーを選択してください。');
+      setRegistrationLoading(false);
+      return;
+    }
+    
+    // 企業の場合の会社名チェック
+    if (userType === 'client' && !formData.company) {
+      setRegistrationError('会社名を入力してください。');
+      setRegistrationLoading(false);
+      return;
+    }
+    
     try {
       const { register } = await import('../services/api');
       
@@ -28,19 +63,9 @@ const RegisterPage: React.FC = () => {
         email: formData.email,
         password: formData.password,
         role: userType === 'influencer' ? 'INFLUENCER' : 'CLIENT',
-        ...(userType === 'influencer' ? {
-          influencerData: {
-            displayName: formData.name,
-            categories: [formData.category],
-            bio: ''
-          }
-        } : {
-          clientData: {
-            companyName: formData.company,
-            contactName: formData.name,
-            industry: ''
-          }
-        })
+        displayName: userType === 'influencer' ? formData.name : undefined,
+        companyName: userType === 'client' ? formData.company : undefined,
+        contactName: userType === 'client' ? formData.name : undefined
       };
       
       const response = await register(registrationData);
@@ -55,6 +80,29 @@ const RegisterPage: React.FC = () => {
       console.error('Registration error:', err);
       if (err.response?.data?.error) {
         setRegistrationError(err.response.data.error);
+      } else if (err.response?.data?.details) {
+        // バリデーションエラーの詳細を表示
+        const details = err.response.data.details;
+        const messages = details.map((d: any) => {
+          // フィールド名を日本語に変換
+          const fieldMap: { [key: string]: string } = {
+            password: 'パスワード',
+            email: 'メールアドレス',
+            displayName: '表示名',
+            companyName: '会社名',
+            contactName: '担当者名'
+          };
+          const fieldName = fieldMap[d.path[0]] || d.path[0];
+          
+          // エラーメッセージを日本語化
+          if (d.code === 'too_small' && d.path[0] === 'password') {
+            return `${fieldName}は${d.minimum}文字以上で入力してください。`;
+          } else if (d.code === 'invalid_string' && d.validation === 'email') {
+            return '有効なメールアドレスを入力してください。';
+          }
+          return d.message;
+        }).join('、');
+        setRegistrationError(messages);
       } else {
         setRegistrationError('アカウント作成に失敗しました。もう一度お試しください。');
       }

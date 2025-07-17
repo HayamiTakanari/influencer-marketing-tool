@@ -22,6 +22,10 @@ const team_routes_1 = __importDefault(require("./routes/team.routes"));
 const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
 const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
 const review_routes_1 = __importDefault(require("./routes/review.routes"));
+const achievement_routes_1 = __importDefault(require("./routes/achievement.routes"));
+const servicePricing_routes_1 = __importDefault(require("./routes/servicePricing.routes"));
+const bulkInquiry_routes_1 = __importDefault(require("./routes/bulkInquiry.routes"));
+const schedule_routes_1 = __importDefault(require("./routes/schedule.routes"));
 dotenv_1.default.config();
 // Configure Cloudinary
 cloudinary_1.v2.config({
@@ -32,7 +36,13 @@ cloudinary_1.v2.config({
 const app = (0, express_1.default)();
 const httpServer = (0, http_1.createServer)(app);
 // Setup Socket.io server
-const io = (0, socket_service_1.setupSocketServer)(httpServer);
+try {
+    const io = (0, socket_service_1.setupSocketServer)(httpServer);
+    console.log('Socket.io server initialized');
+}
+catch (error) {
+    console.error('Socket.io initialization error:', error);
+}
 const PORT = process.env.PORT || 5000;
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
@@ -62,6 +72,10 @@ app.use('/api/teams', team_routes_1.default);
 app.use('/api/notifications', notification_routes_1.default);
 app.use('/api/analytics', analytics_routes_1.default);
 app.use('/api/reviews', review_routes_1.default);
+app.use('/api/achievements', achievement_routes_1.default);
+app.use('/api/service-pricing', servicePricing_routes_1.default);
+app.use('/api/bulk-inquiries', bulkInquiry_routes_1.default);
+app.use('/api/schedules', schedule_routes_1.default);
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
 });
@@ -70,6 +84,10 @@ app.use((err, req, res, next) => {
     console.error('Error:', err);
     res.status(500).json({ error: 'Internal server error' });
 });
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/health`);
+    console.log(`Auth endpoint: http://localhost:${PORT}/api/auth/login`);
+}).on('error', (err) => {
+    console.error('Server error:', err);
 });

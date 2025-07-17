@@ -14,6 +14,19 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    // クライアントサイドバリデーション
+    if (!email || !password) {
+      setError('メールアドレスとパスワードを入力してください。');
+      setLoading(false);
+      return;
+    }
+    
+    if (password.length < 8) {
+      setError('パスワードは8文字以上で入力してください。');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { login } = await import('../services/api');
@@ -29,6 +42,13 @@ const LoginPage: React.FC = () => {
       console.error('Login error:', err);
       if (err.response?.status === 401) {
         setError('メールアドレスまたはパスワードが間違っています。');
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.response?.data?.details) {
+        // バリデーションエラーの詳細を表示
+        const details = err.response.data.details;
+        const messages = details.map((d: any) => d.message).join('、');
+        setError(messages);
       } else {
         setError('ログインに失敗しました。もう一度お試しください。');
       }
@@ -39,11 +59,11 @@ const LoginPage: React.FC = () => {
 
   const fillTestAccount = (type: 'influencer' | 'client') => {
     if (type === 'influencer') {
-      setEmail('test.influencer@example.com');
-      setPassword('test123');
+      setEmail('test.influencer2@example.com');
+      setPassword('test123456');
     } else {
-      setEmail('test.company@example.com');
-      setPassword('test123');
+      setEmail('test.company2@example.com');
+      setPassword('test123456');
     }
   };
 

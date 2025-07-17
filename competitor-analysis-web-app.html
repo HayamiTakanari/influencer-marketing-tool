@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>競合他社分析 - インフルエンサーマーケティング</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .login-container {
+            max-width: 500px;
+            margin: 5rem auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 120px);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        
+        .sidebar nav ul {
+            list-style: none;
+        }
+        
+        .sidebar nav li {
+            margin: 1rem 0;
+        }
+        
+        .sidebar nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            color: #495057;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .analysis-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .analysis-controls {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .form-group {
+            margin: 1rem 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .analysis-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .analysis-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .analysis-card h4 {
+            margin-bottom: 1rem;
+            color: #495057;
+            font-size: 1.2rem;
+        }
+        
+        .metric-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 0.5rem 0;
+        }
+        
+        .competitor-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .competitor-table th, .competitor-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .competitor-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .competitor-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .risk-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .risk-high {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .risk-medium {
+            background: #ffd93d;
+            color: #333;
+        }
+        
+        .risk-low {
+            background: #6bcf7f;
+            color: white;
+        }
+        
+        .trending-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+        
+        .trending-influencer {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .trend-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .growth-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .growth-positive {
+            color: #28a745;
+        }
+        
+        .growth-negative {
+            color: #dc3545;
+        }
+        
+        .recommendations {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+        
+        .recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recommendations li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .recommendations li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        .hidden { display: none; }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 1px solid #c3e6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .trending-influencer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーション -->
+    <nav class="navbar">
+        <h1>🔍 競合他社分析</h1>
+        <div class="user-info">
+            <span id="user-display">ログインしてください</span>
+            <button id="logout-btn" class="btn btn-secondary hidden" onclick="logout()">ログアウト</button>
+        </div>
+    </nav>
+
+    <!-- ログイン画面 -->
+    <div id="login-screen" class="login-container">
+        <h2 style="text-align: center; margin-bottom: 2rem;">ログイン</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h3>🏢 企業ログイン</h3>
+                <form id="company-form">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" value="company@test.com" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" value="test123" readonly>
+                    </div>
+                    <button type="submit" class="btn">企業としてログイン</button>
+                </form>
+            </div>
+            
+            <div>
+                <h3>⭐ インフルエンサーログイン</h3>
+                <form id="influencer-form">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" value="influencer@test.com" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" value="test123" readonly>
+                    </div>
+                    <button type="submit" class="btn">インフルエンサーとしてログイン</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ダッシュボード -->
+    <div id="dashboard-screen" class="container hidden">
+        <div class="dashboard">
+            <!-- サイドバー -->
+            <div class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="#" onclick="showSection('competitor-analysis', this)" class="active">🔍 競合分析</a></li>
+                        <li><a href="#" onclick="showSection('trending-influencers', this)">📈 トレンドインフルエンサー</a></li>
+                        <li><a href="#" onclick="showSection('market-insights', this)">📊 市場インサイト</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- メインコンテンツ -->
+            <div class="main-content">
+                <!-- 競合分析セクション -->
+                <div id="competitor-analysis-section">
+                    <div class="analysis-header">
+                        <h2>🔍 競合他社分析</h2>
+                        <p>競合他社のインフルエンサーマーケティング戦略を分析し、優位性を見つけましょう</p>
+                    </div>
+                    
+                    <div class="analysis-controls">
+                        <h3>分析条件設定</h3>
+                        <form id="analysis-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>業界カテゴリ</label>
+                                    <select id="analysis-category" required>
+                                        <option value="">カテゴリを選択</option>
+                                        <option value="BEAUTY">美容</option>
+                                        <option value="FASHION">ファッション</option>
+                                        <option value="LIFESTYLE">ライフスタイル</option>
+                                        <option value="TECH">テクノロジー</option>
+                                        <option value="FOOD">グルメ</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>対象地域</label>
+                                    <select id="analysis-region">
+                                        <option value="ALL">全国</option>
+                                        <option value="東京都">東京都</option>
+                                        <option value="大阪府">大阪府</option>
+                                        <option value="神奈川県">神奈川県</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>エンゲージメント閾値</label>
+                                    <input type="number" id="engagement-threshold" value="1000" min="100">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn">分析開始</button>
+                        </form>
+                    </div>
+                    
+                    <div id="analysis-results"></div>
+                </div>
+
+                <!-- トレンドインフルエンサーセクション -->
+                <div id="trending-influencers-section" class="hidden">
+                    <div class="analysis-header">
+                        <h2>📈 トレンドインフルエンサー</h2>
+                        <p>急成長中のインフルエンサーを発見し、早期にパートナーシップを構築しましょう</p>
+                    </div>
+                    
+                    <div class="analysis-controls">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>カテゴリ</label>
+                                <select id="trending-category">
+                                    <option value="ALL">すべて</option>
+                                    <option value="BEAUTY">美容</option>
+                                    <option value="FASHION">ファッション</option>
+                                    <option value="LIFESTYLE">ライフスタイル</option>
+                                    <option value="TECH">テクノロジー</option>
+                                    <option value="FOOD">グルメ</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>期間</label>
+                                <select id="trending-timeframe">
+                                    <option value="7days">過去7日間</option>
+                                    <option value="30days" selected>過去30日間</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="loadTrendingInfluencers()">トレンド分析</button>
+                    </div>
+                    
+                    <div id="trending-results"></div>
+                </div>
+
+                <!-- 市場インサイトセクション -->
+                <div id="market-insights-section" class="hidden">
+                    <div class="analysis-header">
+                        <h2>📊 市場インサイト</h2>
+                        <p>業界全体のトレンドと機会を把握しましょう</p>
+                    </div>
+                    
+                    <div class="analysis-grid">
+                        <div class="analysis-card">
+                            <h4>📈 成長カテゴリ</h4>
+                            <div class="metric-display">美容・ファッション</div>
+                            <p>前月比+25%の成長率を記録</p>
+                        </div>
+                        
+                        <div class="analysis-card">
+                            <h4>💰 平均予算</h4>
+                            <div class="metric-display">¥850,000</div>
+                            <p>キャンペーンあたりの平均予算</p>
+                        </div>
+                        
+                        <div class="analysis-card">
+                            <h4>🎯 最適エンゲージメント</h4>
+                            <div class="metric-display">2.8%</div>
+                            <p>ROIが最も高いエンゲージメント率</p>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendations">
+                        <h3>💡 推奨戦略</h3>
+                        <ul>
+                            <li>マイクロインフルエンサー（フォロワー1-10万人）への投資を増やす</li>
+                            <li>動画コンテンツの重視（エンゲージメント率+40%）</li>
+                            <li>複数プラットフォームでの同時展開</li>
+                            <li>長期的なパートナーシップ構築</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        const BACKEND_URL = 'http://localhost:5002';
+        
+        // ログイン機能
+        async function login(email, password) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('dashboard-screen').classList.remove('hidden');
+                    document.getElementById('user-display').textContent = `${data.user.email} (${data.user.role})`;
+                    document.getElementById('logout-btn').classList.remove('hidden');
+                    
+                    showSection('competitor-analysis');
+                    
+                } else {
+                    const error = await response.json();
+                    alert(`ログインエラー: ${error.error}`);
+                }
+            } catch (error) {
+                alert(`接続エラー: ${error.message}`);
+            }
+        }
+        
+        // ログアウト
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('user-display').textContent = 'ログインしてください';
+            document.getElementById('logout-btn').classList.add('hidden');
+        }
+        
+        // セクション表示切り替え
+        function showSection(sectionName, element = null) {
+            document.querySelectorAll('[id$="-section"]').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            document.getElementById(`${sectionName}-section`).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+        
+        // 競合分析実行
+        async function runCompetitorAnalysis(event) {
+            event.preventDefault();
+            
+            const category = document.getElementById('analysis-category').value;
+            const region = document.getElementById('analysis-region').value;
+            const engagementThreshold = document.getElementById('engagement-threshold').value;
+            
+            if (!category) {
+                alert('カテゴリを選択してください');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = '<div class="loading">🔄 分析中...</div>';
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/competitor-analysis`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category,
+                        region: region === 'ALL' ? null : region,
+                        engagementThreshold: parseInt(engagementThreshold)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayAnalysisResults(data);
+                } else {
+                    resultsDiv.innerHTML = `<div class="error-message">❌ 分析エラー: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error-message">❌ 接続エラー: ${error.message}</div>`;
+            }
+        }
+        
+        // 分析結果表示
+        function displayAnalysisResults(data) {
+            const { analysis, competitors, influencerAnalysis } = data;
+            
+            const resultsDiv = document.getElementById('analysis-results');
+            resultsDiv.innerHTML = `
+                <h3>📊 分析結果サマリー</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>🏢 競合企業数</h4>
+                        <div class="metric-display">${analysis.totalCompetitors}</div>
+                        <p>分析対象企業数</p>
+                    </div>
+                    
+                    <div class="analysis-card">
+                        <h4>👥 活動中インフルエンサー</h4>
+                        <div class="metric-display">${analysis.activeInfluencers}</div>
+                        <p>競合が使用中のインフルエンサー</p>
+                    </div>
+                    
+                    <div class="analysis-card">
+                        <h4>💰 平均予算</h4>
+                        <div class="metric-display">¥${analysis.avgBudget.toLocaleString()}</div>
+                        <p>競合の平均キャンペーン予算</p>
+                    </div>
+                </div>
+                
+                <h3>🎯 競合が使用するインフルエンサー分析</h3>
+                <table class="competitor-table">
+                    <thead>
+                        <tr>
+                            <th>インフルエンサー</th>
+                            <th>競合使用回数</th>
+                            <th>平均エンゲージメント率</th>
+                            <th>推定料金</th>
+                            <th>リスクレベル</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${influencerAnalysis.map(inf => `
+                            <tr>
+                                <td>${inf.name}</td>
+                                <td>${inf.competitorUsage}回</td>
+                                <td>${inf.avgEngagement}%</td>
+                                <td>¥${inf.estimatedRate.toLocaleString()}</td>
+                                <td><span class="risk-badge risk-${inf.riskLevel.toLowerCase()}">${inf.riskLevel}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <div class="recommendations">
+                    <h3>💡 戦略的推奨事項</h3>
+                    <ul>
+                        ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+        
+        // トレンドインフルエンサー読み込み
+        async function loadTrendingInfluencers() {
+            const category = document.getElementById('trending-category').value;
+            const timeframe = document.getElementById('trending-timeframe').value;
+            
+            const resultsDiv = document.getElementById('trending-results');
+            resultsDiv.innerHTML = '<div class="loading">📈 トレンド分析中...</div>';
+            
+            try {
+                const params = new URLSearchParams();
+                if (category !== 'ALL') params.append('category', category);
+                params.append('timeframe', timeframe);
+                
+                const response = await fetch(`${BACKEND_URL}/api/trending-influencers?${params}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayTrendingResults(data);
+                } else {
+                    resultsDiv.innerHTML = `<div class="error-message">❌ 読み込みエラー: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error-message">❌ 接続エラー: ${error.message}</div>`;
+            }
+        }
+        
+        // トレンド結果表示
+        function displayTrendingResults(data) {
+            const { trendingInfluencers, timeframe, totalAnalyzed } = data;
+            
+            const resultsDiv = document.getElementById('trending-results');
+            resultsDiv.innerHTML = `
+                <div class="trending-section">
+                    <h3>📈 トレンドインフルエンサー（${timeframe === '7days' ? '過去7日間' : '過去30日間'}）</h3>
+                    <p>分析対象: ${totalAnalyzed}人のインフルエンサー</p>
+                    
+                    ${trendingInfluencers.length === 0 ? '<p>該当するトレンドインフルエンサーが見つかりませんでした。</p>' : 
+                        trendingInfluencers.map((inf, index) => `
+                            <div class="trending-influencer">
+                                <div>
+                                    <h4>${index + 1}. ${inf.name}</h4>
+                                    <p><strong>カテゴリ:</strong> ${inf.category.join(', ')}</p>
+                                    <p><strong>最近の投稿:</strong> ${inf.recentAchievements}件</p>
+                                    <p><strong>エンゲージメント率:</strong> ${inf.avgEngagement}%</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div class="trend-score">${inf.trendScore}</div>
+                                    <small>トレンドスコア</small>
+                                    <div class="growth-indicator">
+                                        <span class="${inf.growthRate >= 0 ? 'growth-positive' : 'growth-negative'}">
+                                            ${inf.growthRate >= 0 ? '↗' : '↘'} ${Math.abs(inf.growthRate)}%
+                                        </span>
+                                        ${inf.isRising ? '<span style="color: #ff6b6b;">🔥 急上昇</span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+            `;
+        }
+        
+        // イベントリスナー
+        document.getElementById('company-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            login('company@test.com', 'test123');
+        });
+        
+        document.getElementById('influencer-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            login('influencer@test.com', 'test123');
+        });
+        
+        document.getElementById('analysis-form').addEventListener('submit', runCompetitorAnalysis);
+        
+        // 初期化
+        window.addEventListener('load', () => {
+            // 初期状態でトレンドインフルエンサーを表示
+            if (currentUser) {
+                loadTrendingInfluencers();
+            }
+        });
+    </script>
+</body>
+</html>

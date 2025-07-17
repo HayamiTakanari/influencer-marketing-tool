@@ -232,5 +232,195 @@ class NotificationService {
             },
         });
     }
+    // v3.0 新機能: マイルストーン前日通知
+    static async sendMilestoneReminders() {
+        try {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            const endOfTomorrow = new Date(tomorrow);
+            endOfTomorrow.setHours(23, 59, 59, 999);
+            // 明日が期限のマイルストーンを取得
+            const milestones = await prisma.milestone.findMany({
+                where: {
+                    dueDate: {
+                        gte: tomorrow,
+                        lte: endOfTomorrow,
+                    },
+                    isCompleted: false,
+                    notificationSent: false,
+                },
+                include: {
+                    schedule: {
+                        include: {
+                            project: {
+                                include: {
+                                    client: { select: { userId: true } },
+                                    matchedInfluencer: { select: { userId: true } },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+            console.log(`Found ${milestones.length} milestones due tomorrow`);
+            for (const milestone of milestones) {
+                const project = milestone.schedule.project;
+                try {
+                    // クライアントに通知
+                    if (project.client.userId) {
+                        await this.createNotification({
+                            userId: project.client.userId,
+                            type: 'PROJECT_STATUS_CHANGED',
+                            title: 'マイルストーン期限のお知らせ',
+                            message: `「${project.title}」の「${milestone.title}」が明日期限です`,
+                            data: {
+                                projectId: project.id,
+                                milestoneId: milestone.id,
+                                scheduleId: milestone.scheduleId,
+                                type: 'milestone_reminder',
+                            },
+                        });
+                    }
+                    // インフルエンサーに通知
+                    if (project.matchedInfluencer?.userId) {
+                        await this.createNotification({
+                            userId: project.matchedInfluencer.userId,
+                            type: 'PROJECT_STATUS_CHANGED',
+                            title: 'マイルストーン期限のお知らせ',
+                            message: `「${project.title}」の「${milestone.title}」が明日期限です`,
+                            data: {
+                                projectId: project.id,
+                                milestoneId: milestone.id,
+                                scheduleId: milestone.scheduleId,
+                                type: 'milestone_reminder',
+                            },
+                        });
+                    }
+                    // 通知送信フラグを更新
+                    await prisma.milestone.update({
+                        where: { id: milestone.id },
+                        data: { notificationSent: true },
+                    });
+                    console.log(`Sent reminder for milestone ${milestone.id}: ${milestone.title}`);
+                }
+                catch (error) {
+                    console.error(`Failed to send reminder for milestone ${milestone.id}:`, error);
+                }
+            }
+            console.log(`Milestone reminders sent: ${milestones.length}`);
+        }
+        catch (error) {
+            console.error('Error sending milestone reminders:', error);
+        }
+    }
+    // v3.0 新機能: 期限切れマイルストーンの確認
+    static async checkOverdueMilestones() {
+        try {
+            const now = new Date();
+            const overdueMilestones = await prisma.milestone.findMany({
+                where: {
+                    dueDate: {
+                        lt: now,
+                    },
+                    isCompleted: false,
+                },
+                include: {
+                    schedule: {
+                        include: {
+                            project: {
+                                include: {
+                                    client: { select: { userId: true } },
+                                    matchedInfluencer: { select: { userId: true } },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+            console.log(`Found ${overdueMilestones.length} overdue milestones`);
+            for (const milestone of overdueMilestones) {
+                const project = milestone.schedule.project;
+                try {
+                    // クライアントに通知
+                    if (project.client.userId) {
+                        await this.createNotification({
+                            userId: project.client.userId,
+                            type: 'PROJECT_STATUS_CHANGED',
+                            title: 'マイルストーン期限超過のお知らせ',
+                            message: `「${project.title}」の「${milestone.title}」の期限が過ぎています`,
+                            data: {
+                                projectId: project.id,
+                                milestoneId: milestone.id,
+                                scheduleId: milestone.scheduleId,
+                                type: 'milestone_overdue',
+                            },
+                        });
+                    }
+                    // インフルエンサーに通知
+                    if (project.matchedInfluencer?.userId) {
+                        await this.createNotification({
+                            userId: project.matchedInfluencer.userId,
+                            type: 'PROJECT_STATUS_CHANGED',
+                            title: 'マイルストーン期限超過のお知らせ',
+                            message: `「${project.title}」の「${milestone.title}」の期限が過ぎています`,
+                            data: {
+                                projectId: project.id,
+                                milestoneId: milestone.id,
+                                scheduleId: milestone.scheduleId,
+                                type: 'milestone_overdue',
+                            },
+                        });
+                    }
+                    console.log(`Sent overdue notification for milestone ${milestone.id}: ${milestone.title}`);
+                }
+                catch (error) {
+                    console.error(`Failed to send overdue notification for milestone ${milestone.id}:`, error);
+                }
+            }
+            console.log(`Overdue milestone notifications sent: ${overdueMilestones.length}`);
+        }
+        catch (error) {
+            console.error('Error checking overdue milestones:', error);
+        }
+    }
+    // v3.0 新機能: 一斉問い合わせの期限切れチェック
+    static async checkExpiredInquiries() {
+        try {
+            const now = new Date();
+            const expiredInquiries = await prisma.bulkInquiry.findMany({
+                where: {
+                    deadline: {
+                        lt: now,
+                    },
+                },
+                include: {
+                    responses: {
+                        where: {
+                            status: 'PENDING',
+                        },
+                    },
+                },
+            });
+            console.log(`Found ${expiredInquiries.length} expired inquiries`);
+            for (const inquiry of expiredInquiries) {
+                // 未回答の問い合わせを期限切れに更新
+                await prisma.inquiryResponse.updateMany({
+                    where: {
+                        inquiryId: inquiry.id,
+                        status: 'PENDING',
+                    },
+                    data: {
+                        status: 'EXPIRED',
+                    },
+                });
+                console.log(`Updated expired inquiry ${inquiry.id}: ${inquiry.title}`);
+            }
+            console.log(`Expired inquiries updated: ${expiredInquiries.length}`);
+        }
+        catch (error) {
+            console.error('Error checking expired inquiries:', error);
+        }
+    }
 }
 exports.NotificationService = NotificationService;

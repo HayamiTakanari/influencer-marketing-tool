@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロジェクトスケジュール管理 - インフルエンサーマーケティング</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            font-size: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .login-container {
+            max-width: 500px;
+            margin: 5rem auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 120px);
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            height: fit-content;
+        }
+        
+        .sidebar nav ul {
+            list-style: none;
+        }
+        
+        .sidebar nav li {
+            margin: 1rem 0;
+        }
+        
+        .sidebar nav a {
+            display: block;
+            padding: 0.8rem 1rem;
+            text-decoration: none;
+            color: #495057;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .form-group {
+            margin: 1rem 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .schedule-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .milestone-timeline {
+            position: relative;
+            margin: 2rem 0;
+        }
+        
+        .milestone-item {
+            position: relative;
+            padding: 1rem 0 1rem 3rem;
+            border-left: 2px solid #e9ecef;
+        }
+        
+        .milestone-item:last-child {
+            border-left: none;
+        }
+        
+        .milestone-item.completed {
+            border-left-color: #28a745;
+        }
+        
+        .milestone-item.overdue {
+            border-left-color: #dc3545;
+        }
+        
+        .milestone-item.upcoming {
+            border-left-color: #ffc107;
+        }
+        
+        .milestone-icon {
+            position: absolute;
+            left: -0.5rem;
+            top: 1.5rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: #e9ecef;
+            border: 2px solid white;
+        }
+        
+        .milestone-item.completed .milestone-icon {
+            background: #28a745;
+        }
+        
+        .milestone-item.overdue .milestone-icon {
+            background: #dc3545;
+        }
+        
+        .milestone-item.upcoming .milestone-icon {
+            background: #ffc107;
+        }
+        
+        .milestone-content {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+        
+        .milestone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .milestone-date {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .milestone-status {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-overdue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .days-indicator {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .days-indicator.overdue {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .days-indicator.upcoming {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .project-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .project-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .schedule-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .overview-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .overview-card.completed {
+            border-left-color: #28a745;
+        }
+        
+        .overview-card.pending {
+            border-left-color: #ffc107;
+        }
+        
+        .overview-card.overdue {
+            border-left-color: #dc3545;
+        }
+        
+        .overview-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .hidden { display: none; }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .schedule-settings {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .project-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーション -->
+    <nav class="navbar">
+        <h1>📅 プロジェクトスケジュール管理</h1>
+        <div class="user-info">
+            <span id="user-display">ログインしてください</span>
+            <button id="logout-btn" class="btn btn-secondary hidden" onclick="logout()">ログアウト</button>
+        </div>
+    </nav>
+
+    <!-- ログイン画面 -->
+    <div id="login-screen" class="login-container">
+        <h2 style="text-align: center; margin-bottom: 2rem;">ログイン</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h3>🏢 企業ログイン</h3>
+                <form id="company-form">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" value="company@test.com" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" value="test123" readonly>
+                    </div>
+                    <button type="submit" class="btn">企業としてログイン</button>
+                </form>
+            </div>
+            
+            <div>
+                <h3>⭐ インフルエンサーログイン</h3>
+                <form id="influencer-form">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" value="influencer@test.com" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" value="test123" readonly>
+                    </div>
+                    <button type="submit" class="btn">インフルエンサーとしてログイン</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ダッシュボード -->
+    <div id="dashboard-screen" class="container hidden">
+        <div class="dashboard">
+            <!-- サイドバー -->
+            <div class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="#" onclick="showSection('schedule-list', this)" class="active">📋 スケジュール一覧</a></li>
+                        <li id="company-nav" class="hidden">
+                            <a href="#" onclick="showSection('create-schedule', this)">📅 スケジュール作成</a>
+                        </li>
+                        <li><a href="#" onclick="showSection('schedule-detail', this)">🔍 詳細スケジュール</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- メインコンテンツ -->
+            <div class="main-content">
+                <!-- スケジュール一覧セクション -->
+                <div id="schedule-list-section">
+                    <h2>📋 自分のプロジェクトスケジュール</h2>
+                    
+                    <button class="btn" onclick="loadUserSchedules()">スケジュール一覧を更新</button>
+                    
+                    <div id="schedule-list-results" style="margin-top: 2rem;"></div>
+                </div>
+
+                <!-- スケジュール作成セクション -->
+                <div id="create-schedule-section" class="hidden">
+                    <h2>📅 新しいプロジェクトスケジュール作成</h2>
+                    
+                    <div class="schedule-settings">
+                        <h3>スケジュール設定</h3>
+                        <form id="schedule-form">
+                            <div class="form-group">
+                                <label>プロジェクトID</label>
+                                <input type="text" id="project-id" required placeholder="プロジェクトIDを入力">
+                                <small>案件が確定したプロジェクトのIDを入力してください</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>投稿予定日</label>
+                                <input type="date" id="publish-date" required>
+                            </div>
+                            
+                            <h4>期間設定（日数）</h4>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>構成案初稿提出期限（投稿日の何日前）</label>
+                                    <input type="number" id="concept-submission-days" value="14" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>構成案確認期間</label>
+                                    <input type="number" id="concept-review-days" value="3" min="1" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>構成案修正期間</label>
+                                    <input type="number" id="concept-revision-days" value="2" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>動画制作期間（構成案確定後）</label>
+                                    <input type="number" id="video-submission-days" value="5" min="1" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>動画確認期間</label>
+                                    <input type="number" id="video-review-days" value="2" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>動画修正期間</label>
+                                    <input type="number" id="video-revision-days" value="2" min="1" required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn">スケジュールを作成</button>
+                        </form>
+                        
+                        <div id="schedule-result"></div>
+                    </div>
+                </div>
+
+                <!-- 詳細スケジュールセクション -->
+                <div id="schedule-detail-section" class="hidden">
+                    <h2>🔍 プロジェクト詳細スケジュール</h2>
+                    
+                    <div class="form-group">
+                        <label>プロジェクトIDを入力</label>
+                        <div style="display: flex; gap: 1rem;">
+                            <input type="text" id="detail-project-id" placeholder="プロジェクトIDを入力">
+                            <button class="btn" onclick="loadProjectSchedule()">スケジュール表示</button>
+                        </div>
+                    </div>
+                    
+                    <div id="schedule-detail-results"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        const BACKEND_URL = 'http://localhost:5002';
+        
+        // ログイン機能
+        async function login(email, password) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('dashboard-screen').classList.remove('hidden');
+                    document.getElementById('user-display').textContent = `${data.user.email} (${data.user.role})`;
+                    document.getElementById('logout-btn').classList.remove('hidden');
+                    
+                    // ナビゲーション表示制御
+                    if (data.user.role === 'CLIENT') {
+                        document.getElementById('company-nav').classList.remove('hidden');
+                    }
+                    
+                    showSection('schedule-list');
+                    loadUserSchedules();
+                    
+                } else {
+                    const error = await response.json();
+                    alert(`ログインエラー: ${error.error}`);
+                }
+            } catch (error) {
+                alert(`接続エラー: ${error.message}`);
+            }
+        }
+        
+        // ログアウト
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('user-display').textContent = 'ログインしてください';
+            document.getElementById('logout-btn').classList.add('hidden');
+            document.getElementById('company-nav').classList.add('hidden');
+        }
+        
+        // セクション表示切り替え
+        function showSection(sectionName, element = null) {
+            document.querySelectorAll('[id$="-section"]').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            document.getElementById(`${sectionName}-section`).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+        
+        // ユーザーのスケジュール一覧読み込み
+        async function loadUserSchedules() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/schedules/user/${currentUser.id}?role=${currentUser.role}`);
+                const data = await response.json();
+                
+                const resultsDiv = document.getElementById('schedule-list-results');
+                
+                if (data.schedules.length === 0) {
+                    resultsDiv.innerHTML = '<p>スケジュールが設定されたプロジェクトはありません。</p>';
+                    return;
+                }
+                
+                resultsDiv.innerHTML = `
+                    <h3>進行中のプロジェクト: ${data.totalSchedules}件</h3>
+                    ${data.schedules.map(schedule => `
+                        <div class="schedule-card">
+                            <h4>📝 ${schedule.projectTitle}</h4>
+                            <div class="project-info">
+                                <div>
+                                    <p><strong>企業:</strong> ${schedule.companyName}</p>
+                                    <p><strong>インフルエンサー:</strong> ${schedule.influencerName || '未設定'}</p>
+                                </div>
+                                <div>
+                                    <p><strong>投稿予定日:</strong> ${new Date(schedule.publishDate).toLocaleDateString()}</p>
+                                    <button class="btn btn-small" onclick="viewScheduleDetail('${schedule.projectId}')">詳細表示</button>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 1rem;">
+                                <h5>🎯 次のマイルストーン</h5>
+                                ${schedule.upcomingMilestones.length > 0 ? 
+                                    schedule.upcomingMilestones.map(milestone => `
+                                        <div style="background: #f8f9fa; padding: 0.8rem; border-radius: 8px; margin: 0.5rem 0; ${milestone.isOverdue ? 'border-left: 4px solid #dc3545;' : milestone.daysUntilDue <= 1 ? 'border-left: 4px solid #ffc107;' : ''}">
+                                            <strong>${milestone.title}</strong>
+                                            <span style="float: right; color: ${milestone.isOverdue ? '#dc3545' : milestone.daysUntilDue <= 1 ? '#ffc107' : '#495057'};">
+                                                ${milestone.isOverdue ? 
+                                                    `⚠️ ${Math.abs(milestone.daysUntilDue)}日遅延` : 
+                                                    milestone.daysUntilDue <= 0 ? '今日が期限!' :
+                                                    `残り${milestone.daysUntilDue}日`
+                                                }
+                                            </span>
+                                            <br><small>${new Date(milestone.dueDate).toLocaleDateString()}</small>
+                                        </div>
+                                    `).join('') : 
+                                    '<p>完了済み</p>'
+                                }
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } catch (error) {
+                document.getElementById('schedule-list-results').innerHTML = 
+                    `<div class="error-message">❌ 読み込みエラー: ${error.message}</div>`;
+            }
+        }
+        
+        // スケジュール作成
+        async function createSchedule(event) {
+            event.preventDefault();
+            
+            const scheduleData = {
+                projectId: document.getElementById('project-id').value,
+                publishDate: document.getElementById('publish-date').value,
+                conceptSubmissionDays: parseInt(document.getElementById('concept-submission-days').value),
+                conceptReviewDays: parseInt(document.getElementById('concept-review-days').value),
+                conceptRevisionDays: parseInt(document.getElementById('concept-revision-days').value),
+                videoSubmissionDays: parseInt(document.getElementById('video-submission-days').value),
+                videoReviewDays: parseInt(document.getElementById('video-review-days').value),
+                videoRevisionDays: parseInt(document.getElementById('video-revision-days').value)
+            };
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/project-schedule`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(scheduleData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('schedule-result').innerHTML = 
+                        `<div class="success-message">✅ スケジュールが正常に作成されました！<br>
+                        マイルストーン数: ${result.schedule.milestonesCount}件</div>`;
+                    document.getElementById('schedule-form').reset();
+                } else {
+                    document.getElementById('schedule-result').innerHTML = 
+                        `<div class="error-message">❌ エラー: ${result.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('schedule-result').innerHTML = 
+                    `<div class="error-message">❌ 接続エラー: ${error.message}</div>`;
+            }
+        }
+        
+        // プロジェクトスケジュール詳細読み込み
+        async function loadProjectSchedule() {
+            const projectId = document.getElementById('detail-project-id').value;
+            if (!projectId) {
+                alert('プロジェクトIDを入力してください');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/project-schedule/${projectId}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    document.getElementById('schedule-detail-results').innerHTML = 
+                        `<div class="error-message">❌ エラー: ${data.error}</div>`;
+                    return;
+                }
+                
+                const schedule = data.schedule;
+                const completed = schedule.milestones.filter(m => m.isCompleted).length;
+                const pending = schedule.milestones.filter(m => !m.isCompleted && !m.isOverdue).length;
+                const overdue = schedule.milestones.filter(m => m.isOverdue).length;
+                
+                document.getElementById('schedule-detail-results').innerHTML = `
+                    <div class="project-header">
+                        <h3>📝 ${schedule.projectTitle}</h3>
+                        <div class="project-info">
+                            <div>
+                                <p><strong>企業:</strong> ${schedule.companyName}</p>
+                                <p><strong>インフルエンサー:</strong> ${schedule.influencerName || '未設定'}</p>
+                            </div>
+                            <div>
+                                <p><strong>投稿予定日:</strong> ${new Date(schedule.publishDate).toLocaleDateString()}</p>
+                                <p><strong>スケジュールID:</strong> ${schedule.id}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-overview">
+                        <div class="overview-card completed">
+                            <div class="overview-number">${completed}</div>
+                            <div>完了済み</div>
+                        </div>
+                        <div class="overview-card pending">
+                            <div class="overview-number">${pending}</div>
+                            <div>進行中</div>
+                        </div>
+                        <div class="overview-card overdue">
+                            <div class="overview-number">${overdue}</div>
+                            <div>遅延中</div>
+                        </div>
+                    </div>
+                    
+                    <div class="milestone-timeline">
+                        <h4>📅 マイルストーン一覧</h4>
+                        ${schedule.milestones.map(milestone => {
+                            const statusClass = milestone.isCompleted ? 'completed' : 
+                                              milestone.isOverdue ? 'overdue' : 'upcoming';
+                            const statusText = milestone.isCompleted ? '完了' : 
+                                             milestone.isOverdue ? '遅延' : '進行中';
+                            const statusCssClass = milestone.isCompleted ? 'status-completed' : 
+                                                  milestone.isOverdue ? 'status-overdue' : 'status-pending';
+                            
+                            return `
+                                <div class="milestone-item ${statusClass}">
+                                    <div class="milestone-icon"></div>
+                                    <div class="milestone-content">
+                                        <div class="milestone-header">
+                                            <h5>${milestone.title}</h5>
+                                            <span class="milestone-status ${statusCssClass}">${statusText}</span>
+                                        </div>
+                                        <div class="milestone-date">
+                                            期限: ${new Date(milestone.dueDate).toLocaleDateString()}
+                                            ${milestone.completedAt ? ` (完了: ${new Date(milestone.completedAt).toLocaleDateString()})` : ''}
+                                        </div>
+                                        <p>${milestone.description}</p>
+                                        <div class="days-indicator ${milestone.isOverdue ? 'overdue' : 'upcoming'}">
+                                            ${milestone.isCompleted ? '✅ 完了済み' : 
+                                              milestone.isOverdue ? `⚠️ ${Math.abs(milestone.daysUntilDue)}日遅延` : 
+                                              milestone.daysUntilDue <= 0 ? '🔥 今日が期限!' :
+                                              `⏰ 残り${milestone.daysUntilDue}日`
+                                            }
+                                        </div>
+                                        ${!milestone.isCompleted ? 
+                                            `<button class="btn btn-success btn-small" onclick="completeMilestone('${milestone.id}')" style="margin-top: 0.5rem;">完了としてマーク</button>` : 
+                                            ''
+                                        }
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('schedule-detail-results').innerHTML = 
+                    `<div class="error-message">❌ 読み込みエラー: ${error.message}</div>`;
+            }
+        }
+        
+        // スケジュール詳細表示（一覧から）
+        function viewScheduleDetail(projectId) {
+            document.getElementById('detail-project-id').value = projectId;
+            showSection('schedule-detail');
+            loadProjectSchedule();
+        }
+        
+        // マイルストーン完了
+        async function completeMilestone(milestoneId) {
+            if (!confirm('このマイルストーンを完了としてマークしますか？')) return;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/milestone/${milestoneId}/complete`, {
+                    method: 'PUT'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // スケジュール詳細を再読み込み
+                    loadProjectSchedule();
+                    // 一覧も更新
+                    loadUserSchedules();
+                } else {
+                    alert('エラー: ' + result.error);
+                }
+            } catch (error) {
+                alert('エラー: ' + error.message);
+            }
+        }
+        
+        // イベントリスナー
+        document.getElementById('company-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            login('company@test.com', 'test123');
+        });
+        
+        document.getElementById('influencer-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            login('influencer@test.com', 'test123');
+        });
+        
+        document.getElementById('schedule-form').addEventListener('submit', createSchedule);
+        
+        // 初期化
+        window.addEventListener('load', () => {
+            // 明日の日付をデフォルトに設定
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('publish-date').value = tomorrow.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>
