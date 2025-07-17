@@ -36,6 +36,18 @@ const mockUsers = [
     email: "influencer@test.com",
     role: "INFLUENCER",
     name: "テストインフルエンサー"
+  },
+  {
+    id: "3",
+    email: "test.company2@example.com",
+    role: "CLIENT",
+    name: "テスト企業2"
+  },
+  {
+    id: "4", 
+    email: "test.influencer2@example.com",
+    role: "INFLUENCER",
+    name: "テストインフルエンサー2"
   }
 ];
 
@@ -88,7 +100,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Mock authentication - in production, use proper password hashing
-    if (password === 'test123') {
+    if (password === 'test123' || password === 'test123456') {
       res.json({
         user: {
           id: user.id,
