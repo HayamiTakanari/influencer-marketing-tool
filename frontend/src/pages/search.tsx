@@ -120,7 +120,7 @@ const SearchPage: React.FC = () => {
       setUser(parsedUser);
       
       // 企業ユーザーのみアクセス可能
-      if (parsedUser.role !== 'CLIENT') {
+      if (parsedUser.role !== 'COMPANY' && parsedUser.role !== 'CLIENT') {
         router.push('/dashboard');
         return;
       }
