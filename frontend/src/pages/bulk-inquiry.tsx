@@ -79,7 +79,7 @@ const BulkInquiryPage: React.FC = () => {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
 
-    if (parsedUser.role === 'CLIENT') {
+    if (parsedUser.role === 'CLIENT' || parsedUser.role === 'COMPANY') {
       setActiveTab('create');
     } else if (parsedUser.role === 'INFLUENCER') {
       setActiveTab('received');
@@ -89,7 +89,7 @@ const BulkInquiryPage: React.FC = () => {
     }
 
     fetchData();
-    if (parsedUser.role === 'CLIENT') {
+    if (parsedUser.role === 'CLIENT' || parsedUser.role === 'COMPANY') {
       fetchInfluencers();
     }
   }, [router]);
@@ -99,7 +99,7 @@ const BulkInquiryPage: React.FC = () => {
       setLoading(true);
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       
-      if (userData.role === 'CLIENT') {
+      if (userData.role === 'CLIENT' || userData.role === 'COMPANY') {
         const [inquiriesData, statsData] = await Promise.all([
           getMyBulkInquiries(),
           getInquiryStats()
@@ -249,7 +249,7 @@ const BulkInquiryPage: React.FC = () => {
 
         {/* タブ */}
         <div className="flex space-x-4 mb-8">
-          {user?.role === 'CLIENT' && (
+          {(user?.role === 'CLIENT' || user?.role === 'COMPANY') && (
             <>
               <button
                 onClick={() => setActiveTab('create')}
@@ -288,7 +288,7 @@ const BulkInquiryPage: React.FC = () => {
         </div>
 
         {/* 問い合わせ作成タブ */}
-        {activeTab === 'create' && user?.role === 'CLIENT' && (
+        {activeTab === 'create' && (user?.role === 'CLIENT' || user?.role === 'COMPANY') && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -406,7 +406,7 @@ const BulkInquiryPage: React.FC = () => {
         )}
 
         {/* 送信済みタブ */}
-        {activeTab === 'sent' && user?.role === 'CLIENT' && (
+        {activeTab === 'sent' && (user?.role === 'CLIENT' || user?.role === 'COMPANY') && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

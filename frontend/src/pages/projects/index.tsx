@@ -54,7 +54,7 @@ const ProjectsPage: React.FC = () => {
       setUser(parsedUser);
       
       // 企業ユーザーのみアクセス可能
-      if (parsedUser.role !== 'CLIENT') {
+      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
         router.push('/dashboard');
         return;
       }
@@ -392,10 +392,10 @@ const ProjectsPage: React.FC = () => {
               </div>
               <div className="text-gray-600">募集中</div>
             </div>
-            <div className="text-3xl font-bold text-green-600 mb-2">
-              {projects.filter(p => p.status === 'IN_PROGRESS').length}
-            </div>
             <div className="text-center">
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                {projects.filter(p => p.status === 'IN_PROGRESS').length}
+              </div>
               <div className="text-gray-600">進行中</div>
             </div>
             <div className="text-center">
