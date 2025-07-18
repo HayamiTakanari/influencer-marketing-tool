@@ -759,6 +759,71 @@ app.get('/api/notifications/:userId', (req, res) => {
 });
 
 // Chat endpoints
+app.get('/api/chat/chats', (req, res) => {
+  try {
+    const mockChatList = [
+      {
+        id: '1',
+        title: '新商品コスメのPRキャンペーン',
+        status: 'IN_PROGRESS',
+        matchedInfluencer: {
+          user: {
+            id: 'inf1',
+            email: 'tanaka@example.com'
+          },
+          displayName: '田中美咲'
+        },
+        messages: [
+          {
+            id: 'msg1',
+            content: 'プロジェクトに参加させていただきありがとうございます！',
+            createdAt: new Date(Date.now() - 3600000).toISOString(),
+            senderId: 'inf1',
+            receiverId: 'current-user',
+            isRead: true,
+            sender: {
+              id: 'inf1',
+              role: 'INFLUENCER'
+            }
+          }
+        ],
+        unreadCount: 0
+      },
+      {
+        id: '2',
+        title: 'ライフスタイル商品のレビュー',
+        status: 'IN_PROGRESS',
+        matchedInfluencer: {
+          user: {
+            id: 'inf2',
+            email: 'suzuki@example.com'
+          },
+          displayName: '鈴木さやか'
+        },
+        messages: [
+          {
+            id: 'msg2',
+            content: '商品サンプルはいつ頃届きますでしょうか？',
+            createdAt: new Date(Date.now() - 7200000).toISOString(),
+            senderId: 'inf2',
+            receiverId: 'current-user',
+            isRead: false,
+            sender: {
+              id: 'inf2',
+              role: 'INFLUENCER'
+            }
+          }
+        ],
+        unreadCount: 1
+      }
+    ];
+    
+    res.json(mockChatList);
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
 app.get('/api/chat/rooms/:userId', (req, res) => {
   try {
     res.json({ 
