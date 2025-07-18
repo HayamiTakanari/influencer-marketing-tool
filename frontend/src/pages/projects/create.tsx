@@ -96,7 +96,7 @@ const CreateProjectPage: React.FC = () => {
       const result = await createProject(formData);
       console.log('Project created:', result);
       
-      router.push('/projects');
+      router.push(`/project-detail?id=${result.project.id}`);
     } catch (err: any) {
       console.error('Error creating project:', err);
       setError(err.response?.data?.error || 'プロジェクトの作成に失敗しました。');

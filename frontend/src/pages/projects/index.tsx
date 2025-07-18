@@ -253,7 +253,7 @@ const ProjectsPage: React.FC = () => {
                     <button
                       onClick={() => {
                         console.log('Detail button clicked!');
-                        window.location.href = `/projects/${project.id}`;
+                        router.push(`/project-detail?id=${project.id}`);
                       }}
                       className="px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors hover:scale-105"
                     >
