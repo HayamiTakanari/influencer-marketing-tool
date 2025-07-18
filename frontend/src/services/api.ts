@@ -35,22 +35,22 @@ export const searchInfluencers = async (filters: any) => {
 };
 
 export const getInfluencerById = async (id: string) => {
-  const response = await api.get(`/influencers/${id}`);
+  const response = await api.get(`/api/influencers/${id}`);
   return response.data;
 };
 
 export const getInfluencerStats = async (id: string) => {
-  const response = await api.get(`/influencers/${id}/stats`);
+  const response = await api.get(`/api/influencers/${id}/stats`);
   return response.data;
 };
 
 export const getCategories = async () => {
-  const response = await api.get('/influencers/categories');
+  const response = await api.get('/api/influencers/categories');
   return response.data;
 };
 
 export const getPrefectures = async () => {
-  const response = await api.get('/influencers/prefectures');
+  const response = await api.get('/api/influencers/prefectures');
   return response.data;
 };
 
