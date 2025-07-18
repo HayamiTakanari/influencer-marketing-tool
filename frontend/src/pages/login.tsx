@@ -68,6 +68,28 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const testDirectAPI = async () => {
+    try {
+      console.log('Testing direct API call...');
+      const response = await fetch('http://localhost:5002/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'company@test.com',
+          password: 'test123'
+        })
+      });
+      const data = await response.json();
+      console.log('Direct API response:', data);
+      alert('Direct API test successful! Check console for details.');
+    } catch (error) {
+      console.error('Direct API test failed:', error);
+      alert('Direct API test failed! Check console for details.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
@@ -164,6 +186,18 @@ const LoginPage: React.FC = () => {
                 className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
               >
                 🏢 企業
+              </motion.button>
+            </div>
+            
+            {/* API テストボタン */}
+            <div className="mt-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={testDirectAPI}
+                className="w-full px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-medium hover:bg-yellow-200 transition-colors"
+              >
+                🔧 API接続テスト
               </motion.button>
             </div>
           </div>

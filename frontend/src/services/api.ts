@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
 
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('process.env.NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -19,8 +22,15 @@ api.interceptors.request.use((config) => {
 
 // Auth
 export const login = async (email: string, password: string) => {
-  const response = await api.post('/auth/login', { email, password });
-  return response.data;
+  console.log('Login API called with:', { email, baseURL: API_BASE_URL });
+  try {
+    const response = await api.post('/auth/login', { email, password });
+    console.log('Login successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
 };
 
 export const register = async (userData: any) => {
