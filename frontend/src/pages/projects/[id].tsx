@@ -63,34 +63,49 @@ const ProjectDetailPage: React.FC = () => {
   const { id } = router.query;
 
   useEffect(() => {
+    console.log('Project Detail - useEffect triggered, id:', id);
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
+    console.log('Project Detail - userData:', userData);
+    console.log('Project Detail - token:', token);
+    
     if (userData && token) {
       const parsedUser = JSON.parse(userData);
+      console.log('Project Detail - User data:', parsedUser);
       setUser(parsedUser);
       
-      if (parsedUser.role !== 'CLIENT') {
+      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
+        console.log('Access denied - User role:', parsedUser.role);
         router.push('/dashboard');
         return;
       }
       
+      console.log('Access granted - User role:', parsedUser.role);
+      
       if (id) {
+        console.log('Fetching project details for id:', id);
         fetchProjectDetails();
+      } else {
+        console.log('No project id available yet');
       }
     } else {
+      console.log('No user data or token - redirecting to login');
       router.push('/login');
     }
   }, [id, router]);
 
   const fetchProjectDetails = async () => {
     try {
-      // TODO: API実装
-      // const { getProjectById } = await import('../../services/api');
-      // const result = await getProjectById(id as string);
-      // setProject(result);
-      
-      // 仮のデータ
+      console.log('Calling getProjectById with id:', id);
+      const { getProjectById } = await import('../../services/api');
+      const result = await getProjectById(id as string);
+      console.log('Project details received:', result);
+      setProject(result);
+    } catch (err: any) {
+      console.error('Error fetching project details:', err);
+      console.log('Using fallback mock data');
+      // フォールバック用のモックデータ
       const mockProject: ProjectDetails = {
         id: id as string,
         title: '新商品コスメのPRキャンペーン',
@@ -157,8 +172,6 @@ const ProjectDetailPage: React.FC = () => {
       };
       
       setProject(mockProject);
-    } catch (err: any) {
-      console.error('Error fetching project details:', err);
       setError('プロジェクト詳細の取得に失敗しました。');
     } finally {
       setLoading(false);

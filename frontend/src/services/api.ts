@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -19,38 +19,38 @@ api.interceptors.request.use((config) => {
 
 // Auth
 export const login = async (email: string, password: string) => {
-  const response = await api.post('/api/auth/login', { email, password });
+  const response = await api.post('/auth/login', { email, password });
   return response.data;
 };
 
 export const register = async (userData: any) => {
-  const response = await api.post('/api/auth/register', userData);
+  const response = await api.post('/auth/register', userData);
   return response.data;
 };
 
 // Influencer Search
 export const searchInfluencers = async (filters: any) => {
-  const response = await api.get('/api/influencers/search', { params: filters });
+  const response = await api.get('/influencers/search', { params: filters });
   return response.data;
 };
 
 export const getInfluencerById = async (id: string) => {
-  const response = await api.get(`/api/influencers/${id}`);
+  const response = await api.get(`/influencers/${id}`);
   return response.data;
 };
 
 export const getInfluencerStats = async (id: string) => {
-  const response = await api.get(`/api/influencers/${id}/stats`);
+  const response = await api.get(`/influencers/${id}/stats`);
   return response.data;
 };
 
 export const getCategories = async () => {
-  const response = await api.get('/api/influencers/categories');
+  const response = await api.get('/influencers/categories');
   return response.data;
 };
 
 export const getPrefectures = async () => {
-  const response = await api.get('/api/influencers/prefectures');
+  const response = await api.get('/influencers/prefectures');
   return response.data;
 };
 
@@ -227,7 +227,7 @@ export const createProject = async (data: any) => {
 };
 
 export const getMyProjects = async () => {
-  const response = await api.get('/api/projects');
+  const response = await api.get('/projects');
   return response.data;
 };
 
@@ -253,37 +253,37 @@ export const deleteProject = async (projectId: string) => {
 
 // Teams
 export const createTeam = async (data: { name: string }) => {
-  const response = await api.post('/api/teams', data);
+  const response = await api.post('/teams', data);
   return response.data;
 };
 
 export const getMyTeam = async () => {
-  const response = await api.get('/api/teams/my-team');
+  const response = await api.get('/teams/my-team');
   return response.data;
 };
 
 export const updateTeam = async (teamId: string, data: { name: string }) => {
-  const response = await api.put(`/api/teams/${teamId}`, data);
+  const response = await api.put(`/teams/${teamId}`, data);
   return response.data;
 };
 
 export const addTeamMember = async (teamId: string, data: { email: string; isOwner: boolean }) => {
-  const response = await api.post(`/api/teams/${teamId}/members`, data);
+  const response = await api.post(`/teams/${teamId}/members`, data);
   return response.data;
 };
 
 export const removeTeamMember = async (teamId: string, memberId: string) => {
-  const response = await api.delete(`/api/teams/${teamId}/members/${memberId}`);
+  const response = await api.delete(`/teams/${teamId}/members/${memberId}`);
   return response.data;
 };
 
 export const updateMemberRole = async (teamId: string, memberId: string, data: { isOwner: boolean }) => {
-  const response = await api.put(`/api/teams/${teamId}/members/${memberId}/role`, data);
+  const response = await api.put(`/teams/${teamId}/members/${memberId}/role`, data);
   return response.data;
 };
 
 export const deleteTeam = async (teamId: string) => {
-  const response = await api.delete(`/api/teams/${teamId}`);
+  const response = await api.delete(`/teams/${teamId}`);
   return response.data;
 };
 

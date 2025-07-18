@@ -231,11 +231,71 @@ app.post('/api/projects', (req, res) => {
       id: Date.now().toString(),
       ...req.body,
       createdAt: new Date().toISOString(),
-      status: 'PUBLISHED'
+      status: 'PENDING',
+      applicationsCount: 0,
+      clientId: req.headers.authorization ? 'current-user' : 'company@test.com' // 実際の実装ではJWTからユーザーIDを取得
     };
     
     mockProjects.push(project);
     res.json({ project });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.get('/api/projects/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Mock project data - 実際の実装ではデータベースから取得
+    const project = {
+      id: id,
+      title: '新商品コスメのPRキャンペーン',
+      description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
+      category: '美容・化粧品',
+      budget: 300000,
+      status: 'PENDING',
+      targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+      targetPrefecture: '東京都',
+      targetCity: '渋谷区、新宿区',
+      targetGender: 'FEMALE',
+      targetAgeMin: 20,
+      targetAgeMax: 35,
+      targetFollowerMin: 10000,
+      targetFollowerMax: 100000,
+      startDate: '2024-02-01',
+      endDate: '2024-02-28',
+      deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
+      requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
+      additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
+      createdAt: '2024-01-15',
+      applicationsCount: 12,
+      applications: [
+        {
+          id: 'app1',
+          influencer: {
+            id: 'inf1',
+            displayName: '田中美咲',
+            bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+            categories: ['美容', 'ファッション'],
+            prefecture: '東京都',
+            priceMin: 50000,
+            priceMax: 200000,
+            socialAccounts: [
+              { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
+              { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
+            ]
+          },
+          message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
+          proposedPrice: 150000,
+          appliedAt: '2024-01-16',
+          isAccepted: false
+        }
+      ],
+      clientId: 'current-user'
+    };
+    
+    res.json(project);
   } catch (error) {
     res.status(500).json({ error: 'サーバーエラー' });
   }
@@ -262,7 +322,7 @@ app.get('/api/projects', (req, res) => {
         endDate: '2024-02-28',
         createdAt: '2024-01-15',
         applicationsCount: 12,
-        clientId: 'company@test.com' // この企業のプロジェクト
+        clientId: 'current-user' // この企業のプロジェクト
       },
       {
         id: '2',
@@ -281,7 +341,7 @@ app.get('/api/projects', (req, res) => {
         endDate: '2024-02-20',
         createdAt: '2024-01-10',
         applicationsCount: 8,
-        clientId: 'company@test.com', // この企業のプロジェクト
+        clientId: 'current-user', // この企業のプロジェクト
         matchedInfluencer: {
           id: 'inf1',
           displayName: '鈴木さやか'

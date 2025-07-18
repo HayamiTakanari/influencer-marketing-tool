@@ -56,16 +56,23 @@ const CreateProjectPage: React.FC = () => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
+    console.log('Project Create - userData:', userData);
+    console.log('Project Create - token:', token);
+    
     if (userData && token) {
       const parsedUser = JSON.parse(userData);
+      console.log('Project Create - User data:', parsedUser);
       setUser(parsedUser);
       
       // 企業ユーザーのみアクセス可能
-      if (parsedUser.role !== 'CLIENT') {
+      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
+        console.log('Access denied - User role:', parsedUser.role);
         router.push('/dashboard');
         return;
       }
+      console.log('Access granted - User role:', parsedUser.role);
     } else {
+      console.log('No user data or token - redirecting to login');
       router.push('/login');
     }
   }, [router]);
@@ -85,15 +92,14 @@ const CreateProjectPage: React.FC = () => {
     setError('');
 
     try {
-      // TODO: プロジェクト作成APIの実装
-      console.log('Creating project:', formData);
+      const { createProject } = await import('../../services/api');
+      const result = await createProject(formData);
+      console.log('Project created:', result);
       
-      // 一時的な成功処理
-      alert('プロジェクトが作成されました！');
       router.push('/projects');
     } catch (err: any) {
       console.error('Error creating project:', err);
-      setError('プロジェクトの作成に失敗しました。');
+      setError(err.response?.data?.error || 'プロジェクトの作成に失敗しました。');
     } finally {
       setLoading(false);
     }

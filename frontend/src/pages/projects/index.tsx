@@ -142,15 +142,15 @@ const ProjectsPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Link href="/projects/create">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                + 新規作成
-              </motion.button>
-            </Link>
+            <button
+              onClick={() => {
+                console.log('Button clicked!');
+                window.location.href = '/projects/create';
+              }}
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            >
+              + 新規作成
+            </button>
           </div>
         </div>
       </div>
@@ -213,15 +213,17 @@ const ProjectsPage: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 {statusFilter === 'all' ? '新しいプロジェクトを作成してみましょう。' : '条件に合うプロジェクトがありません。'}
               </p>
-              <Link href="/projects/create">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                >
-                  新しいプロジェクトを作成
-                </motion.button>
-              </Link>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Navigating to /projects/create from empty state');
+                  router.push('/projects/create');
+                }}
+                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                新しいプロジェクトを作成
+              </button>
             </div>
           ) : (
             filteredProjects.map((project, index) => (
@@ -248,15 +250,15 @@ const ProjectsPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-4 mt-4 lg:mt-0">
-                    <Link href={`/projects/${project.id}`}>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                      >
-                        詳細
-                      </motion.button>
-                    </Link>
+                    <button
+                      onClick={() => {
+                        console.log('Detail button clicked!');
+                        window.location.href = `/projects/${project.id}`;
+                      }}
+                      className="px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors hover:scale-105"
+                    >
+                      詳細
+                    </button>
                   </div>
                 </div>
 
