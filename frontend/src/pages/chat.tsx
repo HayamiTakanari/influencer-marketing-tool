@@ -64,7 +64,7 @@ const ChatPage: React.FC = () => {
       setUser(parsedUser);
       
       // Initialize Socket.io connection
-      const socketConnection = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002', {
+      const socketConnection = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000', {
         auth: {
           token: token
         }
@@ -148,8 +148,72 @@ const ChatPage: React.FC = () => {
 
   const fetchChatList = async () => {
     try {
+      // Vercel環境用のモックデータ
+      if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+        console.log('Using mock chat list for Vercel environment');
+        const mockChatList: Project[] = [
+          {
+            id: '1',
+            title: '新商品コスメのPRキャンペーン',
+            status: 'IN_PROGRESS',
+            matchedInfluencer: {
+              user: {
+                id: 'inf1',
+                email: 'tanaka@example.com'
+              },
+              displayName: '田中美咲'
+            },
+            messages: [
+              {
+                id: 'msg1',
+                content: 'プロジェクトに参加させていただきありがとうございます！',
+                createdAt: new Date(Date.now() - 3600000).toISOString(),
+                senderId: 'inf1',
+                receiverId: 'current-user',
+                isRead: true,
+                sender: {
+                  id: 'inf1',
+                  role: 'INFLUENCER'
+                }
+              }
+            ],
+            unreadCount: 0
+          },
+          {
+            id: '2',
+            title: 'ライフスタイル商品のレビュー',
+            status: 'IN_PROGRESS',
+            matchedInfluencer: {
+              user: {
+                id: 'inf2',
+                email: 'suzuki@example.com'
+              },
+              displayName: '鈴木さやか'
+            },
+            messages: [
+              {
+                id: 'msg2',
+                content: '商品サンプルはいつ頃届きますでしょうか？',
+                createdAt: new Date(Date.now() - 7200000).toISOString(),
+                senderId: 'inf2',
+                receiverId: 'current-user',
+                isRead: false,
+                sender: {
+                  id: 'inf2',
+                  role: 'INFLUENCER'
+                }
+              }
+            ],
+            unreadCount: 1
+          }
+        ];
+        setChatList(mockChatList);
+        setLoading(false);
+        return;
+      }
+
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002'}/api/chat/chats`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'}/api/chat/chats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -172,8 +236,89 @@ const ChatPage: React.FC = () => {
 
   const fetchMessages = async (projectId: string) => {
     try {
+      // Vercel環境用のモックデータ
+      if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+        console.log('Using mock messages for Vercel environment, projectId:', projectId);
+        
+        const mockMessagesData: Record<string, Message[]> = {
+          '1': [
+            {
+              id: 'msg1-1',
+              content: 'プロジェクトに参加させていただきありがとうございます！',
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+              senderId: 'inf1',
+              receiverId: 'current-user',
+              isRead: true,
+              sender: {
+                id: 'inf1',
+                role: 'INFLUENCER'
+              }
+            },
+            {
+              id: 'msg1-2',
+              content: 'こちらこそよろしくお願いします。まずは商品について詳しく教えてください。',
+              createdAt: new Date(Date.now() - 3000000).toISOString(),
+              senderId: 'current-user',
+              receiverId: 'inf1',
+              isRead: true,
+              sender: {
+                id: 'current-user',
+                role: 'COMPANY'
+              }
+            },
+            {
+              id: 'msg1-3',
+              content: '新商品のファンデーションは自然な仕上がりが特徴で、20-30代の女性に人気です。来週サンプルをお送りします。',
+              createdAt: new Date(Date.now() - 1800000).toISOString(),
+              senderId: 'current-user',
+              receiverId: 'inf1',
+              isRead: true,
+              sender: {
+                id: 'current-user',
+                role: 'COMPANY'
+              }
+            }
+          ],
+          '2': [
+            {
+              id: 'msg2-1',
+              content: 'ライフスタイル商品のレビューは得意分野です。どのような商品でしょうか？',
+              createdAt: new Date(Date.now() - 7200000).toISOString(),
+              senderId: 'inf2',
+              receiverId: 'current-user',
+              isRead: true,
+              sender: {
+                id: 'inf2',
+                role: 'INFLUENCER'
+              }
+            },
+            {
+              id: 'msg2-2',
+              content: '商品サンプルはいつ頃届きますでしょうか？',
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+              senderId: 'inf2',
+              receiverId: 'current-user',
+              isRead: false,
+              sender: {
+                id: 'inf2',
+                role: 'INFLUENCER'
+              }
+            }
+          ]
+        };
+        
+        const messages = mockMessagesData[projectId] || [];
+        setMessages(messages);
+        
+        // Update unread count in chat list
+        setChatList(prev => prev.map(chat => 
+          chat.id === projectId ? { ...chat, unreadCount: 0 } : chat
+        ));
+        return;
+      }
+
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002'}/api/chat/messages/${projectId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'}/api/chat/messages/${projectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -185,7 +330,8 @@ const ChatPage: React.FC = () => {
       }
 
       const data = await response.json();
-      setMessages(data);
+      // バックエンドからのレスポンス構造に応じて調整
+      setMessages(data.messages || data);
 
       // Mark messages as read
       if (socket) {
@@ -213,7 +359,31 @@ const ChatPage: React.FC = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedProject || !socket) return;
+    if (!newMessage.trim() || !selectedProject) return;
+
+    // Vercel環境用のモック処理
+    if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+      console.log('Using mock send message for Vercel environment');
+      const newMsg: Message = {
+        id: 'msg-' + Date.now(),
+        content: newMessage.trim(),
+        createdAt: new Date().toISOString(),
+        senderId: 'current-user',
+        receiverId: selectedProject.matchedInfluencer?.user.id || 'other-user',
+        isRead: false,
+        sender: {
+          id: 'current-user',
+          role: 'COMPANY'
+        }
+      };
+      
+      setMessages(prev => [...prev, newMsg]);
+      setNewMessage('');
+      setIsTyping(false);
+      return;
+    }
+
+    if (!socket) return;
 
     const messageData = {
       projectId: selectedProject.id,
