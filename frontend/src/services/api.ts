@@ -270,7 +270,93 @@ export const getMyApplications = async () => {
 };
 
 export const getApplicationsForMyProjects = async () => {
-  const response = await api.get('/projects/applications');
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock getApplicationsForMyProjects for Vercel environment');
+    const mockApplications = [
+      {
+        id: 'app1',
+        message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
+        proposedPrice: 150000,
+        isAccepted: false,
+        appliedAt: '2024-01-16',
+        influencer: {
+          id: 'inf1',
+          displayName: '田中美咲',
+          bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+          categories: ['美容', 'ファッション'],
+          prefecture: '東京都',
+          user: {
+            email: 'tanaka@example.com'
+          },
+          socialAccounts: [
+            {
+              id: 'sa1',
+              platform: 'INSTAGRAM',
+              username: 'tanaka_misaki',
+              followerCount: 35000,
+              engagementRate: 3.5,
+              isVerified: true
+            }
+          ]
+        },
+        project: {
+          id: '1',
+          title: '新商品コスメのPRキャンペーン',
+          description: '新発売のファンデーションを使用した投稿をお願いします。',
+          category: '美容・化粧品',
+          budget: 300000,
+          status: 'PENDING'
+        }
+      },
+      {
+        id: 'app2',
+        message: 'ライフスタイル商品のレビューは得意分野です。フォロワーからの反響も良いのでぜひ参加させてください。',
+        proposedPrice: 120000,
+        isAccepted: true,
+        appliedAt: '2024-01-11',
+        influencer: {
+          id: 'inf2',
+          displayName: '鈴木さやか',
+          bio: 'ライフスタイル系クリエイター。料理、旅行、美容など幅広く発信。',
+          categories: ['ライフスタイル', '美容', '料理'],
+          prefecture: '大阪府',
+          user: {
+            email: 'suzuki@example.com'
+          },
+          socialAccounts: [
+            {
+              id: 'sa2',
+              platform: 'INSTAGRAM',
+              username: 'suzuki_sayaka',
+              followerCount: 60000,
+              engagementRate: 4.2,
+              isVerified: true
+            },
+            {
+              id: 'sa3',
+              platform: 'TIKTOK',
+              username: 'sayaka_lifestyle',
+              followerCount: 29000,
+              engagementRate: 5.1,
+              isVerified: false
+            }
+          ]
+        },
+        project: {
+          id: '2',
+          title: 'ライフスタイル商品のレビュー',
+          description: '日常使いできる便利グッズの紹介をお願いします。',
+          category: 'ライフスタイル',
+          budget: 150000,
+          status: 'IN_PROGRESS'
+        }
+      }
+    ];
+    return mockApplications;
+  }
+  
+  const response = await api.get('/applications/my-projects');
   return response.data;
 };
 
