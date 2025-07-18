@@ -227,7 +227,7 @@ export const createProject = async (data: any) => {
 };
 
 export const getMyProjects = async () => {
-  const response = await api.get('/projects/my-projects');
+  const response = await api.get('/api/projects');
   return response.data;
 };
 

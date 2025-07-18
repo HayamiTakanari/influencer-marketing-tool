@@ -67,78 +67,9 @@ const ProjectsPage: React.FC = () => {
 
   const fetchProjects = async () => {
     try {
-      // TODO: API実装
-      // const { getMyProjects } = await import('../../services/api');
-      // const result = await getMyProjects();
-      // setProjects(result);
-      
-      // 仮のデータ
-      const mockProjects: Project[] = [
-        {
-          id: '1',
-          title: '新商品コスメのPRキャンペーン',
-          description: '新発売のファンデーションを使用した投稿をお願いします。',
-          category: '美容・化粧品',
-          budget: 300000,
-          status: 'PENDING',
-          targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-          targetPrefecture: '東京都',
-          targetAgeMin: 20,
-          targetAgeMax: 35,
-          targetFollowerMin: 10000,
-          targetFollowerMax: 100000,
-          startDate: '2024-02-01',
-          endDate: '2024-02-28',
-          createdAt: '2024-01-15',
-          applicationsCount: 12
-        },
-        {
-          id: '2',
-          title: 'ライフスタイル商品のレビュー',
-          description: '日常使いできる便利グッズの紹介をお願いします。',
-          category: 'ライフスタイル',
-          budget: 150000,
-          status: 'IN_PROGRESS',
-          targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
-          targetPrefecture: '全国',
-          targetAgeMin: 25,
-          targetAgeMax: 45,
-          targetFollowerMin: 5000,
-          targetFollowerMax: 50000,
-          startDate: '2024-01-20',
-          endDate: '2024-02-20',
-          createdAt: '2024-01-10',
-          applicationsCount: 8,
-          matchedInfluencer: {
-            id: 'inf1',
-            displayName: '鈴木さやか'
-          }
-        },
-        {
-          id: '3',
-          title: 'フィットネスアプリのプロモーション',
-          description: 'ワークアウト系アプリの使用体験を投稿してください。',
-          category: 'スポーツ・フィットネス',
-          budget: 250000,
-          status: 'COMPLETED',
-          targetPlatforms: ['INSTAGRAM', 'YOUTUBE'],
-          targetPrefecture: '関東',
-          targetAgeMin: 18,
-          targetAgeMax: 40,
-          targetFollowerMin: 15000,
-          targetFollowerMax: 200000,
-          startDate: '2024-01-01',
-          endDate: '2024-01-31',
-          createdAt: '2023-12-20',
-          applicationsCount: 15,
-          matchedInfluencer: {
-            id: 'inf2',
-            displayName: '田中美咲'
-          }
-        }
-      ];
-      
-      setProjects(mockProjects);
+      const { getMyProjects } = await import('../../services/api');
+      const result = await getMyProjects();
+      setProjects(result.projects || []);
     } catch (err: any) {
       console.error('Error fetching projects:', err);
       setError('プロジェクトの取得に失敗しました。');

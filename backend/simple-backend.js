@@ -243,7 +243,53 @@ app.post('/api/projects', (req, res) => {
 
 app.get('/api/projects', (req, res) => {
   try {
-    res.json({ projects: mockProjects });
+    // 企業固有のプロジェクトのみ返す（実際の実装ではJWTトークンからユーザーIDを取得）
+    const userProjects = [
+      {
+        id: '1',
+        title: '新商品コスメのPRキャンペーン',
+        description: '新発売のファンデーションを使用した投稿をお願いします。',
+        category: '美容・化粧品',
+        budget: 300000,
+        status: 'PENDING',
+        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+        targetPrefecture: '東京都',
+        targetAgeMin: 20,
+        targetAgeMax: 35,
+        targetFollowerMin: 10000,
+        targetFollowerMax: 100000,
+        startDate: '2024-02-01',
+        endDate: '2024-02-28',
+        createdAt: '2024-01-15',
+        applicationsCount: 12,
+        clientId: 'company@test.com' // この企業のプロジェクト
+      },
+      {
+        id: '2',
+        title: 'ライフスタイル商品のレビュー',
+        description: '日常使いできる便利グッズの紹介をお願いします。',
+        category: 'ライフスタイル',
+        budget: 150000,
+        status: 'IN_PROGRESS',
+        targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
+        targetPrefecture: '全国',
+        targetAgeMin: 25,
+        targetAgeMax: 45,
+        targetFollowerMin: 5000,
+        targetFollowerMax: 50000,
+        startDate: '2024-01-20',
+        endDate: '2024-02-20',
+        createdAt: '2024-01-10',
+        applicationsCount: 8,
+        clientId: 'company@test.com', // この企業のプロジェクト
+        matchedInfluencer: {
+          id: 'inf1',
+          displayName: '鈴木さやか'
+        }
+      }
+    ];
+    
+    res.json({ projects: userProjects });
   } catch (error) {
     res.status(500).json({ error: 'サーバーエラー' });
   }
