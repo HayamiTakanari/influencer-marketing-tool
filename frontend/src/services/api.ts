@@ -103,6 +103,160 @@ export const searchInfluencers = async (filters: any) => {
   return response.data;
 };
 
+// AIによるインフルエンサーレコメンド機能
+export const getAIRecommendedInfluencers = async (inquiryData: {
+  title: string;
+  description: string;
+  requiredServices: string[];
+  budget?: number;
+}) => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock AI recommendations for Vercel environment');
+    
+    // 問い合わせ内容を分析してマッチング
+    const analysisKeywords = {
+      beauty: ['美容', 'コスメ', '化粧品', 'スキンケア', 'メイク', 'beauty', 'cosmetic'],
+      lifestyle: ['ライフスタイル', '日常', '暮らし', 'lifestyle', '生活'],
+      fashion: ['ファッション', '服装', 'おしゃれ', 'fashion', 'style'],
+      fitness: ['フィットネス', '運動', 'ダイエット', '健康', 'fitness', 'workout'],
+      food: ['料理', '食べ物', 'グルメ', 'レシピ', 'food', 'cooking'],
+      travel: ['旅行', '観光', 'travel', '旅'],
+      tech: ['テクノロジー', 'ガジェット', 'tech', 'IT', 'デバイス']
+    };
+
+    const searchText = `${inquiryData.title} ${inquiryData.description}`.toLowerCase();
+    
+    // カテゴリ別のマッチングスコア算出
+    const categoryScores: Record<string, number> = {};
+    for (const [category, keywords] of Object.entries(analysisKeywords)) {
+      categoryScores[category] = keywords.reduce((score, keyword) => {
+        return score + (searchText.includes(keyword.toLowerCase()) ? 1 : 0);
+      }, 0);
+    }
+
+    // 最も関連性の高いカテゴリを特定
+    const primaryCategory = Object.entries(categoryScores).reduce((a, b) => 
+      categoryScores[a[0]] > categoryScores[b[0]] ? a : b
+    )[0];
+
+    const mockInfluencers = [
+      {
+        id: '1',
+        displayName: '田中美咲',
+        bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+        categories: ['美容', 'ファッション'],
+        prefecture: '東京都',
+        priceMin: 50000,
+        priceMax: 200000,
+        user: { email: 'tanaka@example.com' },
+        socialAccounts: [
+          { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
+          { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
+        ],
+        aiScore: primaryCategory === 'beauty' || primaryCategory === 'fashion' ? 95 : 65,
+        matchReasons: primaryCategory === 'beauty' || primaryCategory === 'fashion' 
+          ? ['美容・ファッション分野の専門知識', '同世代女性への高い影響力', '高いエンゲージメント率']
+          : ['多様なコンテンツ制作経験', '安定したフォロワー数']
+      },
+      {
+        id: '2',
+        displayName: '鈴木さやか',
+        bio: 'ライフスタイル系クリエイター。料理、旅行、美容など幅広く発信。',
+        categories: ['ライフスタイル', '美容', '料理'],
+        prefecture: '大阪府',
+        priceMin: 80000,
+        priceMax: 300000,
+        user: { email: 'suzuki@example.com' },
+        socialAccounts: [
+          { platform: 'INSTAGRAM', followerCount: 60000, engagementRate: 4.2 },
+          { platform: 'TIKTOK', followerCount: 29000, engagementRate: 5.1 }
+        ],
+        aiScore: primaryCategory === 'lifestyle' || primaryCategory === 'food' ? 92 : 78,
+        matchReasons: primaryCategory === 'lifestyle' || primaryCategory === 'food'
+          ? ['ライフスタイル分野での豊富な実績', '複数プラットフォームでの影響力', '幅広い年齢層への訴求力']
+          : ['幅広いカテゴリでの発信経験', '高いエンゲージメント率', '関西圏での影響力']
+      },
+      {
+        id: '3',
+        displayName: '佐藤健太',
+        bio: 'フィットネス・健康系インフルエンサー。筋トレ、栄養指導を専門とする。',
+        categories: ['フィットネス', '健康'],
+        prefecture: '神奈川県',
+        priceMin: 60000,
+        priceMax: 250000,
+        user: { email: 'sato@example.com' },
+        socialAccounts: [
+          { platform: 'YOUTUBE', followerCount: 85000, engagementRate: 6.2 },
+          { platform: 'INSTAGRAM', followerCount: 42000, engagementRate: 4.8 }
+        ],
+        aiScore: primaryCategory === 'fitness' ? 98 : 45,
+        matchReasons: primaryCategory === 'fitness'
+          ? ['フィットネス分野の専門資格保有', 'YouTubeでの高い影響力', '男性ターゲットへの訴求力']
+          : ['特定分野での専門性', 'YouTube動画制作スキル']
+      },
+      {
+        id: '4',
+        displayName: '山田あかり',
+        bio: 'テクノロジー・ガジェット系レビュアー。最新デバイスの紹介が得意。',
+        categories: ['テクノロジー', 'ガジェット'],
+        prefecture: '東京都',
+        priceMin: 70000,
+        priceMax: 350000,
+        user: { email: 'yamada@example.com' },
+        socialAccounts: [
+          { platform: 'YOUTUBE', followerCount: 120000, engagementRate: 3.9 },
+          { platform: 'TWITTER', followerCount: 35000, engagementRate: 2.1 }
+        ],
+        aiScore: primaryCategory === 'tech' ? 94 : 38,
+        matchReasons: primaryCategory === 'tech'
+          ? ['最新テクノロジーへの深い知識', '詳細なレビュー動画制作スキル', 'IT業界での認知度']
+          : ['動画制作の技術スキル', 'SNS運用経験']
+      },
+      {
+        id: '5',
+        displayName: '中村麻衣',
+        bio: '旅行・グルメ系インフルエンサー。日本全国の観光地やグルメスポットを紹介。',
+        categories: ['旅行', 'グルメ'],
+        prefecture: '京都府',
+        priceMin: 40000,
+        priceMax: 180000,
+        user: { email: 'nakamura@example.com' },
+        socialAccounts: [
+          { platform: 'INSTAGRAM', followerCount: 28000, engagementRate: 5.3 },
+          { platform: 'TIKTOK', followerCount: 15000, engagementRate: 7.1 }
+        ],
+        aiScore: primaryCategory === 'travel' || primaryCategory === 'food' ? 89 : 52,
+        matchReasons: primaryCategory === 'travel' || primaryCategory === 'food'
+          ? ['全国の観光地での撮影経験', '地域密着型のコンテンツ制作', '高いエンゲージメント率']
+          : ['地域性を活かしたコンテンツ', '写真撮影スキル']
+      }
+    ];
+
+    // スコア順でソート
+    const sortedInfluencers = mockInfluencers
+      .sort((a, b) => b.aiScore - a.aiScore)
+      .map(influencer => ({
+        ...influencer,
+        isRecommended: influencer.aiScore >= 80
+      }));
+
+    return {
+      influencers: sortedInfluencers,
+      analysis: {
+        primaryCategory,
+        detectedKeywords: Object.entries(categoryScores)
+          .filter(([_, score]) => score > 0)
+          .map(([category, score]) => ({ category, score })),
+        recommendationSummary: `問い合わせ内容を分析した結果、「${primaryCategory}」分野に最も適したインフルエンサーをレコメンドしました。`
+      }
+    };
+  }
+
+  const response = await api.post('/ai/recommend-influencers', inquiryData);
+  return response.data;
+};
+
 export const getInfluencerById = async (id: string) => {
   const response = await api.get(`/influencers/${id}`);
   return response.data;

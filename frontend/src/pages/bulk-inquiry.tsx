@@ -11,7 +11,7 @@ import {
   BulkInquiry,
   InquiryResponse
 } from '../services/v3-api';
-import { searchInfluencers } from '../services/api';
+import { searchInfluencers, getAIRecommendedInfluencers } from '../services/api';
 
 const BulkInquiryPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'create' | 'sent' | 'received'>('create');
@@ -27,6 +27,10 @@ const BulkInquiryPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [influencers, setInfluencers] = useState<any[]>([]);
   const [selectedInfluencers, setSelectedInfluencers] = useState<string[]>([]);
+  const [recommendedInfluencers, setRecommendedInfluencers] = useState<any[]>([]);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [isAIMode, setIsAIMode] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const [inquiryForm, setInquiryForm] = useState({
     title: '',
@@ -124,6 +128,40 @@ const BulkInquiryPage: React.FC = () => {
       setInfluencers(data.influencers || []);
     } catch (err: any) {
       console.error('Error fetching influencers:', err);
+    }
+  };
+
+  const getAIRecommendations = async () => {
+    if (!inquiryForm.title || !inquiryForm.description) {
+      setError('タイトルと説明を入力してからAIレコメンドを実行してください。');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setError('');
+      
+      const aiData = await getAIRecommendedInfluencers({
+        title: inquiryForm.title,
+        description: inquiryForm.description,
+        requiredServices: inquiryForm.requiredServices,
+        budget: inquiryForm.budget > 0 ? inquiryForm.budget : undefined
+      });
+
+      setRecommendedInfluencers(aiData.influencers || []);
+      setAiAnalysis(aiData.analysis || null);
+      
+      // 高スコアのインフルエンサーを自動選択
+      const highScoreInfluencers = aiData.influencers
+        .filter((inf: any) => inf.aiScore >= 80)
+        .map((inf: any) => inf.id);
+      setSelectedInfluencers(highScoreInfluencers);
+      
+    } catch (err: any) {
+      console.error('Error getting AI recommendations:', err);
+      setError('AIレコメンドの取得に失敗しました。');
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -372,12 +410,80 @@ const BulkInquiryPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  問い合わせ対象インフルエンサー * ({selectedInfluencers.length}人選択中)
-                </label>
-                <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-xl p-4">
-                  {influencers.map((influencer) => (
-                    <label key={influencer.id} className="flex items-center space-x-3 py-2 cursor-pointer hover:bg-gray-50 rounded-lg px-2">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    問い合わせ対象インフルエンサー * ({selectedInfluencers.length}人選択中)
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      type="button"
+                      onClick={getAIRecommendations}
+                      disabled={aiLoading || !inquiryForm.title || !inquiryForm.description}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {aiLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>分析中...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>🤖</span>
+                          <span>AIレコメンド</span>
+                        </>
+                      )}
+                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsAIMode(true)}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                          isAIMode ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        AIモード
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsAIMode(false)}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                          !isAIMode ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        手動選択
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI分析結果 */}
+                {aiAnalysis && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-lg">🤖</span>
+                      <h4 className="font-semibold text-purple-900">AI分析結果</h4>
+                    </div>
+                    <p className="text-sm text-purple-800 mb-3">{aiAnalysis.recommendationSummary}</p>
+                    {aiAnalysis.detectedKeywords && aiAnalysis.detectedKeywords.length > 0 && (
+                      <div>
+                        <p className="text-xs text-purple-700 mb-2">検出されたキーワード:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {aiAnalysis.detectedKeywords.map((keyword: any, index: number) => (
+                            <span key={index} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                              {keyword.category} ({keyword.score})
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="max-h-80 overflow-y-auto border border-gray-300 rounded-xl p-4">
+                  {(isAIMode ? recommendedInfluencers : influencers).map((influencer) => (
+                    <label key={influencer.id} className={`flex items-center space-x-3 py-3 cursor-pointer hover:bg-gray-50 rounded-lg px-2 border-l-4 ${
+                      influencer.isRecommended ? 'border-l-green-500 bg-green-50' : 'border-l-transparent'
+                    }`}>
                       <input
                         type="checkbox"
                         checked={selectedInfluencers.includes(influencer.id)}
@@ -385,11 +491,68 @@ const BulkInquiryPage: React.FC = () => {
                         className="rounded"
                       />
                       <div className="flex-1">
-                        <p className="font-medium">{influencer.displayName}</p>
-                        <p className="text-sm text-gray-600">{influencer.categories?.join(', ')}</p>
+                        <div className="flex items-center space-x-2 mb-1">
+                          <p className="font-medium">{influencer.displayName}</p>
+                          {influencer.aiScore && (
+                            <div className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              influencer.aiScore >= 90 ? 'bg-green-100 text-green-800' :
+                              influencer.aiScore >= 80 ? 'bg-blue-100 text-blue-800' :
+                              influencer.aiScore >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              マッチ度: {influencer.aiScore}%
+                            </div>
+                          )}
+                          {influencer.isRecommended && (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                              🌟 おすすめ
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">{influencer.bio}</p>
+                        <p className="text-xs text-gray-500">{influencer.categories?.join(', ')} | {influencer.prefecture}</p>
+                        
+                        {/* AIマッチング理由 */}
+                        {influencer.matchReasons && influencer.matchReasons.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-xs font-medium text-gray-700 mb-1">マッチング理由:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {influencer.matchReasons.map((reason: string, index: number) => (
+                                <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">
+                                  {reason}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* ソーシャルメディア情報 */}
+                        {influencer.socialAccounts && influencer.socialAccounts.length > 0 && (
+                          <div className="flex space-x-3 mt-2">
+                            {influencer.socialAccounts.map((account: any, index: number) => (
+                              <div key={index} className="text-xs text-gray-500">
+                                {account.platform}: {account.followerCount?.toLocaleString()}人
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </label>
                   ))}
+                  
+                  {isAIMode && recommendedInfluencers.length === 0 && !aiLoading && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p className="text-lg mb-2">🤖</p>
+                      <p>「AIレコメンド」ボタンをクリックして、最適なインフルエンサーを見つけましょう</p>
+                      <p className="text-sm mt-1">タイトルと説明を入力後にご利用ください</p>
+                    </div>
+                  )}
+                  
+                  {!isAIMode && influencers.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>インフルエンサーが見つかりませんでした</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
