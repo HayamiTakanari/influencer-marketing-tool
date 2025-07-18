@@ -32,6 +32,8 @@ const BulkInquiryPage: React.FC = () => {
   const [isAIMode, setIsAIMode] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
   const [inquiryForm, setInquiryForm] = useState({
     title: '',
@@ -173,6 +175,7 @@ const BulkInquiryPage: React.FC = () => {
     console.log('Selected influencers:', selectedInfluencers);
     console.log('Inquiry form:', inquiryForm);
     console.log('Required services:', inquiryForm.requiredServices);
+    console.log('API Base URL:', process.env.NEXT_PUBLIC_API_URL);
     
     // フォームバリデーション
     if (!inquiryForm.title.trim()) {
@@ -197,6 +200,7 @@ const BulkInquiryPage: React.FC = () => {
 
     try {
       setError(''); // エラーをクリア
+      setSuccessMessage(''); // 成功メッセージをクリア
       setSubmitting(true);
       console.log('Sending inquiry...');
       
@@ -212,6 +216,10 @@ const BulkInquiryPage: React.FC = () => {
       const result = await createBulkInquiry(submitData);
       console.log('Inquiry created successfully:', result);
       
+      // 成功メッセージを表示
+      setSubmitted(true);
+      setSuccessMessage(`一括送信しました！${selectedInfluencers.length}人のインフルエンサーに問い合わせを送信しました。`);
+      
       // フォームリセット
       setInquiryForm({
         title: '',
@@ -224,8 +232,13 @@ const BulkInquiryPage: React.FC = () => {
       setRecommendedInfluencers([]);
       setAiAnalysis(null);
       
-      setActiveTab('sent');
-      fetchData();
+      // 3秒後に送信済みタブに移動
+      setTimeout(() => {
+        setActiveTab('sent');
+        setSuccessMessage('');
+        setSubmitted(false);
+        fetchData();
+      }, 3000);
     } catch (err: any) {
       console.error('Error creating inquiry:', err);
       let errorMessage = '問い合わせの送信に失敗しました';
@@ -242,6 +255,23 @@ const BulkInquiryPage: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // フォームをリセットして新しい問い合わせを作成可能にする
+  const resetForm = () => {
+    setError('');
+    setSuccessMessage('');
+    setSubmitted(false);
+    setInquiryForm({
+      title: '',
+      description: '',
+      budget: 0,
+      deadline: '',
+      requiredServices: [],
+    });
+    setSelectedInfluencers([]);
+    setRecommendedInfluencers([]);
+    setAiAnalysis(null);
   };
 
   const handleUpdateResponse = async (e: React.FormEvent) => {
@@ -326,6 +356,28 @@ const BulkInquiryPage: React.FC = () => {
             className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
           >
             {error}
+          </motion.div>
+        )}
+
+        {/* 成功メッセージ */}
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-xl">✅</span>
+                <span>{successMessage}</span>
+              </div>
+              <button
+                onClick={resetForm}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+              >
+                新しい問い合わせを作成
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -603,13 +655,22 @@ const BulkInquiryPage: React.FC = () => {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  disabled={submitting || submitted}
+                  className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 ${
+                    submitted 
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                      : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                  }`}
                 >
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       <span>送信中...</span>
+                    </>
+                  ) : submitted ? (
+                    <>
+                      <span className="text-lg">✅</span>
+                      <span>送信完了</span>
                     </>
                   ) : (
                     <span>問い合わせを送信</span>

@@ -2,11 +2,14 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
 
+console.log('API_BASE_URL:', API_BASE_URL);
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10秒タイムアウト
 });
 
 api.interceptors.request.use((config) => {
@@ -39,6 +42,19 @@ api.interceptors.response.use(
 );
 
 // v3.0 新機能API
+
+// ヘルスチェック（デバッグ用）
+export const healthCheck = async () => {
+  try {
+    // ヘルスチェックはAPIベースに含まれないため、別のaxiosインスタンスを使用
+    const baseUrl = API_BASE_URL.replace('/api', '');
+    const response = await axios.get(`${baseUrl}/health`);
+    return response.data;
+  } catch (error) {
+    console.error('Health check failed:', error);
+    throw error;
+  }
+};
 
 // 実績管理
 export const createAchievement = async (data: any) => {
