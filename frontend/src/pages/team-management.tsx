@@ -143,10 +143,10 @@ const TeamManagementPage: React.FC = () => {
       setShowAddMemberForm(false);
       setMemberEmail('');
       setMemberIsOwner(false);
-      alert('メンバーが追加されました！');
+      setError(''); // エラーをクリア
     } catch (err: any) {
       console.error('Error adding member:', err);
-      alert(err.response?.data?.error || 'メンバーの追加に失敗しました。');
+      setError(err.response?.data?.error || 'メンバーの追加に失敗しました。');
     } finally {
       setSubmitting(false);
     }
@@ -160,10 +160,10 @@ const TeamManagementPage: React.FC = () => {
       const { removeTeamMember } = await import('../services/api');
       await removeTeamMember(team.id, memberId);
       await fetchTeamData();
-      alert('メンバーが削除されました。');
+      setError(''); // エラーをクリア
     } catch (err: any) {
       console.error('Error removing member:', err);
-      alert(err.response?.data?.error || 'メンバーの削除に失敗しました。');
+      setError(err.response?.data?.error || 'メンバーの削除に失敗しました。');
     } finally {
       setProcessing(null);
     }
@@ -180,10 +180,10 @@ const TeamManagementPage: React.FC = () => {
       const { updateMemberRole } = await import('../services/api');
       await updateMemberRole(team.id, memberId, { isOwner: !currentIsOwner });
       await fetchTeamData();
-      alert(`${action}しました。`);
+      setError(''); // エラーをクリア
     } catch (err: any) {
       console.error('Error updating member role:', err);
-      alert(err.response?.data?.error || '権限の更新に失敗しました。');
+      setError(err.response?.data?.error || '権限の更新に失敗しました。');
     } finally {
       setProcessing(null);
     }
@@ -197,10 +197,10 @@ const TeamManagementPage: React.FC = () => {
       const { deleteTeam } = await import('../services/api');
       await deleteTeam(team.id);
       setTeam(null);
-      alert('チームが削除されました。');
+      setError(''); // エラーをクリア
     } catch (err: any) {
       console.error('Error deleting team:', err);
-      alert(err.response?.data?.error || 'チームの削除に失敗しました。');
+      setError(err.response?.data?.error || 'チームの削除に失敗しました。');
     } finally {
       setSubmitting(false);
     }

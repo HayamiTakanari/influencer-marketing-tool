@@ -332,7 +332,19 @@ app.post('/api/teams', (req, res) => {
       name: req.body.name,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      members: [],
+      members: [
+        {
+          id: 'owner-' + Date.now(),
+          isOwner: true,
+          joinedAt: new Date().toISOString(),
+          user: {
+            id: '1',
+            email: 'company@test.com',
+            role: 'COMPANY',
+            createdAt: new Date().toISOString()
+          }
+        }
+      ],
       clients: []
     };
     mockTeam = team; // Save the created team
@@ -375,6 +387,39 @@ app.post('/api/teams/:teamId/members', (req, res) => {
       };
       mockTeam.members.push(newMember);
       res.json(newMember);
+    } else {
+      res.status(404).json({ error: 'チームが見つかりません' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.delete('/api/teams/:teamId/members/:memberId', (req, res) => {
+  try {
+    if (mockTeam && mockTeam.id === req.params.teamId) {
+      const { memberId } = req.params;
+      mockTeam.members = mockTeam.members.filter(member => member.id !== memberId);
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'チームが見つかりません' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.put('/api/teams/:teamId/members/:memberId/role', (req, res) => {
+  try {
+    if (mockTeam && mockTeam.id === req.params.teamId) {
+      const { memberId } = req.params;
+      const member = mockTeam.members.find(m => m.id === memberId);
+      if (member) {
+        member.isOwner = req.body.isOwner;
+        res.json(member);
+      } else {
+        res.status(404).json({ error: 'メンバーが見つかりません' });
+      }
     } else {
       res.status(404).json({ error: 'チームが見つかりません' });
     }
