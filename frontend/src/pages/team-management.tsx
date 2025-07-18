@@ -98,10 +98,11 @@ const TeamManagementPage: React.FC = () => {
       setTeam(newTeam);
       setShowCreateForm(false);
       setTeamName(newTeam.name);
-      alert('チームが作成されました！');
+      // アラートを削除して、直接データをフェッチし直す
+      await fetchTeamData();
     } catch (err: any) {
       console.error('Error creating team:', err);
-      alert('チームの作成に失敗しました。');
+      setError('チームの作成に失敗しました。');
     } finally {
       setSubmitting(false);
     }
@@ -117,10 +118,11 @@ const TeamManagementPage: React.FC = () => {
       const updatedTeam = await updateTeam(team.id, { name: teamName.trim() });
       setTeam(updatedTeam);
       setEditingTeam(false);
-      alert('チーム名が更新されました！');
+      // 更新成功後に再フェッチ
+      await fetchTeamData();
     } catch (err: any) {
       console.error('Error updating team:', err);
-      alert('チーム名の更新に失敗しました。');
+      setError('チーム名の更新に失敗しました。');
     } finally {
       setSubmitting(false);
     }
