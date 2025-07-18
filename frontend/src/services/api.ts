@@ -371,53 +371,132 @@ export const getMyProjects = async () => {
 export const getProjectById = async (projectId: string) => {
   // Mock response for Vercel environment
   if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    console.log('Using mock getProjectById for Vercel environment');
-    const mockProject = {
-      id: projectId,
-      title: '新商品コスメのPRキャンペーン',
-      description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
-      category: '美容・化粧品',
-      budget: 300000,
-      status: 'PENDING',
-      targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-      targetPrefecture: '東京都',
-      targetCity: '渋谷区、新宿区',
-      targetGender: 'FEMALE',
-      targetAgeMin: 20,
-      targetAgeMax: 35,
-      targetFollowerMin: 10000,
-      targetFollowerMax: 100000,
-      startDate: '2024-02-01',
-      endDate: '2024-02-28',
-      deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
-      requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
-      additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
-      createdAt: '2024-01-15',
-      applications: [
-        {
-          id: 'app1',
-          influencer: {
-            id: 'inf1',
-            displayName: '田中美咲',
-            bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
-            categories: ['美容', 'ファッション'],
-            prefecture: '東京都',
-            priceMin: 50000,
-            priceMax: 200000,
-            socialAccounts: [
-              { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
-              { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
-            ]
-          },
-          message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
-          proposedPrice: 150000,
-          appliedAt: '2024-01-16',
-          isAccepted: false
+    console.log('Using mock getProjectById for Vercel environment, projectId:', projectId);
+    
+    const mockProjectsData: Record<string, any> = {
+      '1': {
+        id: '1',
+        title: '新商品コスメのPRキャンペーン',
+        description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
+        category: '美容・化粧品',
+        budget: 300000,
+        status: 'PENDING',
+        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+        targetPrefecture: '東京都',
+        targetCity: '渋谷区、新宿区',
+        targetGender: 'FEMALE',
+        targetAgeMin: 20,
+        targetAgeMax: 35,
+        targetFollowerMin: 10000,
+        targetFollowerMax: 100000,
+        startDate: '2024-02-01',
+        endDate: '2024-02-28',
+        deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
+        requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
+        additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
+        createdAt: '2024-01-15',
+        applications: [
+          {
+            id: 'app1',
+            influencer: {
+              id: 'inf1',
+              displayName: '田中美咲',
+              bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+              categories: ['美容', 'ファッション'],
+              prefecture: '東京都',
+              priceMin: 50000,
+              priceMax: 200000,
+              socialAccounts: [
+                { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
+                { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
+              ]
+            },
+            message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
+            proposedPrice: 150000,
+            appliedAt: '2024-01-16',
+            isAccepted: false
+          }
+        ]
+      },
+      '2': {
+        id: '2',
+        title: 'ライフスタイル商品のレビュー',
+        description: '日常使いできる便利グッズの紹介をお願いします。実際に使用した感想や活用方法を自然な形で発信してください。',
+        category: 'ライフスタイル',
+        budget: 150000,
+        status: 'IN_PROGRESS',
+        targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
+        targetPrefecture: '全国',
+        targetCity: '',
+        targetGender: '',
+        targetAgeMin: 25,
+        targetAgeMax: 45,
+        targetFollowerMin: 5000,
+        targetFollowerMax: 50000,
+        startDate: '2024-01-20',
+        endDate: '2024-02-20',
+        deliverables: 'YouTube動画1本、Instagram投稿1回、ストーリー投稿2回',
+        requirements: '実際の使用感を重視、#便利グッズ #ライフスタイル のハッシュタグ必須',
+        additionalInfo: '商品サンプル提供、返品不要',
+        createdAt: '2024-01-10',
+        applications: [
+          {
+            id: 'app2',
+            influencer: {
+              id: 'inf2',
+              displayName: '鈴木さやか',
+              bio: 'ライフスタイル系クリエイター。料理、旅行、美容など幅広く発信。',
+              categories: ['ライフスタイル', '美容', '料理'],
+              prefecture: '大阪府',
+              priceMin: 80000,
+              priceMax: 300000,
+              socialAccounts: [
+                { platform: 'INSTAGRAM', followerCount: 60000, engagementRate: 4.2 },
+                { platform: 'TIKTOK', followerCount: 29000, engagementRate: 5.1 }
+              ]
+            },
+            message: 'ライフスタイル商品のレビューは得意分野です。フォロワーからの反響も良いのでぜひ参加させてください。',
+            proposedPrice: 120000,
+            appliedAt: '2024-01-11',
+            isAccepted: true
+          }
+        ],
+        matchedInfluencer: {
+          id: 'inf2',
+          displayName: '鈴木さやか'
         }
-      ],
-      clientId: 'current-user'
+      }
     };
-    return mockProject;
+    
+    const mockProject = mockProjectsData[projectId];
+    if (mockProject) {
+      return mockProject;
+    }
+    
+    // 新規作成プロジェクトなど、存在しないIDの場合はデフォルトプロジェクトを返す
+    return {
+      id: projectId,
+      title: `プロジェクト ${projectId}`,
+      description: 'このプロジェクトの詳細情報を表示しています。',
+      category: 'その他',
+      budget: 200000,
+      status: 'PENDING',
+      targetPlatforms: ['INSTAGRAM'],
+      targetPrefecture: '東京都',
+      targetCity: '',
+      targetGender: '',
+      targetAgeMin: 20,
+      targetAgeMax: 40,
+      targetFollowerMin: 5000,
+      targetFollowerMax: 50000,
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      deliverables: 'Instagram投稿1回、ストーリー投稿1回',
+      requirements: 'ブランドガイドラインに従った投稿',
+      additionalInfo: 'その他の詳細については別途ご連絡いたします。',
+      createdAt: new Date().toISOString(),
+      applications: []
+    };
   }
   
   const response = await api.get(`/projects/${projectId}`);
