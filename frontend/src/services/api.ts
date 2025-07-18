@@ -253,37 +253,37 @@ export const deleteProject = async (projectId: string) => {
 
 // Teams
 export const createTeam = async (data: { name: string }) => {
-  const response = await api.post('/teams', data);
+  const response = await api.post('/api/teams', data);
   return response.data;
 };
 
 export const getMyTeam = async () => {
-  const response = await api.get('/teams/my-team');
+  const response = await api.get('/api/teams/my-team');
   return response.data;
 };
 
 export const updateTeam = async (teamId: string, data: { name: string }) => {
-  const response = await api.put(`/teams/${teamId}`, data);
+  const response = await api.put(`/api/teams/${teamId}`, data);
   return response.data;
 };
 
 export const addTeamMember = async (teamId: string, data: { email: string; isOwner: boolean }) => {
-  const response = await api.post(`/teams/${teamId}/members`, data);
+  const response = await api.post(`/api/teams/${teamId}/members`, data);
   return response.data;
 };
 
 export const removeTeamMember = async (teamId: string, memberId: string) => {
-  const response = await api.delete(`/teams/${teamId}/members/${memberId}`);
+  const response = await api.delete(`/api/teams/${teamId}/members/${memberId}`);
   return response.data;
 };
 
 export const updateMemberRole = async (teamId: string, memberId: string, data: { isOwner: boolean }) => {
-  const response = await api.put(`/teams/${teamId}/members/${memberId}/role`, data);
+  const response = await api.put(`/api/teams/${teamId}/members/${memberId}/role`, data);
   return response.data;
 };
 
 export const deleteTeam = async (teamId: string) => {
-  const response = await api.delete(`/teams/${teamId}`);
+  const response = await api.delete(`/api/teams/${teamId}`);
   return response.data;
 };
 
