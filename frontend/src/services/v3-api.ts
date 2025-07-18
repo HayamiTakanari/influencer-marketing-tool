@@ -206,21 +206,153 @@ export const updateInquiryResponse = async (id: string, data: any) => {
 
 // スケジュール管理
 export const createProjectSchedule = async (data: any) => {
+  // Vercel環境では一時的にモックデータを返す
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock data for project schedule creation');
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒待機
+    return {
+      message: 'スケジュールを作成しました',
+      schedule: {
+        id: 'mock-schedule-' + Date.now(),
+        projectId: data.projectId,
+        publishDate: data.publishDate,
+        milestones: data.milestones.map((m: any, index: number) => ({
+          id: 'mock-milestone-' + Date.now() + '-' + index,
+          ...m,
+          isCompleted: false,
+          completedAt: null,
+          notificationSent: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  }
+  
   const response = await api.post('/schedules', data);
   return response.data;
 };
 
 export const getUpcomingMilestones = async (days?: number) => {
+  // Vercel環境では一時的にモックデータを返す
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock data for upcoming milestones');
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(today.getDate() + 2);
+    
+    return {
+      milestones: [
+        {
+          id: 'mock-milestone-1',
+          type: 'CONCEPT_APPROVAL',
+          title: '構成案承認',
+          description: '春のキャンペーン動画の構成案を承認いただく',
+          dueDate: tomorrow.toISOString(),
+          isCompleted: false,
+          schedule: {
+            project: {
+              id: 'mock-project-1',
+              title: '春のキャンペーン動画',
+            }
+          }
+        },
+        {
+          id: 'mock-milestone-2',
+          type: 'VIDEO_COMPLETION',
+          title: '動画完成',
+          description: '新商品紹介動画の制作完了',
+          dueDate: dayAfterTomorrow.toISOString(),
+          isCompleted: false,
+          schedule: {
+            project: {
+              id: 'mock-project-2',
+              title: '新商品紹介動画',
+            }
+          }
+        }
+      ]
+    };
+  }
+  
   const response = await api.get('/schedules/upcoming', { params: { days } });
   return response.data;
 };
 
 export const getProjectSchedule = async (projectId: string) => {
+  // Vercel環境では一時的にモックデータを返す
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock data for project schedule');
+    const today = new Date();
+    const publishDate = new Date(today);
+    publishDate.setDate(today.getDate() + 10); // 10日後
+    
+    return {
+      schedule: {
+        id: 'mock-schedule-' + projectId,
+        projectId: projectId,
+        publishDate: publishDate.toISOString(),
+        milestones: [
+          {
+            id: 'mock-milestone-1',
+            type: 'CONCEPT_APPROVAL',
+            title: '構成案承認',
+            description: '企画内容の承認を得る',
+            dueDate: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+            isCompleted: false,
+            completedAt: null,
+            notificationSent: false,
+          },
+          {
+            id: 'mock-milestone-2',
+            type: 'VIDEO_COMPLETION',
+            title: '動画完成',
+            description: '動画制作を完了する',
+            dueDate: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            isCompleted: false,
+            completedAt: null,
+            notificationSent: false,
+          },
+          {
+            id: 'mock-milestone-3',
+            type: 'FINAL_APPROVAL',
+            title: '最終承認',
+            description: '最終コンテンツの承認を得る',
+            dueDate: new Date(today.getTime() + 9 * 24 * 60 * 60 * 1000).toISOString(),
+            isCompleted: false,
+            completedAt: null,
+            notificationSent: false,
+          }
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+    };
+  }
+  
   const response = await api.get(`/schedules/project/${projectId}`);
   return response.data;
 };
 
 export const updateMilestone = async (id: string, data: any) => {
+  // Vercel環境では一時的にモックデータを返す
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock data for milestone update');
+    await new Promise(resolve => setTimeout(resolve, 500)); // 0.5秒待機
+    return {
+      message: 'マイルストーンを更新しました',
+      milestone: {
+        id: id,
+        ...data,
+        updatedAt: new Date().toISOString(),
+      }
+    };
+  }
+  
   const response = await api.put(`/schedules/milestone/${id}`, data);
   return response.data;
 };

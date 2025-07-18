@@ -19,6 +19,7 @@ const ProjectSchedulePage: React.FC = () => {
   const [upcomingMilestones, setUpcomingMilestones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -109,6 +110,9 @@ const ProjectSchedulePage: React.FC = () => {
   const handleCreateSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setError('');
+      setSuccessMessage('');
+      
       // 投稿日から逆算してマイルストーンの日付を自動設定
       const publishDate = new Date(scheduleForm.publishDate);
       const milestones = scheduleForm.milestones.map((milestone, index) => {
@@ -129,9 +133,13 @@ const ProjectSchedulePage: React.FC = () => {
 
       await createProjectSchedule(submitData);
       setShowCreateModal(false);
+      setSuccessMessage('スケジュールを作成しました！');
       setActiveTab('manage');
       fetchData();
       fetchProjectSchedule(scheduleForm.projectId);
+      
+      // 3秒後にメッセージを消去
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       console.error('Error creating schedule:', err);
       setError('スケジュールの作成に失敗しました。');
@@ -143,6 +151,9 @@ const ProjectSchedulePage: React.FC = () => {
     if (!editingMilestone) return;
 
     try {
+      setError('');
+      setSuccessMessage('');
+      
       const submitData = {
         ...milestoneForm,
         dueDate: milestoneForm.dueDate ? new Date(milestoneForm.dueDate).toISOString() : undefined,
@@ -151,11 +162,15 @@ const ProjectSchedulePage: React.FC = () => {
       await updateMilestone(editingMilestone.id, submitData);
       setShowEditModal(false);
       setEditingMilestone(null);
+      setSuccessMessage('マイルストーンを更新しました！');
       
       if (selectedProject) {
         fetchProjectSchedule(selectedProject.id);
       }
       fetchData();
+      
+      // 3秒後にメッセージを消去
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       console.error('Error updating milestone:', err);
       setError('マイルストーンの更新に失敗しました。');
@@ -240,7 +255,7 @@ const ProjectSchedulePage: React.FC = () => {
           >
             プロジェクトスケジュール
           </motion.h1>
-          {user?.role === 'CLIENT' && (
+          {(user?.role === 'CLIENT' || user?.role === 'COMPANY') && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -263,6 +278,18 @@ const ProjectSchedulePage: React.FC = () => {
             className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
           >
             {error}
+          </motion.div>
+        )}
+
+        {/* 成功メッセージ */}
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center space-x-2"
+          >
+            <span className="text-xl">✅</span>
+            <span>{successMessage}</span>
           </motion.div>
         )}
 
@@ -468,7 +495,7 @@ const ProjectSchedulePage: React.FC = () => {
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-gray-600 mb-4">このプロジェクトにはまだスケジュールが作成されていません。</p>
-                    {user?.role === 'CLIENT' && (
+                    {(user?.role === 'CLIENT' || user?.role === 'COMPANY') && (
                       <button
                         onClick={() => {
                           setScheduleForm({...scheduleForm, projectId: selectedProject.id});
