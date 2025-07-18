@@ -675,6 +675,50 @@ export const createSystemAnnouncement = async (data: { title: string; message: s
 
 // Analytics
 export const getOverviewStats = async (period: string = 'month', startDate?: string, endDate?: string) => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock getOverviewStats for Vercel environment, period:', period);
+    const mockAnalyticsData = {
+      period: period,
+      startDate: startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      endDate: endDate || new Date().toISOString().split('T')[0],
+      stats: {
+        totalProjects: 8,
+        activeProjects: 3,
+        completedProjects: 5,
+        totalBudget: 1250000,
+        totalSpent: 980000,
+        averageProjectValue: 156250,
+        totalInfluencers: 12,
+        totalReach: 450000,
+        totalEngagements: 32400,
+        averageEngagementRate: 7.2,
+        clickThroughRate: 2.8,
+        conversionRate: 1.4,
+        roi: 245,
+        cpm: 1200,
+        costPerEngagement: 30,
+        topPerformingCategories: [
+          { category: '美容・化粧品', projects: 3, engagement: 12500, reach: 180000 },
+          { category: 'ライフスタイル', projects: 2, engagement: 8900, reach: 150000 },
+          { category: 'フィットネス', projects: 1, engagement: 5200, reach: 80000 }
+        ],
+        monthlyTrends: [
+          { month: '1月', projects: 2, budget: 200000, reach: 80000, engagement: 5600 },
+          { month: '2月', projects: 3, budget: 450000, reach: 180000, engagement: 12600 },
+          { month: '3月', projects: 2, budget: 300000, reach: 120000, engagement: 8400 },
+          { month: '4月', projects: 1, budget: 150000, reach: 70000, engagement: 5800 }
+        ],
+        platformBreakdown: [
+          { platform: 'Instagram', projects: 6, reach: 280000, engagement: 22400 },
+          { platform: 'TikTok', projects: 3, reach: 120000, engagement: 7200 },
+          { platform: 'YouTube', projects: 2, reach: 50000, engagement: 2800 }
+        ]
+      }
+    };
+    return mockAnalyticsData;
+  }
+
   const params: any = { period };
   if (startDate) params.startDate = startDate;
   if (endDate) params.endDate = endDate;
@@ -684,11 +728,63 @@ export const getOverviewStats = async (period: string = 'month', startDate?: str
 };
 
 export const getPerformanceMetrics = async () => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock getPerformanceMetrics for Vercel environment');
+    const mockPerformanceData = {
+      socialMetrics: {
+        totalFollowers: 125000,
+        avgEngagementRate: 4.2,
+        topPosts: [
+          { id: 1, platform: 'Instagram', likes: 2500, comments: 180, shares: 45 },
+          { id: 2, platform: 'TikTok', likes: 3200, comments: 250, shares: 120 }
+        ]
+      },
+      projectMetrics: {
+        totalProjects: 8,
+        completedProjects: 5,
+        avgProjectRating: 4.7,
+        totalEarnings: 980000
+      },
+      earnings: [
+        { month: '1月', amount: 180000 },
+        { month: '2月', amount: 320000 },
+        { month: '3月', amount: 280000 },
+        { month: '4月', amount: 200000 }
+      ]
+    };
+    return mockPerformanceData;
+  }
+
   const response = await api.get('/analytics/performance');
   return response.data;
 };
 
 export const getComparisonData = async () => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock getComparisonData for Vercel environment');
+    const mockComparisonData = {
+      yourStats: {
+        avgEngagementRate: 4.2,
+        avgProjectValue: 156250,
+        completionRate: 95
+      },
+      industryAverages: {
+        avgEngagementRate: 3.1,
+        avgProjectValue: 120000,
+        completionRate: 85
+      },
+      comparison: {
+        engagementPerformance: 135, // 35% better
+        valuePerformance: 130, // 30% better
+        completionPerformance: 112 // 12% better
+      },
+      sampleSize: 500
+    };
+    return mockComparisonData;
+  }
+
   const response = await api.get('/analytics/comparison');
   return response.data;
 };
