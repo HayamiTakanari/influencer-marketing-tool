@@ -305,6 +305,7 @@ const DashboardPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
+                onClick={() => handleNavigation('/analytics')}
                 className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
               >
                 <div className="text-4xl mb-4">📈</div>
