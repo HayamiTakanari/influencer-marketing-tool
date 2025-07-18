@@ -1,9 +1,32 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
+// Determine the API base URL based on environment
+const getApiBaseUrl = () => {
+  // If explicitly set via environment variable, use that
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Check if we're in a browser environment
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    
+    // If we're on Vercel (production), use a mock API service
+    if (hostname.includes('vercel.app')) {
+      // For now, use a mock backend service
+      return 'https://jsonplaceholder.typicode.com'; // Temporary fallback
+    }
+  }
+  
+  // Default to localhost for development
+  return 'http://localhost:5002/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 console.log('API_BASE_URL:', API_BASE_URL);
 console.log('process.env.NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+console.log('Window hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -23,6 +46,42 @@ api.interceptors.request.use((config) => {
 // Auth
 export const login = async (email: string, password: string) => {
   console.log('Login API called with:', { email, baseURL: API_BASE_URL });
+  
+  // Check if we're in Vercel production environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock authentication for Vercel environment');
+    
+    // Mock authentication for demo purposes
+    const validCredentials = [
+      { email: 'company@test.com', password: 'test123', role: 'COMPANY', id: '1', name: 'テスト企業' },
+      { email: 'test.company2@example.com', password: 'test123', role: 'CLIENT', id: '3', name: 'テスト企業2' },
+      { email: 'influencer@test.com', password: 'test123', role: 'INFLUENCER', id: '2', name: 'テストインフルエンサー' }
+    ];
+    
+    const user = validCredentials.find(cred => cred.email === email && cred.password === password);
+    
+    if (user) {
+      const mockResponse = {
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          name: user.name
+        },
+        token: 'mock-jwt-token-vercel'
+      };
+      console.log('Mock login successful:', mockResponse);
+      return mockResponse;
+    } else {
+      const error = new Error('認証に失敗しました');
+      (error as any).response = {
+        status: 401,
+        data: { error: 'メールアドレスまたはパスワードが間違っています。' }
+      };
+      throw error;
+    }
+  }
+  
   try {
     const response = await api.post('/auth/login', { email, password });
     console.log('Login successful:', response.data);
@@ -232,16 +291,135 @@ export const getProjectCategories = async () => {
 
 // Project CRUD operations
 export const createProject = async (data: any) => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock createProject for Vercel environment');
+    const mockProject = {
+      project: {
+        id: Date.now().toString(),
+        ...data,
+        createdAt: new Date().toISOString(),
+        status: 'PENDING',
+        applicationsCount: 0,
+        clientId: 'current-user'
+      }
+    };
+    return mockProject;
+  }
+  
   const response = await api.post('/projects', data);
   return response.data;
 };
 
 export const getMyProjects = async () => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock getMyProjects for Vercel environment');
+    const mockProjects = {
+      projects: [
+        {
+          id: '1',
+          title: '新商品コスメのPRキャンペーン',
+          description: '新発売のファンデーションを使用した投稿をお願いします。',
+          category: '美容・化粧品',
+          budget: 300000,
+          status: 'PENDING',
+          targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+          targetPrefecture: '東京都',
+          targetAgeMin: 20,
+          targetAgeMax: 35,
+          targetFollowerMin: 10000,
+          targetFollowerMax: 100000,
+          startDate: '2024-02-01',
+          endDate: '2024-02-28',
+          createdAt: '2024-01-15',
+          applicationsCount: 12,
+          clientId: 'current-user'
+        },
+        {
+          id: '2',
+          title: 'ライフスタイル商品のレビュー',
+          description: '日常使いできる便利グッズの紹介をお願いします。',
+          category: 'ライフスタイル',
+          budget: 150000,
+          status: 'IN_PROGRESS',
+          targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
+          targetPrefecture: '全国',
+          targetAgeMin: 25,
+          targetAgeMax: 45,
+          targetFollowerMin: 5000,
+          targetFollowerMax: 50000,
+          startDate: '2024-01-20',
+          endDate: '2024-02-20',
+          createdAt: '2024-01-10',
+          applicationsCount: 8,
+          clientId: 'current-user',
+          matchedInfluencer: {
+            id: 'inf1',
+            displayName: '鈴木さやか'
+          }
+        }
+      ]
+    };
+    return mockProjects;
+  }
+  
   const response = await api.get('/projects');
   return response.data;
 };
 
 export const getProjectById = async (projectId: string) => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock getProjectById for Vercel environment');
+    const mockProject = {
+      id: projectId,
+      title: '新商品コスメのPRキャンペーン',
+      description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
+      category: '美容・化粧品',
+      budget: 300000,
+      status: 'PENDING',
+      targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+      targetPrefecture: '東京都',
+      targetCity: '渋谷区、新宿区',
+      targetGender: 'FEMALE',
+      targetAgeMin: 20,
+      targetAgeMax: 35,
+      targetFollowerMin: 10000,
+      targetFollowerMax: 100000,
+      startDate: '2024-02-01',
+      endDate: '2024-02-28',
+      deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
+      requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
+      additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
+      createdAt: '2024-01-15',
+      applications: [
+        {
+          id: 'app1',
+          influencer: {
+            id: 'inf1',
+            displayName: '田中美咲',
+            bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+            categories: ['美容', 'ファッション'],
+            prefecture: '東京都',
+            priceMin: 50000,
+            priceMax: 200000,
+            socialAccounts: [
+              { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
+              { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
+            ]
+          },
+          message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
+          proposedPrice: 150000,
+          appliedAt: '2024-01-16',
+          isAccepted: false
+        }
+      ],
+      clientId: 'current-user'
+    };
+    return mockProject;
+  }
+  
   const response = await api.get(`/projects/${projectId}`);
   return response.data;
 };
