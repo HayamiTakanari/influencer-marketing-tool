@@ -53,7 +53,11 @@ interface ProjectDetails {
   };
 }
 
-const ProjectDetailPage: React.FC = () => {
+interface Props {
+  projectId: string;
+}
+
+const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
   const [user, setUser] = useState<any>(null);
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +67,8 @@ const ProjectDetailPage: React.FC = () => {
   const { id } = router.query;
 
   useEffect(() => {
-    console.log('Project Detail - useEffect triggered, id:', id);
+    const currentId = id || projectId;
+    console.log('Project Detail - useEffect triggered, id:', currentId, 'projectId:', projectId);
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
@@ -83,9 +88,9 @@ const ProjectDetailPage: React.FC = () => {
       
       console.log('Access granted - User role:', parsedUser.role);
       
-      if (id) {
-        console.log('Fetching project details for id:', id);
-        fetchProjectDetails();
+      if (currentId) {
+        console.log('Fetching project details for id:', currentId);
+        fetchProjectDetails(currentId);
       } else {
         console.log('No project id available yet');
       }
@@ -93,21 +98,23 @@ const ProjectDetailPage: React.FC = () => {
       console.log('No user data or token - redirecting to login');
       router.push('/login');
     }
-  }, [id, router]);
+  }, [id, projectId, router]);
 
-  const fetchProjectDetails = async () => {
+  const fetchProjectDetails = async (currentId?: string | string[]) => {
     try {
-      console.log('Calling getProjectById with id:', id);
+      const projectIdToUse = currentId || id || projectId;
+      console.log('Calling getProjectById with id:', projectIdToUse);
       const { getProjectById } = await import('../../services/api');
-      const result = await getProjectById(id as string);
+      const result = await getProjectById(projectIdToUse as string);
       console.log('Project details received:', result);
       setProject(result);
     } catch (err: any) {
       console.error('Error fetching project details:', err);
       console.log('Using fallback mock data');
       // フォールバック用のモックデータ
+      const projectIdToUse = currentId || id || projectId;
       const mockProject: ProjectDetails = {
-        id: (id || '1') as string,
+        id: (projectIdToUse || '1') as string,
         title: '新商品コスメのPRキャンペーン',
         description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
         category: '美容・化粧品',
@@ -587,6 +594,15 @@ const ProjectDetailPage: React.FC = () => {
   );
 };
 
-// Use client-side rendering for better compatibility with Vercel
+// Use server-side rendering for reliable dynamic routing on Vercel
+export async function getServerSideProps(context: { params: { id: string } }) {
+  const { id } = context.params;
+  
+  return {
+    props: {
+      projectId: id,
+    },
+  };
+}
 
 export default ProjectDetailPage;

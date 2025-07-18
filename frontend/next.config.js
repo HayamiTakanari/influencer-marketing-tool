@@ -8,6 +8,16 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  trailingSlash: false,
+  // Ensure dynamic routes work on Vercel
+  async rewrites() {
+    return [
+      {
+        source: '/projects/:id',
+        destination: '/projects/[id]',
+      },
+    ];
+  },
   images: {
     domains: [
       'localhost',
