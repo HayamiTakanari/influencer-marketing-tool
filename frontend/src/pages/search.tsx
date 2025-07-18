@@ -217,7 +217,9 @@ const SearchPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-xl font-semibold hover:shadow-lg transition-all">
+                  <button 
+                    onClick={() => router.push(`/influencer/${influencer.id}`)}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-xl font-semibold hover:shadow-lg transition-all">
                     詳細を見る
                   </button>
                 </motion.div>

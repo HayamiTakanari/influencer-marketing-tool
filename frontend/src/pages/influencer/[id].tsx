@@ -57,7 +57,7 @@ const InfluencerDetailPage: React.FC = () => {
       setUser(parsedUser);
       
       // 企業ユーザーのみアクセス可能
-      if (parsedUser.role !== 'CLIENT') {
+      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
         router.push('/dashboard');
         return;
       }

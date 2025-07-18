@@ -151,6 +151,57 @@ app.get('/api/influencers/search', (req, res) => {
   }
 });
 
+// Get influencer by ID
+app.get('/api/influencers/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const influencer = mockInfluencers.find(inf => inf.id === id);
+    
+    if (!influencer) {
+      return res.status(404).json({ error: 'インフルエンサーが見つかりません' });
+    }
+    
+    // Return detailed influencer data
+    const detailedInfluencer = {
+      ...influencer,
+      user: { id: influencer.id, email: `influencer${influencer.id}@test.com` },
+      displayName: influencer.name,
+      socialAccounts: [
+        {
+          id: '1',
+          platform: influencer.platform,
+          username: `@${influencer.name.toLowerCase().replace(/\s/g, '')}`,
+          profileUrl: '#',
+          followerCount: influencer.followerCount,
+          engagementRate: influencer.engagementRate,
+          isVerified: true
+        }
+      ],
+      portfolio: [
+        {
+          id: '1',
+          title: 'サンプル投稿1',
+          description: '過去の投稿サンプル',
+          imageUrl: '#',
+          link: '#',
+          platform: influencer.platform
+        }
+      ],
+      prefecture: influencer.location,
+      city: '',
+      priceMin: 50000,
+      priceMax: 200000,
+      gender: '女性',
+      birthDate: '1995-01-01',
+      categories: [influencer.category]
+    };
+    
+    res.json(detailedInfluencer);
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
 // AI recommendation endpoint
 app.post('/api/ai/recommend-influencers', (req, res) => {
   try {
@@ -198,6 +249,40 @@ app.get('/api/projects', (req, res) => {
   }
 });
 
+// Profile endpoints
+app.get('/api/profile/me', (req, res) => {
+  try {
+    // Mock company profile
+    res.json({
+      id: "1",
+      companyName: "テスト株式会社",
+      industry: "テクノロジー",
+      contactName: "山田太郎",
+      contactPhone: "03-1234-5678",
+      address: "東京都渋谷区",
+      website: "https://example.com",
+      description: "テスト企業の説明",
+      budget: 1000000,
+      targetAudience: "20-30代",
+      location: "東京都"
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.put('/api/profile', (req, res) => {
+  try {
+    // Mock update response
+    res.json({
+      ...req.body,
+      id: "1"
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
 // Application endpoints
 app.post('/api/applications', (req, res) => {
   try {
@@ -210,6 +295,39 @@ app.post('/api/applications', (req, res) => {
     
     mockApplications.push(application);
     res.json({ application });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.get('/api/applications/my-projects', (req, res) => {
+  try {
+    // Mock applications data
+    res.json([]);
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+// Team management endpoints
+app.get('/api/teams/my-team', (req, res) => {
+  try {
+    // Return null for no team
+    res.status(404).json({ error: 'チームが見つかりません' });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.post('/api/teams', (req, res) => {
+  try {
+    const team = {
+      id: Date.now().toString(),
+      ...req.body,
+      createdAt: new Date().toISOString(),
+      members: []
+    };
+    res.json(team);
   } catch (error) {
     res.status(500).json({ error: 'サーバーエラー' });
   }
@@ -321,6 +439,101 @@ io.on('connection', (socket) => {
     socket.join(roomId);
     console.log(`User ${socket.id} joined room ${roomId}`);
   });
+});
+
+// Analytics endpoints
+app.get('/api/analytics/overview/:period', (req, res) => {
+  try {
+    const { period } = req.params;
+    res.json({
+      period,
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      stats: {
+        applications: {
+          total: 10,
+          accepted: 3,
+          acceptanceRate: 30
+        },
+        projects: {
+          created: 5,
+          completed: 2,
+          byCategory: [
+            { category: '美容・化粧品', _count: { id: 2 } },
+            { category: 'ファッション', _count: { id: 1 } }
+          ]
+        },
+        earnings: {
+          total: 500000,
+          monthly: [
+            { month: '2024-01', earnings: 150000 },
+            { month: '2024-02', earnings: 200000 },
+            { month: '2024-03', earnings: 150000 }
+          ]
+        },
+        rating: {
+          average: 4.8
+        },
+        socialAccounts: [
+          { platform: 'INSTAGRAM', followerCount: 50000, engagementRate: 3.5 }
+        ],
+        spending: {
+          total: 1000000
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.get('/api/analytics/performance', (req, res) => {
+  try {
+    res.json({
+      socialMetrics: {
+        totalFollowers: 50000,
+        averageEngagement: 3.5,
+        platforms: [
+          { platform: 'INSTAGRAM', followerCount: 50000, engagementRate: 3.5 }
+        ]
+      },
+      projectMetrics: {
+        totalProjects: 10,
+        completionRate: 80
+      },
+      earnings: [
+        { month: '2024-01', amount: 150000, project_count: 2 },
+        { month: '2024-02', amount: 200000, project_count: 3 }
+      ]
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
+});
+
+app.get('/api/analytics/comparison', (req, res) => {
+  try {
+    res.json({
+      yourStats: {
+        totalFollowers: 50000,
+        averageEngagement: 3.5,
+        averageEarningsPerProject: 100000
+      },
+      industryAverages: {
+        averageFollowers: 30000,
+        averageEngagement: 2.8,
+        averageEarningsPerProject: 80000
+      },
+      comparison: {
+        followersPercentile: 75,
+        engagementPercentile: 80,
+        earningsPercentile: 70
+      },
+      sampleSize: 1000
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'サーバーエラー' });
+  }
 });
 
 // Start server
