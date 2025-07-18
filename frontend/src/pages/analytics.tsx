@@ -120,7 +120,7 @@ const AnalyticsPage: React.FC = () => {
   const fetchPerformanceData = async () => {
     try {
       const { getPerformanceMetrics } = await import('../services/api');
-      const data = await getPerformanceMetrics();
+      const data = await getPerformanceMetrics(selectedPeriod);
       setPerformanceData(data);
     } catch (err: any) {
       console.error('Error fetching performance data:', err);
@@ -130,7 +130,7 @@ const AnalyticsPage: React.FC = () => {
   const fetchComparisonData = async () => {
     try {
       const { getComparisonData } = await import('../services/api');
-      const data = await getComparisonData();
+      const data = await getComparisonData(selectedPeriod);
       setComparisonData(data);
     } catch (err: any) {
       console.error('Error fetching comparison data:', err);
@@ -934,7 +934,10 @@ const AnalyticsPage: React.FC = () => {
                 key={period.value}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedPeriod(period.value)}
+                onClick={() => {
+                  setLoading(true);
+                  setSelectedPeriod(period.value);
+                }}
                 className={`px-4 py-2 rounded-xl font-medium transition-all ${
                   selectedPeriod === period.value
                     ? 'bg-blue-500 text-white shadow-lg'

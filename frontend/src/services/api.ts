@@ -678,43 +678,98 @@ export const getOverviewStats = async (period: string = 'month', startDate?: str
   // Mock response for Vercel environment
   if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
     console.log('Using mock getOverviewStats for Vercel environment, period:', period);
+    
+    // 期間に応じて異なるデータを生成
+    const generatePeriodData = (period: string) => {
+      const baseMultiplier = {
+        'week': 0.25,
+        'month': 1,
+        '3months': 2.5,
+        '6months': 5,
+        'year': 10
+      }[period] || 1;
+
+      const monthlyLabels = {
+        'week': ['月', '火', '水', '木', '金', '土', '日'],
+        'month': ['1週', '2週', '3週', '4週'],
+        '3months': ['1月前', '2月前', '3月前'],
+        '6months': ['6月前', '5月前', '4月前', '3月前', '2月前', '1月前'],
+        'year': ['12月前', '10月前', '8月前', '6月前', '4月前', '2月前', '現在']
+      }[period] || ['1月', '2月', '3月', '4月'];
+
+      return {
+        totalProjects: Math.round(8 * baseMultiplier),
+        activeProjects: Math.round(3 * baseMultiplier),
+        completedProjects: Math.round(5 * baseMultiplier),
+        totalBudget: Math.round(1250000 * baseMultiplier),
+        totalSpent: Math.round(980000 * baseMultiplier),
+        averageProjectValue: Math.round(156250 * (0.8 + baseMultiplier * 0.2)),
+        totalInfluencers: Math.round(12 * baseMultiplier),
+        totalReach: Math.round(450000 * baseMultiplier),
+        totalEngagements: Math.round(32400 * baseMultiplier),
+        averageEngagementRate: Math.round((7.2 + Math.random() * 2 - 1) * 10) / 10,
+        clickThroughRate: Math.round((2.8 + Math.random() * 1 - 0.5) * 10) / 10,
+        conversionRate: Math.round((1.4 + Math.random() * 0.6 - 0.3) * 10) / 10,
+        roi: Math.round(245 * (0.7 + baseMultiplier * 0.3)),
+        cpm: Math.round(1200 * (1.2 - baseMultiplier * 0.1)),
+        costPerEngagement: Math.round(30 * (1.1 - baseMultiplier * 0.05)),
+        topPerformingCategories: [
+          { 
+            category: '美容・化粧品', 
+            projects: Math.round(3 * baseMultiplier), 
+            engagement: Math.round(12500 * baseMultiplier), 
+            reach: Math.round(180000 * baseMultiplier) 
+          },
+          { 
+            category: 'ライフスタイル', 
+            projects: Math.round(2 * baseMultiplier), 
+            engagement: Math.round(8900 * baseMultiplier), 
+            reach: Math.round(150000 * baseMultiplier) 
+          },
+          { 
+            category: 'フィットネス', 
+            projects: Math.round(1 * baseMultiplier), 
+            engagement: Math.round(5200 * baseMultiplier), 
+            reach: Math.round(80000 * baseMultiplier) 
+          }
+        ],
+        monthlyTrends: monthlyLabels.map((label, index) => ({
+          month: label,
+          projects: Math.round((2 + Math.random() * 2) * (baseMultiplier / monthlyLabels.length)),
+          budget: Math.round((200000 + Math.random() * 300000) * (baseMultiplier / monthlyLabels.length)),
+          reach: Math.round((80000 + Math.random() * 100000) * (baseMultiplier / monthlyLabels.length)),
+          engagement: Math.round((5600 + Math.random() * 7000) * (baseMultiplier / monthlyLabels.length))
+        })),
+        platformBreakdown: [
+          { 
+            platform: 'Instagram', 
+            projects: Math.round(6 * baseMultiplier), 
+            reach: Math.round(280000 * baseMultiplier), 
+            engagement: Math.round(22400 * baseMultiplier) 
+          },
+          { 
+            platform: 'TikTok', 
+            projects: Math.round(3 * baseMultiplier), 
+            reach: Math.round(120000 * baseMultiplier), 
+            engagement: Math.round(7200 * baseMultiplier) 
+          },
+          { 
+            platform: 'YouTube', 
+            projects: Math.round(2 * baseMultiplier), 
+            reach: Math.round(50000 * baseMultiplier), 
+            engagement: Math.round(2800 * baseMultiplier) 
+          }
+        ]
+      };
+    };
+
+    const periodData = generatePeriodData(period);
+    
     const mockAnalyticsData = {
       period: period,
       startDate: startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       endDate: endDate || new Date().toISOString().split('T')[0],
-      stats: {
-        totalProjects: 8,
-        activeProjects: 3,
-        completedProjects: 5,
-        totalBudget: 1250000,
-        totalSpent: 980000,
-        averageProjectValue: 156250,
-        totalInfluencers: 12,
-        totalReach: 450000,
-        totalEngagements: 32400,
-        averageEngagementRate: 7.2,
-        clickThroughRate: 2.8,
-        conversionRate: 1.4,
-        roi: 245,
-        cpm: 1200,
-        costPerEngagement: 30,
-        topPerformingCategories: [
-          { category: '美容・化粧品', projects: 3, engagement: 12500, reach: 180000 },
-          { category: 'ライフスタイル', projects: 2, engagement: 8900, reach: 150000 },
-          { category: 'フィットネス', projects: 1, engagement: 5200, reach: 80000 }
-        ],
-        monthlyTrends: [
-          { month: '1月', projects: 2, budget: 200000, reach: 80000, engagement: 5600 },
-          { month: '2月', projects: 3, budget: 450000, reach: 180000, engagement: 12600 },
-          { month: '3月', projects: 2, budget: 300000, reach: 120000, engagement: 8400 },
-          { month: '4月', projects: 1, budget: 150000, reach: 70000, engagement: 5800 }
-        ],
-        platformBreakdown: [
-          { platform: 'Instagram', projects: 6, reach: 280000, engagement: 22400 },
-          { platform: 'TikTok', projects: 3, reach: 120000, engagement: 7200 },
-          { platform: 'YouTube', projects: 2, reach: 50000, engagement: 2800 }
-        ]
-      }
+      stats: periodData
     };
     return mockAnalyticsData;
   }
@@ -727,30 +782,51 @@ export const getOverviewStats = async (period: string = 'month', startDate?: str
   return response.data;
 };
 
-export const getPerformanceMetrics = async () => {
+export const getPerformanceMetrics = async (period: string = 'month') => {
   // Mock response for Vercel environment
   if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    console.log('Using mock getPerformanceMetrics for Vercel environment');
+    console.log('Using mock getPerformanceMetrics for Vercel environment, period:', period);
+    
+    const baseMultiplier = {
+      'week': 0.25,
+      'month': 1,
+      '3months': 2.5,
+      '6months': 5,
+      'year': 10
+    }[period] || 1;
+
     const mockPerformanceData = {
       socialMetrics: {
-        totalFollowers: 125000,
-        avgEngagementRate: 4.2,
+        totalFollowers: Math.round(125000 * (0.8 + baseMultiplier * 0.2)),
+        avgEngagementRate: Math.round((4.2 + Math.random() * 1 - 0.5) * 10) / 10,
         topPosts: [
-          { id: 1, platform: 'Instagram', likes: 2500, comments: 180, shares: 45 },
-          { id: 2, platform: 'TikTok', likes: 3200, comments: 250, shares: 120 }
+          { 
+            id: 1, 
+            platform: 'Instagram', 
+            likes: Math.round(2500 * baseMultiplier), 
+            comments: Math.round(180 * baseMultiplier), 
+            shares: Math.round(45 * baseMultiplier) 
+          },
+          { 
+            id: 2, 
+            platform: 'TikTok', 
+            likes: Math.round(3200 * baseMultiplier), 
+            comments: Math.round(250 * baseMultiplier), 
+            shares: Math.round(120 * baseMultiplier) 
+          }
         ]
       },
       projectMetrics: {
-        totalProjects: 8,
-        completedProjects: 5,
-        avgProjectRating: 4.7,
-        totalEarnings: 980000
+        totalProjects: Math.round(8 * baseMultiplier),
+        completedProjects: Math.round(5 * baseMultiplier),
+        avgProjectRating: Math.round((4.7 + Math.random() * 0.3 - 0.15) * 10) / 10,
+        totalEarnings: Math.round(980000 * baseMultiplier)
       },
       earnings: [
-        { month: '1月', amount: 180000 },
-        { month: '2月', amount: 320000 },
-        { month: '3月', amount: 280000 },
-        { month: '4月', amount: 200000 }
+        { month: '1月', amount: Math.round(180000 * baseMultiplier) },
+        { month: '2月', amount: Math.round(320000 * baseMultiplier) },
+        { month: '3月', amount: Math.round(280000 * baseMultiplier) },
+        { month: '4月', amount: Math.round(200000 * baseMultiplier) }
       ]
     };
     return mockPerformanceData;
@@ -760,27 +836,36 @@ export const getPerformanceMetrics = async () => {
   return response.data;
 };
 
-export const getComparisonData = async () => {
+export const getComparisonData = async (period: string = 'month') => {
   // Mock response for Vercel environment
   if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    console.log('Using mock getComparisonData for Vercel environment');
+    console.log('Using mock getComparisonData for Vercel environment, period:', period);
+    
+    const baseMultiplier = {
+      'week': 0.25,
+      'month': 1,
+      '3months': 2.5,
+      '6months': 5,
+      'year': 10
+    }[period] || 1;
+
     const mockComparisonData = {
       yourStats: {
-        avgEngagementRate: 4.2,
-        avgProjectValue: 156250,
-        completionRate: 95
+        avgEngagementRate: Math.round((4.2 + Math.random() * 1 - 0.5) * 10) / 10,
+        avgProjectValue: Math.round(156250 * (0.8 + baseMultiplier * 0.2)),
+        completionRate: Math.round((95 + Math.random() * 10 - 5))
       },
       industryAverages: {
-        avgEngagementRate: 3.1,
-        avgProjectValue: 120000,
+        avgEngagementRate: Math.round((3.1 + Math.random() * 0.5 - 0.25) * 10) / 10,
+        avgProjectValue: Math.round(120000 * (0.9 + baseMultiplier * 0.1)),
         completionRate: 85
       },
       comparison: {
-        engagementPerformance: 135, // 35% better
-        valuePerformance: 130, // 30% better
-        completionPerformance: 112 // 12% better
+        engagementPerformance: Math.round(135 + Math.random() * 20 - 10), // 35% better +/- variation
+        valuePerformance: Math.round(130 + Math.random() * 15 - 7), // 30% better +/- variation
+        completionPerformance: Math.round(112 + Math.random() * 10 - 5) // 12% better +/- variation
       },
-      sampleSize: 500
+      sampleSize: Math.round(500 + Math.random() * 300)
     };
     return mockComparisonData;
   }
