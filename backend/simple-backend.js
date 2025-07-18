@@ -247,53 +247,137 @@ app.get('/api/projects/:id', (req, res) => {
   try {
     const { id } = req.params;
     
-    // Mock project data - 実際の実装ではデータベースから取得
-    const project = {
-      id: id,
-      title: '新商品コスメのPRキャンペーン',
-      description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
-      category: '美容・化粧品',
-      budget: 300000,
-      status: 'PENDING',
-      targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-      targetPrefecture: '東京都',
-      targetCity: '渋谷区、新宿区',
-      targetGender: 'FEMALE',
-      targetAgeMin: 20,
-      targetAgeMax: 35,
-      targetFollowerMin: 10000,
-      targetFollowerMax: 100000,
-      startDate: '2024-02-01',
-      endDate: '2024-02-28',
-      deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
-      requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
-      additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
-      createdAt: '2024-01-15',
-      applicationsCount: 12,
-      applications: [
-        {
-          id: 'app1',
-          influencer: {
-            id: 'inf1',
-            displayName: '田中美咲',
-            bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
-            categories: ['美容', 'ファッション'],
-            prefecture: '東京都',
-            priceMin: 50000,
-            priceMax: 200000,
-            socialAccounts: [
-              { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
-              { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
-            ]
-          },
-          message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
-          proposedPrice: 150000,
-          appliedAt: '2024-01-16',
-          isAccepted: false
+    // プロジェクトIDに基づいた個別のモックデータ
+    const projectsData = {
+      '1': {
+        id: '1',
+        title: '新商品コスメのPRキャンペーン',
+        description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
+        category: '美容・化粧品',
+        budget: 300000,
+        status: 'PENDING',
+        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+        targetPrefecture: '東京都',
+        targetCity: '渋谷区、新宿区',
+        targetGender: 'FEMALE',
+        targetAgeMin: 20,
+        targetAgeMax: 35,
+        targetFollowerMin: 10000,
+        targetFollowerMax: 100000,
+        startDate: '2024-02-01',
+        endDate: '2024-02-28',
+        deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
+        requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
+        additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
+        createdAt: '2024-01-15',
+        applications: [
+          {
+            id: 'app1',
+            influencer: {
+              id: 'inf1',
+              displayName: '田中美咲',
+              bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+              categories: ['美容', 'ファッション'],
+              prefecture: '東京都',
+              priceMin: 50000,
+              priceMax: 200000,
+              socialAccounts: [
+                { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
+                { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
+              ]
+            },
+            message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
+            proposedPrice: 150000,
+            appliedAt: '2024-01-16',
+            isAccepted: false
+          }
+        ]
+      },
+      '2': {
+        id: '2',
+        title: 'ライフスタイル商品のレビュー',
+        description: '日常使いできる便利グッズの紹介をお願いします。実際に使用した感想や活用方法を自然な形で発信してください。',
+        category: 'ライフスタイル',
+        budget: 150000,
+        status: 'IN_PROGRESS',
+        targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
+        targetPrefecture: '全国',
+        targetCity: '',
+        targetGender: '',
+        targetAgeMin: 25,
+        targetAgeMax: 45,
+        targetFollowerMin: 5000,
+        targetFollowerMax: 50000,
+        startDate: '2024-01-20',
+        endDate: '2024-02-20',
+        deliverables: 'YouTube動画1本、Instagram投稿1回、ストーリー投稿2回',
+        requirements: '実際の使用感を重視、#便利グッズ #ライフスタイル のハッシュタグ必須',
+        additionalInfo: '商品サンプル提供、返品不要',
+        createdAt: '2024-01-10',
+        applications: [
+          {
+            id: 'app2',
+            influencer: {
+              id: 'inf2',
+              displayName: '鈴木さやか',
+              bio: 'ライフスタイル系クリエイター。料理、旅行、美容など幅広く発信。',
+              categories: ['ライフスタイル', '美容', '料理'],
+              prefecture: '大阪府',
+              priceMin: 80000,
+              priceMax: 300000,
+              socialAccounts: [
+                { platform: 'INSTAGRAM', followerCount: 60000, engagementRate: 4.2 },
+                { platform: 'TIKTOK', followerCount: 29000, engagementRate: 5.1 }
+              ]
+            },
+            message: 'ライフスタイル商品のレビューは得意分野です。フォロワーからの反響も良いのでぜひ参加させてください。',
+            proposedPrice: 120000,
+            appliedAt: '2024-01-11',
+            isAccepted: true
+          }
+        ],
+        matchedInfluencer: {
+          id: 'inf2',
+          displayName: '鈴木さやか'
         }
-      ],
-      clientId: 'current-user'
+      }
     };
+    
+    // 動的に作成されたプロジェクトもサポート
+    const existingProject = mockProjects.find(p => p.id === id);
+    if (existingProject) {
+      // 作成されたプロジェクトにモック応募を追加
+      const projectWithApplications = {
+        ...existingProject,
+        applications: [
+          {
+            id: 'app_new_' + Date.now(),
+            influencer: {
+              id: 'inf3',
+              displayName: '山田花子',
+              bio: existingProject.category + '系インフルエンサー。フォロワーとの交流を大切にしています。',
+              categories: [existingProject.category],
+              prefecture: existingProject.targetPrefecture || '東京都',
+              priceMin: Math.floor(existingProject.budget * 0.3),
+              priceMax: Math.floor(existingProject.budget * 0.8),
+              socialAccounts: [
+                { platform: 'INSTAGRAM', followerCount: Math.floor(Math.random() * 50000) + 10000, engagementRate: Math.round((Math.random() * 3 + 2) * 10) / 10 }
+              ]
+            },
+            message: `${existingProject.title}のプロジェクトに興味があります。私の${existingProject.category}系のコンテンツ経験を活かせると思います。`,
+            proposedPrice: Math.floor(existingProject.budget * 0.6),
+            appliedAt: new Date().toISOString(),
+            isAccepted: false
+          }
+        ]
+      };
+      return res.json(projectWithApplications);
+    }
+    
+    const project = projectsData[id];
+    if (!project) {
+      return res.status(404).json({ error: 'プロジェクトが見つかりません' });
+    }
     
     res.json(project);
   } catch (error) {
