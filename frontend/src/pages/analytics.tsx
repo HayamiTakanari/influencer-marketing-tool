@@ -52,35 +52,14 @@ const AnalyticsPage: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Chart.jsの動的登録
+    // Chart.jsの動的登録を最小限に
     const registerChartJS = async () => {
-      try {
-        const {
-          Chart as ChartJS,
-          CategoryScale,
-          LinearScale,
-          PointElement,
-          LineElement,
-          BarElement,
-          Title,
-          Tooltip,
-          Legend,
-          ArcElement,
-        } = await import('chart.js');
-
-        ChartJS.register(
-          CategoryScale,
-          LinearScale,
-          PointElement,
-          LineElement,
-          BarElement,
-          Title,
-          Tooltip,
-          Legend,
-          ArcElement
-        );
-      } catch (err) {
-        console.error('Error registering Chart.js:', err);
+      if (typeof window !== 'undefined') {
+        try {
+          await import('chart.js/auto');
+        } catch (err) {
+          console.error('Error loading Chart.js:', err);
+        }
       }
     };
 
