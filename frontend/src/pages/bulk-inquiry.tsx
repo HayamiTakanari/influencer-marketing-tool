@@ -31,6 +31,7 @@ const BulkInquiryPage: React.FC = () => {
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [isAIMode, setIsAIMode] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [inquiryForm, setInquiryForm] = useState({
     title: '',
@@ -167,12 +168,38 @@ const BulkInquiryPage: React.FC = () => {
 
   const handleCreateInquiry = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Form submitted - Debug info:');
+    console.log('Selected influencers:', selectedInfluencers);
+    console.log('Inquiry form:', inquiryForm);
+    console.log('Required services:', inquiryForm.requiredServices);
+    
+    // フォームバリデーション
+    if (!inquiryForm.title.trim()) {
+      setError('タイトルを入力してください。');
+      return;
+    }
+    
+    if (!inquiryForm.description.trim()) {
+      setError('説明を入力してください。');
+      return;
+    }
+    
+    if (inquiryForm.requiredServices.length === 0) {
+      setError('必要なサービスを選択してください。');
+      return;
+    }
+    
     if (selectedInfluencers.length === 0) {
       setError('問い合わせ対象のインフルエンサーを選択してください。');
       return;
     }
 
     try {
+      setError(''); // エラーをクリア
+      setSubmitting(true);
+      console.log('Sending inquiry...');
+      
       const submitData = {
         ...inquiryForm,
         targetInfluencers: selectedInfluencers,
@@ -180,7 +207,10 @@ const BulkInquiryPage: React.FC = () => {
         deadline: inquiryForm.deadline || undefined,
       };
 
-      await createBulkInquiry(submitData);
+      console.log('Submit data:', submitData);
+      
+      const result = await createBulkInquiry(submitData);
+      console.log('Inquiry created successfully:', result);
       
       // フォームリセット
       setInquiryForm({
@@ -191,12 +221,26 @@ const BulkInquiryPage: React.FC = () => {
         requiredServices: [],
       });
       setSelectedInfluencers([]);
+      setRecommendedInfluencers([]);
+      setAiAnalysis(null);
       
       setActiveTab('sent');
       fetchData();
     } catch (err: any) {
       console.error('Error creating inquiry:', err);
-      setError('問い合わせの送信に失敗しました。');
+      let errorMessage = '問い合わせの送信に失敗しました';
+      
+      if (err.response?.data?.error) {
+        errorMessage += `: ${err.response.data.error}`;
+      } else if (err.response?.data?.details) {
+        errorMessage += `: ${JSON.stringify(err.response.data.details)}`;
+      } else if (err.message) {
+        errorMessage += `: ${err.message}`;
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -559,9 +603,17 @@ const BulkInquiryPage: React.FC = () => {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                  disabled={submitting}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
-                  問い合わせを送信
+                  {submitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>送信中...</span>
+                    </>
+                  ) : (
+                    <span>問い合わせを送信</span>
+                  )}
                 </button>
               </div>
             </form>

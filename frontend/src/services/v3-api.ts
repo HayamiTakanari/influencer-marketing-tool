@@ -14,8 +14,29 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response Success:', response.status, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('API Response Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        method: error.config?.method,
+        url: error.config?.url,
+        data: error.config?.data
+      }
+    });
+    return Promise.reject(error);
+  }
+);
 
 // v3.0 新機能API
 

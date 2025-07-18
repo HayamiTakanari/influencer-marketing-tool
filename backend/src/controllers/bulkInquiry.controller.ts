@@ -10,8 +10,8 @@ const prisma = new PrismaClient();
 export const createBulkInquiry = async (req: AuthRequest, res: Response) => {
   try {
     const { user } = req;
-    if (!user || user.role !== 'CLIENT') {
-      return res.status(403).json({ error: 'クライアントのみ問い合わせを作成できます' });
+    if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
+      return res.status(403).json({ error: 'クライアント・企業のみ問い合わせを作成できます' });
     }
 
     const validatedData = createBulkInquirySchema.parse(req.body);
@@ -98,8 +98,8 @@ export const createBulkInquiry = async (req: AuthRequest, res: Response) => {
 export const getMyBulkInquiries = async (req: AuthRequest, res: Response) => {
   try {
     const { user } = req;
-    if (!user || user.role !== 'CLIENT') {
-      return res.status(403).json({ error: 'クライアントのみアクセスできます' });
+    if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
+      return res.status(403).json({ error: 'クライアント・企業のみアクセスできます' });
     }
 
     const client = await prisma.client.findUnique({
@@ -305,7 +305,7 @@ export const getBulkInquiryById = async (req: AuthRequest, res: Response) => {
     }
 
     // アクセス権限チェック
-    if (user?.role === 'CLIENT') {
+    if (user?.role === 'CLIENT' || user?.role === 'COMPANY') {
       const client = await prisma.client.findUnique({
         where: { userId: user.userId },
       });
@@ -335,8 +335,8 @@ export const getBulkInquiryById = async (req: AuthRequest, res: Response) => {
 export const getInquiryStats = async (req: AuthRequest, res: Response) => {
   try {
     const { user } = req;
-    if (!user || user.role !== 'CLIENT') {
-      return res.status(403).json({ error: 'クライアントのみアクセスできます' });
+    if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
+      return res.status(403).json({ error: 'クライアント・企業のみアクセスできます' });
     }
 
     const client = await prisma.client.findUnique({
