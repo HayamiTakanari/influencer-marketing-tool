@@ -107,7 +107,7 @@ const ProjectDetailPage: React.FC = () => {
       console.log('Using fallback mock data');
       // フォールバック用のモックデータ
       const mockProject: ProjectDetails = {
-        id: id as string,
+        id: (id || '1') as string,
         title: '新商品コスメのPRキャンペーン',
         description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
         category: '美容・化粧品',
@@ -586,5 +586,7 @@ const ProjectDetailPage: React.FC = () => {
     </div>
   );
 };
+
+// Use client-side rendering for better compatibility with Vercel
 
 export default ProjectDetailPage;
