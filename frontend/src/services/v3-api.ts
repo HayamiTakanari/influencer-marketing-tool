@@ -125,11 +125,47 @@ export const deleteServicePricing = async (id: string) => {
 
 // 一斉問い合わせ
 export const createBulkInquiry = async (data: any) => {
+  // Vercel環境では一時的にモックデータを返す
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock data for bulk inquiry creation');
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒待機
+    return {
+      message: '問い合わせを送信しました',
+      inquiry: {
+        id: 'mock-inquiry-' + Date.now(),
+        title: data.title,
+        description: data.description,
+        budget: data.budget,
+        requiredServices: data.requiredServices,
+        createdAt: new Date().toISOString(),
+      },
+      responseCount: data.targetInfluencers.length,
+    };
+  }
+  
   const response = await api.post('/bulk-inquiries', data);
   return response.data;
 };
 
 export const getMyBulkInquiries = async () => {
+  // Vercel環境では一時的にモックデータを返す
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock data for bulk inquiries');
+    return {
+      inquiries: [
+        {
+          id: 'mock-inquiry-1',
+          title: 'テスト問い合わせ1',
+          description: 'これはテスト用の問い合わせです',
+          budget: 100000,
+          requiredServices: ['PHOTOGRAPHY', 'POSTING'],
+          createdAt: new Date().toISOString(),
+          responses: [],
+        }
+      ]
+    };
+  }
+  
   const response = await api.get('/bulk-inquiries/my-inquiries');
   return response.data;
 };
@@ -140,6 +176,20 @@ export const getMyInquiryResponses = async () => {
 };
 
 export const getInquiryStats = async () => {
+  // Vercel環境では一時的にモックデータを返す
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock data for inquiry stats');
+    return {
+      totalInquiries: 5,
+      totalResponses: 12,
+      responseStats: [
+        { status: 'PENDING', _count: { status: 8 } },
+        { status: 'ACCEPTED', _count: { status: 3 } },
+        { status: 'DECLINED', _count: { status: 1 } },
+      ]
+    };
+  }
+  
   const response = await api.get('/bulk-inquiries/stats');
   return response.data;
 };
