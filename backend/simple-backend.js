@@ -492,8 +492,124 @@ app.post('/api/applications', (req, res) => {
 
 app.get('/api/applications/my-projects', (req, res) => {
   try {
-    // Mock applications data
-    res.json([]);
+    // Mock applications data for company's projects
+    const mockApplicationsData = [
+      {
+        id: 'app1',
+        message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
+        proposedPrice: 150000,
+        isAccepted: false,
+        appliedAt: '2024-01-16',
+        influencer: {
+          id: 'inf1',
+          displayName: '田中美咲',
+          bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+          categories: ['美容', 'ファッション'],
+          prefecture: '東京都',
+          user: {
+            email: 'tanaka@example.com'
+          },
+          socialAccounts: [
+            {
+              id: 'sa1',
+              platform: 'INSTAGRAM',
+              username: 'tanaka_misaki',
+              followerCount: 35000,
+              engagementRate: 3.5,
+              isVerified: true
+            }
+          ]
+        },
+        project: {
+          id: '1',
+          title: '新商品コスメのPRキャンペーン',
+          description: '新発売のファンデーションを使用した投稿をお願いします。',
+          category: '美容・化粧品',
+          budget: 300000,
+          status: 'PENDING'
+        }
+      },
+      {
+        id: 'app2',
+        message: 'ライフスタイル商品のレビューは得意分野です。フォロワーからの反響も良いのでぜひ参加させてください。',
+        proposedPrice: 120000,
+        isAccepted: true,
+        appliedAt: '2024-01-11',
+        influencer: {
+          id: 'inf2',
+          displayName: '鈴木さやか',
+          bio: 'ライフスタイル系クリエイター。料理、旅行、美容など幅広く発信。',
+          categories: ['ライフスタイル', '美容', '料理'],
+          prefecture: '大阪府',
+          user: {
+            email: 'suzuki@example.com'
+          },
+          socialAccounts: [
+            {
+              id: 'sa2',
+              platform: 'INSTAGRAM',
+              username: 'suzuki_sayaka',
+              followerCount: 60000,
+              engagementRate: 4.2,
+              isVerified: true
+            },
+            {
+              id: 'sa3',
+              platform: 'TIKTOK',
+              username: 'sayaka_lifestyle',
+              followerCount: 29000,
+              engagementRate: 5.1,
+              isVerified: false
+            }
+          ]
+        },
+        project: {
+          id: '2',
+          title: 'ライフスタイル商品のレビュー',
+          description: '日常使いできる便利グッズの紹介をお願いします。',
+          category: 'ライフスタイル',
+          budget: 150000,
+          status: 'IN_PROGRESS'
+        }
+      },
+      {
+        id: 'app3',
+        message: 'フィットネス系の投稿を得意としており、健康的なライフスタイルを提案できます。',
+        proposedPrice: 100000,
+        isAccepted: false,
+        appliedAt: '2024-01-18',
+        influencer: {
+          id: 'inf3',
+          displayName: '山田健太',
+          bio: 'フィットネストレーナー。健康的な生活習慣を発信中。',
+          categories: ['フィットネス', 'ヘルスケア'],
+          prefecture: '神奈川県',
+          user: {
+            email: 'yamada@example.com'
+          },
+          socialAccounts: [
+            {
+              id: 'sa4',
+              platform: 'YOUTUBE',
+              username: 'yamada_fitness',
+              followerCount: 45000,
+              engagementRate: 3.8,
+              isVerified: true
+            }
+          ]
+        },
+        project: {
+          id: '3',
+          title: 'フィットネス関連商品のレビュー',
+          description: 'トレーニング器具やサプリメントのレビューをお願いします。',
+          category: 'フィットネス',
+          budget: 200000,
+          status: 'PENDING'
+        }
+      }
+    ];
+    
+    res.json(mockApplicationsData);
   } catch (error) {
     res.status(500).json({ error: 'サーバーエラー' });
   }
