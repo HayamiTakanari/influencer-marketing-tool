@@ -224,6 +224,24 @@ const DashboardPage: React.FC = () => {
                 <p className="text-gray-600">条件に合うインフルエンサーを探す</p>
               </motion.div>
 
+              <Link href="/search-advanced">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.15 }}
+                  className="bg-gradient-to-br from-purple-100 to-pink-100 backdrop-blur-xl border border-purple-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">⚡</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">高度な検索（パフォーマンステスト）</h3>
+                  <p className="text-gray-600">キャッシュ・ページネーション機能付き</p>
+                  <div className="mt-2">
+                    <span className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold">
+                      10,000件データテスト可能
+                    </span>
+                  </div>
+                </motion.div>
+              </Link>
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
