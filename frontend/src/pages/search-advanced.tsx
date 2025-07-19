@@ -90,10 +90,11 @@ const SearchAdvancedPage: React.FC = () => {
     }));
   };
 
-  useEffect(() => {
-    const timeoutId = setTimeout(handleSearch, 500);
-    return () => clearTimeout(timeoutId);
-  }, [filters]);
+  // 自動検索を無効化し、手動検索ボタンを使用
+  // useEffect(() => {
+  //   const timeoutId = setTimeout(handleSearch, 500);
+  //   return () => clearTimeout(timeoutId);
+  // }, [filters]);
 
   if (!user) return null;
 
@@ -163,7 +164,7 @@ const SearchAdvancedPage: React.FC = () => {
 
         {/* 検索フィルター */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">キーワード</label>
               <input
@@ -172,6 +173,7 @@ const SearchAdvancedPage: React.FC = () => {
                 onChange={(e) => handleFilterChange('query', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="インフルエンサー名..."
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
 
@@ -215,6 +217,7 @@ const SearchAdvancedPage: React.FC = () => {
                 onChange={(e) => handleFilterChange('minFollowers', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="1000"
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
 
@@ -231,6 +234,46 @@ const SearchAdvancedPage: React.FC = () => {
                 <option value={100}>100件</option>
               </select>
             </div>
+          </div>
+
+          {/* 検索ボタンエリア */}
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>検索中...</span>
+                </>
+              ) : (
+                <>
+                  <span>🔍</span>
+                  <span>検索実行</span>
+                </>
+              )}
+            </button>
+            
+            <button
+              onClick={() => {
+                setFilters({
+                  query: '',
+                  category: '',
+                  prefecture: '',
+                  minFollowers: '',
+                  maxFollowers: '',
+                  page: 1,
+                  limit: 20,
+                  testLargeData: filters.testLargeData,
+                });
+                handleSearch();
+              }}
+              className="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
+            >
+              リセット
+            </button>
           </div>
         </div>
 
