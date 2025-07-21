@@ -486,17 +486,32 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-gray-900">{formatDate(project.startDate)}</div>
-              <div className="text-gray-600 text-sm">開始日</div>
+              <div className="text-gray-600 text-sm">プロジェクト開始日</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-gray-900">{formatDate(project.endDate)}</div>
-              <div className="text-gray-600 text-sm">終了日</div>
+              <div className="text-gray-600 text-sm">プロジェクト終了日</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-gray-900">{project.applications.length}件</div>
               <div className="text-gray-600 text-sm">応募数</div>
             </div>
           </div>
+
+          {/* 投稿期間の表示 */}
+          {(project.postingPeriodStart || project.postingPeriodEnd) && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+              <h4 className="font-semibold text-purple-900 mb-2">📅 投稿期間</h4>
+              <p className="text-purple-800">
+                {project.postingPeriodStart && project.postingPeriodEnd
+                  ? `${formatDate(project.postingPeriodStart)} 〜 ${formatDate(project.postingPeriodEnd)}`
+                  : project.postingPeriodStart 
+                    ? `開始日: ${formatDate(project.postingPeriodStart)}`
+                    : `終了日: ${formatDate(project.postingPeriodEnd)}`
+                }
+              </p>
+            </div>
+          )}
 
           <div className="flex space-x-2 mb-4">
             {project.targetPlatforms.map(platform => (
@@ -585,25 +600,34 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
               </div>
             </div>
 
-            {/* 要件詳細 */}
+            {/* 基本要件 */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">要件詳細</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">基本要件</h3>
               <div className="space-y-6">
                 {project.deliverables && (
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">成果物・納品物</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      成果物・納品物
+                      <HelpButton field="deliverables" />
+                    </h4>
                     <p className="text-gray-700">{project.deliverables}</p>
                   </div>
                 )}
                 {project.requirements && (
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">要求事項</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      要求事項
+                      <HelpButton field="requirements" />
+                    </h4>
                     <p className="text-gray-700">{project.requirements}</p>
                   </div>
                 )}
                 {project.additionalInfo && (
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">その他の情報</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      その他の情報
+                      <HelpButton field="additionalInfo" />
+                    </h4>
                     <p className="text-gray-700">{project.additionalInfo}</p>
                   </div>
                 )}
@@ -685,243 +709,238 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
             )}
 
             {/* キャンペーン詳細 */}
-            {(project.campaignObjective || project.campaignTarget || project.messageToConvey) && (
-              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h3>
-                <div className="space-y-6">
-                  {project.campaignObjective && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        施策の目的
-                        <HelpButton field="campaignObjective" />
-                      </h4>
-                      <p className="text-gray-700">{project.campaignObjective}</p>
+            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h3>
+              <div className="space-y-6">
+                {project.campaignObjective && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      施策の目的
+                      <HelpButton field="campaignObjective" />
+                    </h4>
+                    <p className="text-gray-700">{project.campaignObjective}</p>
+                  </div>
+                )}
+                {project.campaignTarget && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      施策ターゲット
+                      <HelpButton field="campaignTarget" />
+                    </h4>
+                    <p className="text-gray-700">{project.campaignTarget}</p>
+                  </div>
+                )}
+                {(project.postingPeriodStart || project.postingPeriodEnd) && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      投稿期間
+                      <HelpButton field="postingPeriodStart" />
+                    </h4>
+                    <p className="text-gray-700">
+                      {project.postingPeriodStart && project.postingPeriodEnd
+                        ? `${formatDate(project.postingPeriodStart)} 〜 ${formatDate(project.postingPeriodEnd)}`
+                        : project.postingPeriodStart 
+                          ? `開始日: ${formatDate(project.postingPeriodStart)}`
+                          : `終了日: ${formatDate(project.postingPeriodEnd)}`
+                      }
+                    </p>
+                  </div>
+                )}
+                {project.postingMedia && project.postingMedia.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      投稿メディア
+                      <HelpButton field="postingMedia" />
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {project.postingMedia.map(media => (
+                        <span key={media} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                          {media === 'INSTAGRAM' ? '📸 Instagram' :
+                           media === 'YOUTUBE' ? '🎥 YouTube' :
+                           media === 'TIKTOK' ? '🎵 TikTok' :
+                           media === 'TWITTER' ? '🐦 Twitter' : media}
+                        </span>
+                      ))}
                     </div>
-                  )}
-                  {project.campaignTarget && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        施策ターゲット
-                        <HelpButton field="campaignTarget" />
-                      </h4>
-                      <p className="text-gray-700">{project.campaignTarget}</p>
-                    </div>
-                  )}
-                  {(project.postingPeriodStart || project.postingPeriodEnd) && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        投稿期間
-                        <HelpButton field="postingPeriodStart" />
-                      </h4>
-                      <p className="text-gray-700">
-                        {project.postingPeriodStart && project.postingPeriodEnd
-                          ? `${project.postingPeriodStart} 〜 ${project.postingPeriodEnd}`
-                          : project.postingPeriodStart || project.postingPeriodEnd
-                        }
-                      </p>
-                    </div>
-                  )}
-                  {project.postingMedia && project.postingMedia.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        投稿メディア
-                        <HelpButton field="postingMedia" />
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {project.postingMedia.map(media => (
-                          <span key={media} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                            {media === 'INSTAGRAM' ? '📸 Instagram' :
-                             media === 'YOUTUBE' ? '🎥 YouTube' :
-                             media === 'TIKTOK' ? '🎵 TikTok' :
-                             media === 'TWITTER' ? '🐦 Twitter' : media}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {project.messageToConvey && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        投稿を通じて伝えたいこと
-                        <HelpButton field="messageToConvey" />
-                      </h4>
-                      <p className="text-gray-700">{project.messageToConvey}</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
+                {project.messageToConvey && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      投稿を通じて伝えたいこと
+                      <HelpButton field="messageToConvey" />
+                    </h4>
+                    <p className="text-gray-700">{project.messageToConvey}</p>
+                  </div>
+                )}
+                {/* 表示されていない場合のデフォルトメッセージ */}
+                {!project.campaignObjective && !project.campaignTarget && !project.postingPeriodStart && !project.postingPeriodEnd && !project.postingMedia?.length && !project.messageToConvey && (
+                  <p className="text-gray-500 italic">キャンペーン詳細情報は入力されていません</p>
+                )}
               </div>
-            )}
+            </div>
 
             {/* 撮影・制作仕様 */}
-            {(project.shootingAngle || project.packagePhotography || project.productOrientationSpecified || 
-              project.musicUsage || project.brandContentSettings) && (
-              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {project.shootingAngle && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        人物の撮影アングル
-                        <HelpButton field="shootingAngle" />
-                      </h4>
-                      <p className="text-gray-700">{project.shootingAngle}</p>
-                    </div>
-                  )}
-                  {project.packagePhotography && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        外装やパッケージ撮影
-                        <HelpButton field="packagePhotography" />
-                      </h4>
-                      <p className="text-gray-700">{project.packagePhotography}</p>
-                    </div>
-                  )}
-                  {project.productOrientationSpecified && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        商品の向きの撮影指定
-                        <HelpButton field="productOrientationSpecified" />
-                      </h4>
-                      <p className="text-gray-700">{project.productOrientationSpecified}</p>
-                    </div>
-                  )}
-                  {project.musicUsage && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        音楽使用
-                        <HelpButton field="musicUsage" />
-                      </h4>
-                      <p className="text-gray-700">{project.musicUsage}</p>
-                    </div>
-                  )}
-                  {project.brandContentSettings && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        ブランドコンテンツ設定
-                        <HelpButton field="brandContentSettings" />
-                      </h4>
-                      <p className="text-gray-700">{project.brandContentSettings}</p>
-                    </div>
-                  )}
+            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    人物の撮影アングル
+                    <HelpButton field="shootingAngle" />
+                  </h4>
+                  <p className="text-gray-700">{project.shootingAngle || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    外装やパッケージ撮影
+                    <HelpButton field="packagePhotography" />
+                  </h4>
+                  <p className="text-gray-700">{project.packagePhotography || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    商品の向きの撮影指定
+                    <HelpButton field="productOrientationSpecified" />
+                  </h4>
+                  <p className="text-gray-700">{project.productOrientationSpecified || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    音楽使用
+                    <HelpButton field="musicUsage" />
+                  </h4>
+                  <p className="text-gray-700">{project.musicUsage || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    ブランドコンテンツ設定
+                    <HelpButton field="brandContentSettings" />
+                  </h4>
+                  <p className="text-gray-700">{project.brandContentSettings || '指定なし'}</p>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* ハッシュタグ・制約事項 */}
-            {(project.desiredHashtags?.length || project.ngItems || project.legalRequirements || project.notes) && (
-              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・制約事項</h3>
-                <div className="space-y-6">
-                  {project.desiredHashtags && project.desiredHashtags.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        希望ハッシュタグ
-                        <HelpButton field="desiredHashtags" />
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {project.desiredHashtags.filter(tag => tag).map((hashtag, index) => (
-                          <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-mono">
-                            {hashtag.startsWith('#') ? hashtag : `#${hashtag}`}
-                          </span>
-                        ))}
-                      </div>
+            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・制約事項</h3>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    希望ハッシュタグ
+                    <HelpButton field="desiredHashtags" />
+                  </h4>
+                  {project.desiredHashtags && project.desiredHashtags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {project.desiredHashtags.filter(tag => tag).map((hashtag, index) => (
+                        <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-mono">
+                          {hashtag.startsWith('#') ? hashtag : `#${hashtag}`}
+                        </span>
+                      ))}
                     </div>
+                  ) : (
+                    <p className="text-gray-500 italic">ハッシュタグは指定されていません</p>
                   )}
-                  {project.ngItems && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        NG項目
-                        <HelpButton field="ngItems" />
-                      </h4>
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <p className="text-red-800">{project.ngItems}</p>
-                      </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    NG項目
+                    <HelpButton field="ngItems" />
+                  </h4>
+                  {project.ngItems ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-red-800">{project.ngItems}</p>
                     </div>
+                  ) : (
+                    <p className="text-gray-500 italic">特にNG項目は指定されていません</p>
                   )}
-                  {project.legalRequirements && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        薬機法に基づく表現や注釈が必要な表現
-                        <HelpButton field="legalRequirements" />
-                      </h4>
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <p className="text-yellow-800">{project.legalRequirements}</p>
-                      </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    薬機法に基づく表現や注釈が必要な表現
+                    <HelpButton field="legalRequirements" />
+                  </h4>
+                  {project.legalRequirements ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-yellow-800">{project.legalRequirements}</p>
                     </div>
+                  ) : (
+                    <p className="text-gray-500 italic">特に法的要件は指定されていません</p>
                   )}
-                  {project.notes && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        注意点
-                        <HelpButton field="notes" />
-                      </h4>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-blue-800">{project.notes}</p>
-                      </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    注意点
+                    <HelpButton field="notes" />
+                  </h4>
+                  {project.notes ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-blue-800">{project.notes}</p>
                     </div>
+                  ) : (
+                    <p className="text-gray-500 italic">特に注意点は指定されていません</p>
                   )}
                 </div>
               </div>
-            )}
+            </div>
 
             {/* 二次利用・開示設定 */}
-            {(project.secondaryUsage || project.secondaryUsageScope || project.secondaryUsagePeriod || project.insightDisclosure) && (
-              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">二次利用・開示設定</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {project.secondaryUsage && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        二次利用有無
-                        <HelpButton field="secondaryUsage" />
-                      </h4>
-                      <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
-                        project.secondaryUsage === '許可（条件なし）' 
-                          ? 'bg-green-100 text-green-800' 
-                          : project.secondaryUsage === '許可（条件あり）'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {project.secondaryUsage}
-                      </p>
-                    </div>
-                  )}
-                  {project.insightDisclosure && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        投稿のインサイト開示
-                        <HelpButton field="insightDisclosure" />
-                      </h4>
-                      <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
-                        project.insightDisclosure === '必要' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {project.insightDisclosure}
-                      </p>
-                    </div>
-                  )}
-                  {project.secondaryUsageScope && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        二次利用範囲
-                        <HelpButton field="secondaryUsageScope" />
-                      </h4>
-                      <p className="text-gray-700">{project.secondaryUsageScope}</p>
-                    </div>
-                  )}
-                  {project.secondaryUsagePeriod && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        二次利用期間
-                        <HelpButton field="secondaryUsagePeriod" />
-                      </h4>
-                      <p className="text-gray-700">{project.secondaryUsagePeriod}</p>
-                    </div>
+            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">二次利用・開示設定</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    二次利用有無
+                    <HelpButton field="secondaryUsage" />
+                  </h4>
+                  {project.secondaryUsage ? (
+                    <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                      project.secondaryUsage === '許可（条件なし）' 
+                        ? 'bg-green-100 text-green-800' 
+                        : project.secondaryUsage === '許可（条件あり）'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {project.secondaryUsage}
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 italic">未指定</p>
                   )}
                 </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    投稿のインサイト開示
+                    <HelpButton field="insightDisclosure" />
+                  </h4>
+                  {project.insightDisclosure ? (
+                    <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                      project.insightDisclosure === '必要' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {project.insightDisclosure}
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 italic">未指定</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    二次利用範囲
+                    <HelpButton field="secondaryUsageScope" />
+                  </h4>
+                  <p className="text-gray-700">{project.secondaryUsageScope || '未指定'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    二次利用期間
+                    <HelpButton field="secondaryUsagePeriod" />
+                  </h4>
+                  <p className="text-gray-700">{project.secondaryUsagePeriod || '未指定'}</p>
+                </div>
               </div>
-            )}
+            </div>
           </motion.div>
         )}
 
