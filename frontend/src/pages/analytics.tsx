@@ -45,9 +45,11 @@ const AnalyticsPage: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [selectedProject, setSelectedProject] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
   const router = useRouter();
 
@@ -75,6 +77,8 @@ const AnalyticsPage: React.FC = () => {
       if (parsedUser.role === 'INFLUENCER') {
         fetchPerformanceData();
         fetchComparisonData();
+      } else {
+        fetchProjects();
       }
     } else {
       router.push('/login');
@@ -134,6 +138,16 @@ const AnalyticsPage: React.FC = () => {
       setComparisonData(data);
     } catch (err: any) {
       console.error('Error fetching comparison data:', err);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const { getProjects } = await import('../services/api');
+      const result = await getProjects();
+      setProjects(result?.projects || []);
+    } catch (err: any) {
+      console.error('Error fetching projects:', err);
     }
   };
 
@@ -886,9 +900,15 @@ const AnalyticsPage: React.FC = () => {
       <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg hover:shadow-xl transition-all text-gray-700 hover:text-blue-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="font-medium">ダッシュボードに戻る</span>
+            </button>
             <div>
               <h1 className="text-xl font-bold text-gray-900">アナリティクス</h1>
               <p className="text-sm text-gray-600">パフォーマンスを分析</p>
@@ -915,38 +935,69 @@ const AnalyticsPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Period Selector */}
+        {/* Period and Project Selector */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
         >
-          <h2 className="text-lg font-bold text-gray-900 mb-4">期間選択</h2>
-          <div className="flex gap-2 flex-wrap">
-            {[
-              { value: 'week', label: '今週' },
-              { value: 'month', label: '今月' },
-              { value: '3months', label: '過去3ヶ月' },
-              { value: '6months', label: '過去6ヶ月' },
-              { value: 'year', label: '過去1年' },
-            ].map(period => (
-              <motion.button
-                key={period.value}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setLoading(true);
-                  setSelectedPeriod(period.value);
-                }}
-                className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                  selectedPeriod === period.value
-                    ? 'bg-blue-500 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {period.label}
-              </motion.button>
-            ))}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">期間選択</h2>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: 'week', label: '今週' },
+                  { value: 'month', label: '今月' },
+                  { value: '3months', label: '過去3ヶ月' },
+                  { value: '6months', label: '過去6ヶ月' },
+                  { value: 'year', label: '過去1年' },
+                ].map(period => (
+                  <motion.button
+                    key={period.value}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setLoading(true);
+                      setSelectedPeriod(period.value);
+                    }}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                      selectedPeriod === period.value
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {period.label}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            {/* Project Selector for Companies */}
+            {user?.role !== 'INFLUENCER' && projects.length > 0 && (
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">プロジェクト選択</h3>
+                <div className="flex items-center gap-4">
+                  <label className="text-sm font-medium text-gray-700">プロジェクト:</label>
+                  <select
+                    value={selectedProject}
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="all">すべてのプロジェクト</option>
+                    {projects.map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.title}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedProject !== 'all' && (
+                    <span className="text-sm text-blue-600 font-medium">
+                      {projects.find(p => p.id === selectedProject)?.title}の分析
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
 

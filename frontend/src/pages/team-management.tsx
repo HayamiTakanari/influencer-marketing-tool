@@ -76,11 +76,15 @@ const TeamManagementPage: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Error fetching team data:', err);
-      if (err.response?.status === 404) {
-        // No team exists yet
+      
+      // APIが実装されていない場合のフォールバック処理
+      if (err.response?.status === 404 || err.code === 'ERR_NETWORK' || err.message?.includes('getMyTeam is not a function')) {
+        // モックデータを使用するか、チームなしの状態にする
+        console.log('Using fallback: No team exists or API not implemented');
         setTeam(null);
+        setError(''); // エラーメッセージをクリア
       } else {
-        setError('チーム情報の取得に失敗しました。');
+        setError('チーム情報の取得に失敗しました。開発中の機能です。');
       }
     } finally {
       setLoading(false);
@@ -98,11 +102,40 @@ const TeamManagementPage: React.FC = () => {
       setTeam(newTeam);
       setShowCreateForm(false);
       setTeamName(newTeam.name);
-      // アラートを削除して、直接データをフェッチし直す
       await fetchTeamData();
     } catch (err: any) {
       console.error('Error creating team:', err);
-      setError('チームの作成に失敗しました。');
+      
+      // APIが実装されていない場合のフォールバック
+      if (err.code === 'ERR_NETWORK' || err.message?.includes('createTeam is not a function')) {
+        // モックチームを作成
+        const mockTeam: Team = {
+          id: 'mock-team-1',
+          name: teamName.trim(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          members: [
+            {
+              id: 'mock-member-1',
+              isOwner: true,
+              joinedAt: new Date().toISOString(),
+              user: {
+                id: user?.id || 'mock-user-1',
+                email: user?.email || 'user@example.com',
+                role: user?.role || 'CLIENT',
+                createdAt: new Date().toISOString()
+              }
+            }
+          ],
+          clients: []
+        };
+        setTeam(mockTeam);
+        setShowCreateForm(false);
+        setTeamName(mockTeam.name);
+        setError(''); // エラーをクリア
+      } else {
+        setError('チームの作成に失敗しました。開発中の機能です。');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -118,11 +151,19 @@ const TeamManagementPage: React.FC = () => {
       const updatedTeam = await updateTeam(team.id, { name: teamName.trim() });
       setTeam(updatedTeam);
       setEditingTeam(false);
-      // 更新成功後に再フェッチ
       await fetchTeamData();
     } catch (err: any) {
       console.error('Error updating team:', err);
-      setError('チーム名の更新に失敗しました。');
+      
+      // APIが実装されていない場合のフォールバック
+      if (err.code === 'ERR_NETWORK' || err.message?.includes('updateTeam is not a function')) {
+        // ローカルでチーム名を更新
+        setTeam({ ...team, name: teamName.trim() });
+        setEditingTeam(false);
+        setError(''); // エラーをクリア
+      } else {
+        setError('チーム名の更新に失敗しました。開発中の機能です。');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -143,10 +184,32 @@ const TeamManagementPage: React.FC = () => {
       setShowAddMemberForm(false);
       setMemberEmail('');
       setMemberIsOwner(false);
-      setError(''); // エラーをクリア
+      setError('');
     } catch (err: any) {
       console.error('Error adding member:', err);
-      setError(err.response?.data?.error || 'メンバーの追加に失敗しました。');
+      
+      // APIが実装されていない場合のフォールバック
+      if (err.code === 'ERR_NETWORK' || err.message?.includes('addTeamMember is not a function')) {
+        // ローカルでメンバーを追加（モック）
+        const newMember: TeamMember = {
+          id: `mock-member-${Date.now()}`,
+          isOwner: memberIsOwner,
+          joinedAt: new Date().toISOString(),
+          user: {
+            id: `mock-user-${Date.now()}`,
+            email: memberEmail.trim(),
+            role: 'CLIENT',
+            createdAt: new Date().toISOString()
+          }
+        };
+        setTeam({ ...team, members: [...team.members, newMember] });
+        setShowAddMemberForm(false);
+        setMemberEmail('');
+        setMemberIsOwner(false);
+        setError('');
+      } else {
+        setError('メンバーの追加に失敗しました。開発中の機能です。');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -160,10 +223,18 @@ const TeamManagementPage: React.FC = () => {
       const { removeTeamMember } = await import('../services/api');
       await removeTeamMember(team.id, memberId);
       await fetchTeamData();
-      setError(''); // エラーをクリア
+      setError('');
     } catch (err: any) {
       console.error('Error removing member:', err);
-      setError(err.response?.data?.error || 'メンバーの削除に失敗しました。');
+      
+      // APIが実装されていない場合のフォールバック
+      if (err.code === 'ERR_NETWORK' || err.message?.includes('removeTeamMember is not a function')) {
+        // ローカルでメンバーを削除
+        setTeam({ ...team, members: team.members.filter(m => m.id !== memberId) });
+        setError('');
+      } else {
+        setError('メンバーの削除に失敗しました。開発中の機能です。');
+      }
     } finally {
       setProcessing(null);
     }
@@ -180,10 +251,21 @@ const TeamManagementPage: React.FC = () => {
       const { updateMemberRole } = await import('../services/api');
       await updateMemberRole(team.id, memberId, { isOwner: !currentIsOwner });
       await fetchTeamData();
-      setError(''); // エラーをクリア
+      setError('');
     } catch (err: any) {
       console.error('Error updating member role:', err);
-      setError(err.response?.data?.error || '権限の更新に失敗しました。');
+      
+      // APIが実装されていない場合のフォールバック
+      if (err.code === 'ERR_NETWORK' || err.message?.includes('updateMemberRole is not a function')) {
+        // ローカルでメンバーの権限を更新
+        const updatedMembers = team.members.map(m => 
+          m.id === memberId ? { ...m, isOwner: !currentIsOwner } : m
+        );
+        setTeam({ ...team, members: updatedMembers });
+        setError('');
+      } else {
+        setError('権限の更新に失敗しました。開発中の機能です。');
+      }
     } finally {
       setProcessing(null);
     }
@@ -197,10 +279,18 @@ const TeamManagementPage: React.FC = () => {
       const { deleteTeam } = await import('../services/api');
       await deleteTeam(team.id);
       setTeam(null);
-      setError(''); // エラーをクリア
+      setError('');
     } catch (err: any) {
       console.error('Error deleting team:', err);
-      setError(err.response?.data?.error || 'チームの削除に失敗しました。');
+      
+      // APIが実装されていない場合のフォールバック
+      if (err.code === 'ERR_NETWORK' || err.message?.includes('deleteTeam is not a function')) {
+        // ローカルでチームを削除
+        setTeam(null);
+        setError('');
+      } else {
+        setError('チームの削除に失敗しました。開発中の機能です。');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -257,6 +347,21 @@ const TeamManagementPage: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* 開発中のお知らせ */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl mb-6"
+        >
+          <div className="flex items-center space-x-2">
+            <span className="text-xl">🚧</span>
+            <div>
+              <p className="font-medium">開発中の機能です</p>
+              <p className="text-sm">チーム管理機能は現在開発中です。一部の機能はモックデータで動作します。</p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* エラーメッセージ */}
         {error && (
           <motion.div

@@ -40,10 +40,12 @@ interface Application {
 const ApplicationsPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const router = useRouter();
 
   useEffect(() => {
@@ -61,6 +63,7 @@ const ApplicationsPage: React.FC = () => {
       }
       
       fetchApplications();
+      fetchProjects();
     } else {
       router.push('/login');
     }
@@ -113,10 +116,28 @@ const ApplicationsPage: React.FC = () => {
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const { getProjects } = await import('../services/api');
+      const result = await getProjects();
+      setProjects(result?.projects || []);
+    } catch (err: any) {
+      console.error('Error fetching projects:', err);
+    }
+  };
+
   const filteredApplications = applications.filter(application => {
-    if (statusFilter === 'pending') return !application.isAccepted && application.project.status === 'PENDING';
-    if (statusFilter === 'accepted') return application.isAccepted;
-    return true;
+    let matchesStatus = true;
+    let matchesProject = true;
+
+    // Status filter
+    if (statusFilter === 'pending') matchesStatus = !application.isAccepted && application.project.status === 'PENDING';
+    else if (statusFilter === 'accepted') matchesStatus = application.isAccepted;
+
+    // Project filter
+    if (projectFilter !== 'all') matchesProject = application.project.id === projectFilter;
+
+    return matchesStatus && matchesProject;
   });
 
   const formatPrice = (price: number) => {
@@ -206,31 +227,54 @@ const ApplicationsPage: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">応募一覧</h2>
-              <p className="text-gray-600">あなたのプロジェクトへの応募を確認・管理できます</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-2">応募一覧</h2>
+                <p className="text-gray-600">あなたのプロジェクトへの応募を確認・管理できます</p>
+              </div>
             </div>
-            <div className="flex gap-2">
-              {[
-                { value: 'all', label: 'すべて' },
-                { value: 'pending', label: '審査中' },
-                { value: 'accepted', label: '承認済み' }
-              ].map(filter => (
-                <motion.button
-                  key={filter.value}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setStatusFilter(filter.value)}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    statusFilter === filter.value
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Status Filter */}
+              <div className="flex gap-2">
+                {[
+                  { value: 'all', label: 'すべて' },
+                  { value: 'pending', label: '審査中' },
+                  { value: 'accepted', label: '承認済み' }
+                ].map(filter => (
+                  <motion.button
+                    key={filter.value}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setStatusFilter(filter.value)}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                      statusFilter === filter.value
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {filter.label}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Project Filter */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">プロジェクト:</label>
+                <select
+                  value={projectFilter}
+                  onChange={(e) => setProjectFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
-                  {filter.label}
-                </motion.button>
-              ))}
+                  <option value="all">すべてのプロジェクト</option>
+                  {projects.map(project => (
+                    <option key={project.id} value={project.id}>
+                      {project.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </motion.div>

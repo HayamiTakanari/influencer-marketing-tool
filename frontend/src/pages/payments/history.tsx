@@ -32,10 +32,12 @@ interface PaymentStats {
 const PaymentHistoryPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refunding, setRefunding] = useState<string | null>(null);
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const router = useRouter();
 
   useEffect(() => {
@@ -48,6 +50,7 @@ const PaymentHistoryPage: React.FC = () => {
       
       fetchPaymentHistory();
       fetchPaymentStats();
+      fetchProjects();
     } else {
       router.push('/login');
     }
@@ -187,6 +190,21 @@ const PaymentHistoryPage: React.FC = () => {
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const { getProjects } = await import('../../services/api');
+      const result = await getProjects();
+      setProjects(result?.projects || []);
+    } catch (err: any) {
+      console.error('Error fetching projects:', err);
+    }
+  };
+
+  const filteredTransactions = transactions.filter(transaction => {
+    if (projectFilter === 'all') return true;
+    return transaction.project.id === projectFilter;
+  });
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ja-JP', {
       style: 'currency',
@@ -300,6 +318,33 @@ const PaymentHistoryPage: React.FC = () => {
           </motion.div>
         )}
 
+        {/* プロジェクトフィルター */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.15 }}
+          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
+        >
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-medium text-gray-700">プロジェクト:</label>
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="all">すべてのプロジェクト</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>
+                  {project.title}
+                </option>
+              ))}
+            </select>
+            <span className="text-sm text-gray-600">
+              {filteredTransactions.length}件の取引
+            </span>
+          </div>
+        </motion.div>
+
         {/* 取引履歴 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -309,15 +354,15 @@ const PaymentHistoryPage: React.FC = () => {
         >
           <h2 className="text-2xl font-bold text-gray-900 mb-6">取引履歴</h2>
           
-          {transactions.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">💳</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">取引履歴がありません</h3>
-              <p className="text-gray-600">まだ支払いや収益がありません。</p>
+              <p className="text-gray-600">{projectFilter === 'all' ? 'まだ支払いや収益がありません。' : '選択したプロジェクトに関する取引がありません。'}</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {transactions.map((transaction, index) => (
+              {filteredTransactions.map((transaction, index) => (
                 <motion.div
                   key={transaction.id}
                   initial={{ opacity: 0, y: 10 }}
