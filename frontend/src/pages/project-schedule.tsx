@@ -1,70 +1,82 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import { 
-  createProjectSchedule,
-  getProjectSchedule,
-  updateMilestone,
-  getUpcomingMilestones,
-  ProjectSchedule,
-  Milestone
-} from '../services/v3-api';
-import { getMyProjects } from '../services/api';
+import { getMyProjects, getProjectSchedule } from '../services/api';
+
+type PhaseType = 
+  | 'FORMAL_REQUEST'
+  | 'PRODUCT_RECEIPT' 
+  | 'DRAFT_CREATION'
+  | 'DRAFT_SUBMISSION'
+  | 'SCRIPT_FEEDBACK'
+  | 'SCRIPT_REVISION'
+  | 'SCRIPT_FINALIZE'
+  | 'SHOOTING_PERIOD'
+  | 'VIDEO_DRAFT_SUBMIT'
+  | 'VIDEO_FEEDBACK'
+  | 'VIDEO_REVISION'
+  | 'VIDEO_FINAL_SUBMIT'
+  | 'VIDEO_FINALIZE'
+  | 'POSTING_PERIOD'
+  | 'INSIGHT_SUBMIT';
+
+interface Phase {
+  id: string;
+  type: PhaseType;
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate?: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  isDateRange: boolean;
+  color: string;
+  icon: string;
+}
+
+interface ProjectSchedule {
+  phases: Phase[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Project {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  createdAt: string;
+  clientId: string;
+  matchedInfluencerId?: string;
+}
+
+const PHASE_CONFIG: Record<PhaseType, { title: string; description: string; color: string; icon: string; isDateRange: boolean }> = {
+  FORMAL_REQUEST: { title: '正式依頼', description: 'プロジェクトの正式依頼日', color: 'bg-blue-500', icon: '📄', isDateRange: false },
+  PRODUCT_RECEIPT: { title: '商品受領', description: 'PR商品の受領日', color: 'bg-green-500', icon: '📦', isDateRange: false },
+  DRAFT_CREATION: { title: '構成案作成', description: '企画書・構成案の作成期間', color: 'bg-purple-500', icon: '✏️', isDateRange: true },
+  DRAFT_SUBMISSION: { title: '構成案提出', description: '企画書・構成案の提出日', color: 'bg-indigo-500', icon: '📝', isDateRange: false },
+  SCRIPT_FEEDBACK: { title: '台本フィードバック', description: '台本に対するフィードバック期間', color: 'bg-yellow-500', icon: '💬', isDateRange: true },
+  SCRIPT_REVISION: { title: '台本修正', description: '台本の修正・改善期間', color: 'bg-orange-500', icon: '🔄', isDateRange: true },
+  SCRIPT_FINALIZE: { title: '台本確定', description: '最終台本の確定日', color: 'bg-red-500', icon: '✅', isDateRange: false },
+  SHOOTING_PERIOD: { title: '撮影期間', description: 'コンテンツ撮影期間', color: 'bg-pink-500', icon: '🎥', isDateRange: true },
+  VIDEO_DRAFT_SUBMIT: { title: '動画初稿提出', description: '編集した動画の初稿提出日', color: 'bg-teal-500', icon: '🎬', isDateRange: false },
+  VIDEO_FEEDBACK: { title: '動画フィードバック', description: '動画に対するフィードバック期間', color: 'bg-cyan-500', icon: '📹', isDateRange: true },
+  VIDEO_REVISION: { title: '動画修正', description: '動画の修正・再編集期間', color: 'bg-emerald-500', icon: '🎞️', isDateRange: true },
+  VIDEO_FINAL_SUBMIT: { title: '動画最終提出', description: '最終動画の提出日', color: 'bg-lime-500', icon: '💾', isDateRange: false },
+  VIDEO_FINALIZE: { title: '動画確定', description: '最終動画の確定日', color: 'bg-amber-500', icon: '🎯', isDateRange: false },
+  POSTING_PERIOD: { title: '投稿期間', description: 'SNS投稿期間', color: 'bg-rose-500', icon: '📱', isDateRange: true },
+  INSIGHT_SUBMIT: { title: 'インサイト提出', description: '投稿結果・インサイトデータの提出日', color: 'bg-violet-500', icon: '📊', isDateRange: false }
+};
 
 const ProjectSchedulePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'create' | 'manage'>('upcoming');
-  const [projects, setProjects] = useState<any[]>([]);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [schedule, setSchedule] = useState<ProjectSchedule | null>(null);
-  const [upcomingMilestones, setUpcomingMilestones] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'project' | 'overview'>('project');
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [schedules, setSchedules] = useState<{ [key: string]: ProjectSchedule }>({});
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const router = useRouter();
-
   const [user, setUser] = useState<any>(null);
-
-  const [scheduleForm, setScheduleForm] = useState({
-    projectId: '',
-    publishDate: '',
-    milestones: [
-      {
-        type: 'CONCEPT_APPROVAL' as const,
-        title: '構成案承認',
-        description: '企画内容の承認を得る',
-        dueDate: '',
-      },
-      {
-        type: 'VIDEO_COMPLETION' as const,
-        title: '動画完成',
-        description: '動画制作を完了する',
-        dueDate: '',
-      },
-      {
-        type: 'FINAL_APPROVAL' as const,
-        title: '最終承認',
-        description: '最終コンテンツの承認を得る',
-        dueDate: '',
-      },
-    ],
-  });
-
-  const [milestoneForm, setMilestoneForm] = useState({
-    title: '',
-    description: '',
-    dueDate: '',
-    isCompleted: false,
-  });
-
-  const milestoneTypeLabels = {
-    CONCEPT_APPROVAL: '構成案承認',
-    VIDEO_COMPLETION: '動画完成',
-    FINAL_APPROVAL: '最終承認',
-    PUBLISH_DATE: '投稿日',
-  };
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -76,19 +88,25 @@ const ProjectSchedulePage: React.FC = () => {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
 
+    if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
+      router.push('/dashboard');
+      return;
+    }
+
     fetchData();
   }, [router]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [projectsData, upcomingData] = await Promise.all([
-        getMyProjects(),
-        getUpcomingMilestones(7)
-      ]);
-      
-      setProjects(projectsData.projects || []);
-      setUpcomingMilestones(upcomingData.milestones || []);
+      const projectsData = await getMyProjects();
+      const projectList = projectsData.projects || [];
+      setProjects(projectList);
+
+      if (projectList.length > 0) {
+        setSelectedProject(projectList[0].id);
+        await fetchSchedules(projectList);
+      }
     } catch (err: any) {
       console.error('Error fetching data:', err);
       setError('データの取得に失敗しました。');
@@ -97,138 +115,111 @@ const ProjectSchedulePage: React.FC = () => {
     }
   };
 
-  const fetchProjectSchedule = async (projectId: string) => {
-    try {
-      const data = await getProjectSchedule(projectId);
-      setSchedule(data.schedule);
-    } catch (err: any) {
-      console.error('Error fetching schedule:', err);
-      setSchedule(null);
-    }
-  };
-
-  const handleCreateSchedule = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setError('');
-      setSuccessMessage('');
-      
-      // 投稿日から逆算してマイルストーンの日付を自動設定
-      const publishDate = new Date(scheduleForm.publishDate);
-      const milestones = scheduleForm.milestones.map((milestone, index) => {
-        const dueDate = new Date(publishDate);
-        dueDate.setDate(publishDate.getDate() - (3 - index) * 3); // 3日間隔で逆算
-        
-        return {
-          ...milestone,
-          dueDate: dueDate.toISOString(),
-        };
-      });
-
-      const submitData = {
-        projectId: scheduleForm.projectId,
-        publishDate: scheduleForm.publishDate,
-        milestones,
-      };
-
-      await createProjectSchedule(submitData);
-      setShowCreateModal(false);
-      setSuccessMessage('スケジュールを作成しました！');
-      setActiveTab('manage');
-      fetchData();
-      fetchProjectSchedule(scheduleForm.projectId);
-      
-      // 3秒後にメッセージを消去
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err: any) {
-      console.error('Error creating schedule:', err);
-      setError('スケジュールの作成に失敗しました。');
-    }
-  };
-
-  const handleUpdateMilestone = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingMilestone) return;
-
-    try {
-      setError('');
-      setSuccessMessage('');
-      
-      const submitData = {
-        ...milestoneForm,
-        dueDate: milestoneForm.dueDate ? new Date(milestoneForm.dueDate).toISOString() : undefined,
-      };
-
-      await updateMilestone(editingMilestone.id, submitData);
-      setShowEditModal(false);
-      setEditingMilestone(null);
-      setSuccessMessage('マイルストーンを更新しました！');
-      
-      if (selectedProject) {
-        fetchProjectSchedule(selectedProject.id);
-      }
-      fetchData();
-      
-      // 3秒後にメッセージを消去
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err: any) {
-      console.error('Error updating milestone:', err);
-      setError('マイルストーンの更新に失敗しました。');
-    }
-  };
-
-  const openEditModal = (milestone: Milestone) => {
-    setEditingMilestone(milestone);
-    setMilestoneForm({
-      title: milestone.title,
-      description: milestone.description || '',
-      dueDate: milestone.dueDate.split('T')[0],
-      isCompleted: milestone.isCompleted,
-    });
-    setShowEditModal(true);
-  };
-
-  const calculateDaysUntilDue = (dueDate: string) => {
-    const now = new Date();
-    const due = new Date(dueDate);
-    const diffTime = due.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  const getDueDateColor = (dueDate: string, isCompleted: boolean) => {
-    if (isCompleted) return 'text-green-600';
+  const fetchSchedules = async (projectList: Project[]) => {
+    const scheduleData: { [key: string]: ProjectSchedule } = {};
     
-    const daysUntil = calculateDaysUntilDue(dueDate);
-    if (daysUntil < 0) return 'text-red-600';
-    if (daysUntil <= 1) return 'text-orange-600';
-    return 'text-gray-600';
+    for (const project of projectList) {
+      try {
+        const schedule = await getProjectSchedule(project.id);
+        if (schedule && schedule.phases) {
+          scheduleData[project.id] = schedule;
+        } else {
+          scheduleData[project.id] = generateMockSchedule(project);
+        }
+      } catch (error) {
+        console.error(`Error fetching schedule for project ${project.id}:`, error);
+        scheduleData[project.id] = generateMockSchedule(project);
+      }
+    }
+    
+    setSchedules(scheduleData);
   };
 
-  const resetScheduleForm = () => {
-    setScheduleForm({
-      projectId: '',
-      publishDate: '',
-      milestones: [
-        {
-          type: 'CONCEPT_APPROVAL',
-          title: '構成案承認',
-          description: '企画内容の承認を得る',
-          dueDate: '',
-        },
-        {
-          type: 'VIDEO_COMPLETION',
-          title: '動画完成',
-          description: '動画制作を完了する',
-          dueDate: '',
-        },
-        {
-          type: 'FINAL_APPROVAL',
-          title: '最終承認',
-          description: '最終コンテンツの承認を得る',
-          dueDate: '',
-        },
-      ],
+  const generateMockSchedule = (project: Project): ProjectSchedule => {
+    const startDate = new Date();
+    const phases: Phase[] = [];
+    
+    const phaseTypes: PhaseType[] = [
+      'FORMAL_REQUEST', 'PRODUCT_RECEIPT', 'DRAFT_CREATION', 'DRAFT_SUBMISSION',
+      'SCRIPT_FEEDBACK', 'SCRIPT_REVISION', 'SCRIPT_FINALIZE', 'SHOOTING_PERIOD',
+      'VIDEO_DRAFT_SUBMIT', 'VIDEO_FEEDBACK', 'VIDEO_REVISION', 'VIDEO_FINAL_SUBMIT',
+      'VIDEO_FINALIZE', 'POSTING_PERIOD', 'INSIGHT_SUBMIT'
+    ];
+
+    phaseTypes.forEach((type, index) => {
+      const config = PHASE_CONFIG[type];
+      const phaseStartDate = new Date(startDate);
+      phaseStartDate.setDate(startDate.getDate() + index * 3);
+      
+      let endDate = undefined;
+      if (config.isDateRange) {
+        const phaseEndDate = new Date(phaseStartDate);
+        phaseEndDate.setDate(phaseStartDate.getDate() + 2);
+        endDate = phaseEndDate.toISOString();
+      }
+
+      phases.push({
+        id: `${project.id}-phase-${index}`,
+        type,
+        title: config.title,
+        description: config.description,
+        startDate: phaseStartDate.toISOString(),
+        endDate,
+        status: index === 0 ? 'in_progress' : 'pending',
+        isDateRange: config.isDateRange,
+        color: config.color,
+        icon: config.icon
+      });
+    });
+
+    return {
+      phases,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  };
+
+  const getProjectBorderColor = (schedule: ProjectSchedule) => {
+    const projectIndex = Object.values(schedules).indexOf(schedule);
+    const borderColors = [
+      'border-l-blue-500', 'border-l-emerald-500', 'border-l-purple-500', 'border-l-orange-500',
+      'border-l-pink-500', 'border-l-teal-500', 'border-l-indigo-500', 'border-l-red-500'
+    ];
+    return borderColors[projectIndex % borderColors.length];
+  };
+
+  const getProjectTextColor = (schedule: ProjectSchedule) => {
+    const projectIndex = Object.values(schedules).indexOf(schedule);
+    const textColors = [
+      'text-blue-600', 'text-emerald-600', 'text-purple-600', 'text-orange-600',
+      'text-pink-600', 'text-teal-600', 'text-indigo-600', 'text-red-600'
+    ];
+    return textColors[projectIndex % textColors.length];
+  };
+
+  const getAllPhases = () => {
+    const allPhases: Array<Phase & { projectId: string; projectTitle: string }> = [];
+    
+    projects.forEach(project => {
+      const schedule = schedules[project.id];
+      if (schedule && schedule.phases) {
+        schedule.phases.forEach(phase => {
+          allPhases.push({
+            ...phase,
+            projectId: project.id,
+            projectTitle: project.title
+          });
+        });
+      }
+    });
+
+    return allPhases.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ja-JP', {
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -238,6 +229,22 @@ const ProjectSchedulePage: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            再試行
+          </button>
         </div>
       </div>
     );
@@ -255,169 +262,74 @@ const ProjectSchedulePage: React.FC = () => {
           >
             プロジェクトスケジュール
           </motion.h1>
-          {(user?.role === 'CLIENT' || user?.role === 'COMPANY') && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                resetScheduleForm();
-                setShowCreateModal(true);
-              }}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+        </div>
+
+        {/* タブとビューモード */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setActiveTab('project')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeTab === 'project'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white/80 text-gray-700 hover:bg-white'
+              }`}
             >
-              新規スケジュール作成
-            </motion.button>
-          )}
+              プロジェクト別
+            </button>
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeTab === 'overview'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white/80 text-gray-700 hover:bg-white'
+              }`}
+            >
+              全体スケジュール
+            </button>
+          </div>
+
+          <div className="flex space-x-2 bg-white/80 rounded-xl p-1">
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                viewMode === 'calendar'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              📅 カレンダー
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                viewMode === 'list'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              📋 リスト
+            </button>
+          </div>
         </div>
 
-        {/* エラーメッセージ */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
-        )}
-
-        {/* 成功メッセージ */}
-        {successMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center space-x-2"
-          >
-            <span className="text-xl">✅</span>
-            <span>{successMessage}</span>
-          </motion.div>
-        )}
-
-        {/* タブ */}
-        <div className="flex space-x-4 mb-8">
-          <button
-            onClick={() => setActiveTab('upcoming')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'upcoming'
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-white/80 text-gray-700 hover:bg-white'
-            }`}
-          >
-            今後の予定
-          </button>
-          <button
-            onClick={() => setActiveTab('manage')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'manage'
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-white/80 text-gray-700 hover:bg-white'
-            }`}
-          >
-            スケジュール管理
-          </button>
-        </div>
-
-        {/* 今後の予定タブ */}
-        {activeTab === 'upcoming' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">今後7日間の予定</h2>
-            
-            {upcomingMilestones.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600 text-lg">今後7日間の予定はありません。</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {upcomingMilestones.map((milestone) => {
-                  const daysUntil = calculateDaysUntilDue(milestone.dueDate);
-                  const isOverdue = daysUntil < 0;
-                  const isToday = daysUntil === 0;
-                  const isTomorrow = daysUntil === 1;
-
-                  return (
-                    <motion.div
-                      key={milestone.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border-l-4 ${
-                        isOverdue ? 'border-red-500' : 
-                        isToday ? 'border-orange-500' : 
-                        isTomorrow ? 'border-yellow-500' : 'border-blue-500'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-800">{milestone.title}</h3>
-                          <p className="text-gray-600">{milestone.schedule.project.title}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-sm font-medium ${getDueDateColor(milestone.dueDate, milestone.isCompleted)}`}>
-                            {isOverdue ? `${Math.abs(daysUntil)}日遅れ` :
-                             isToday ? '今日期限' :
-                             isTomorrow ? '明日期限' :
-                             `あと${daysUntil}日`}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(milestone.dueDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      {milestone.description && (
-                        <p className="text-gray-700 mb-3">{milestone.description}</p>
-                      )}
-
-                      <div className="flex justify-between items-center">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          milestone.isCompleted 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {milestoneTypeLabels[milestone.type as keyof typeof milestoneTypeLabels]}
-                        </span>
-                        
-                        {!milestone.isCompleted && (
-                          <button
-                            onClick={() => openEditModal(milestone)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-                          >
-                            編集
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* スケジュール管理タブ */}
-        {activeTab === 'manage' && (
+        {/* プロジェクト別タブ */}
+        {activeTab === 'project' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">プロジェクト選択</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* プロジェクト選択 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {projects.map((project) => (
                 <motion.div
                   key={project.id}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setSelectedProject(project);
-                    fetchProjectSchedule(project.id);
-                  }}
+                  onClick={() => setSelectedProject(project.id)}
                   className={`bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg cursor-pointer transition-all ${
-                    selectedProject?.id === project.id ? 'ring-2 ring-blue-500' : ''
+                    selectedProject === project.id ? 'ring-2 ring-blue-500' : ''
                   }`}
                 >
                   <h3 className="text-lg font-bold text-gray-800 mb-2">{project.title}</h3>
@@ -438,296 +350,217 @@ const ProjectSchedulePage: React.FC = () => {
               ))}
             </div>
 
-            {selectedProject && (
+            {/* 選択されたプロジェクトのスケジュール */}
+            {selectedProject && schedules[selectedProject] && (
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-lg">
                 <h3 className="text-2xl font-bold text-gray-800 mb-6">
-                  {selectedProject.title} のスケジュール
+                  {projects.find(p => p.id === selectedProject)?.title} のスケジュール
                 </h3>
 
-                {schedule ? (
-                  <div className="space-y-4">
-                    <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                      <h4 className="font-semibold text-blue-800 mb-2">投稿予定日</h4>
-                      <p className="text-blue-700 text-lg">
-                        {new Date(schedule.publishDate).toLocaleDateString()}
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      {schedule.milestones.map((milestone) => (
-                        <div
-                          key={milestone.id}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 ${
-                            milestone.isCompleted 
-                              ? 'bg-green-50 border-green-200' 
-                              : 'bg-white border-gray-200'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div className={`w-4 h-4 rounded-full ${
-                              milestone.isCompleted 
-                                ? 'bg-green-500' 
-                                : 'bg-gray-300'
-                            }`}></div>
-                            <div>
-                              <p className="font-medium text-gray-800">{milestone.title}</p>
-                              {milestone.description && (
-                                <p className="text-sm text-gray-600">{milestone.description}</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="text-right">
-                            <p className={`text-sm font-medium ${getDueDateColor(milestone.dueDate, milestone.isCompleted)}`}>
-                              {new Date(milestone.dueDate).toLocaleDateString()}
-                            </p>
-                            <button
-                              onClick={() => openEditModal(milestone)}
-                              className="text-blue-600 hover:text-blue-800 text-sm mt-1 transition-colors"
-                            >
-                              編集
-                            </button>
-                          </div>
+                {viewMode === 'calendar' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {schedules[selectedProject].phases.map((phase) => (
+                      <motion.div
+                        key={phase.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`${phase.color} rounded-xl p-4 text-white shadow-lg`}
+                      >
+                        <div className="flex items-center mb-2">
+                          <span className="text-2xl mr-2">{phase.icon}</span>
+                          <h4 className="font-bold text-lg">{phase.title}</h4>
                         </div>
-                      ))}
-                    </div>
+                        <p className="text-sm opacity-90 mb-3">{phase.description}</p>
+                        <div className="text-sm">
+                          <p className="font-medium">
+                            {formatDate(phase.startDate)}
+                            {phase.endDate && ` - ${formatDate(phase.endDate)}`}
+                          </p>
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-2 ${
+                            phase.status === 'completed' ? 'bg-green-200 text-green-800' :
+                            phase.status === 'in_progress' ? 'bg-yellow-200 text-yellow-800' :
+                            'bg-gray-200 text-gray-800'
+                          }`}>
+                            {phase.status === 'completed' ? '完了' :
+                             phase.status === 'in_progress' ? '進行中' : '待機中'}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">このプロジェクトにはまだスケジュールが作成されていません。</p>
-                    {(user?.role === 'CLIENT' || user?.role === 'COMPANY') && (
-                      <button
-                        onClick={() => {
-                          setScheduleForm({...scheduleForm, projectId: selectedProject.id});
-                          setShowCreateModal(true);
-                        }}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                  <div className="space-y-4">
+                    {schedules[selectedProject].phases.map((phase) => (
+                      <motion.div
+                        key={phase.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
                       >
-                        スケジュールを作成
-                      </button>
-                    )}
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-4 h-4 rounded-full ${
+                            phase.status === 'completed' ? 'bg-green-500' :
+                            phase.status === 'in_progress' ? 'bg-yellow-500' : 'bg-gray-300'
+                          }`}></div>
+                          <span className="text-2xl">{phase.icon}</span>
+                          <div>
+                            <p className="font-medium text-gray-800">{phase.title}</p>
+                            <p className="text-sm text-gray-600">{phase.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-800">
+                            {formatDate(phase.startDate)}
+                            {phase.endDate && ` - ${formatDate(phase.endDate)}`}
+                          </p>
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                            phase.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            phase.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {phase.status === 'completed' ? '完了' :
+                             phase.status === 'in_progress' ? '進行中' : '待機中'}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 )}
               </div>
             )}
           </motion.div>
         )}
-      </div>
 
-      {/* スケジュール作成モーダル */}
-      {showCreateModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
+        {/* 全体スケジュールタブ */}
+        {activeTab === 'overview' && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">スケジュール作成</h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateSchedule} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  プロジェクト *
-                </label>
-                <select
-                  value={scheduleForm.projectId}
-                  onChange={(e) => setScheduleForm({...scheduleForm, projectId: e.target.value})}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">プロジェクトを選択してください</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  投稿予定日 *
-                </label>
-                <input
-                  type="date"
-                  value={scheduleForm.publishDate}
-                  onChange={(e) => setScheduleForm({...scheduleForm, publishDate: e.target.value})}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  マイルストーン（投稿日から自動逆算されます）
-                </label>
-                <div className="space-y-4">
-                  {scheduleForm.milestones.map((milestone, index) => (
-                    <div key={index} className="bg-gray-50 rounded-xl p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            タイトル
-                          </label>
-                          <input
-                            type="text"
-                            value={milestone.title}
-                            onChange={(e) => {
-                              const updated = [...scheduleForm.milestones];
-                              updated[index] = {...updated[index], title: e.target.value};
-                              setScheduleForm({...scheduleForm, milestones: updated});
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            説明
-                          </label>
-                          <input
-                            type="text"
-                            value={milestone.description}
-                            onChange={(e) => {
-                              const updated = [...scheduleForm.milestones];
-                              updated[index] = {...updated[index], description: e.target.value};
-                              setScheduleForm({...scheduleForm, milestones: updated});
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                      </div>
+            {/* プロジェクト凡例 */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">プロジェクト凡例</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {projects.map((project) => {
+                  const schedule = schedules[project.id];
+                  if (!schedule) return null;
+                  
+                  return (
+                    <div key={project.id} className="flex items-center space-x-2">
+                      <div className={`w-4 h-4 rounded-full ${getProjectBorderColor(schedule).replace('border-l-', 'bg-')}`}></div>
+                      <span className="text-sm font-medium text-gray-700 truncate">{project.title}</span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                  キャンセル
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all"
-                >
-                  作成
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-
-      {/* マイルストーン編集モーダル */}
-      {showEditModal && editingMilestone && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">マイルストーン編集</h2>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingMilestone(null);
-                }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ✕
-              </button>
             </div>
 
-            <form onSubmit={handleUpdateMilestone} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  タイトル
-                </label>
-                <input
-                  type="text"
-                  value={milestoneForm.title}
-                  onChange={(e) => setMilestoneForm({...milestoneForm, title: e.target.value})}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            {/* 全体スケジュール表示 */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">全プロジェクト統合スケジュール</h3>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  説明
-                </label>
-                <textarea
-                  value={milestoneForm.description}
-                  onChange={(e) => setMilestoneForm({...milestoneForm, description: e.target.value})}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  期限日
-                </label>
-                <input
-                  type="date"
-                  value={milestoneForm.dueDate}
-                  onChange={(e) => setMilestoneForm({...milestoneForm, dueDate: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={milestoneForm.isCompleted}
-                  onChange={(e) => setMilestoneForm({...milestoneForm, isCompleted: e.target.checked})}
-                  className="mr-2"
-                />
-                <label className="text-sm text-gray-700">完了</label>
-              </div>
-
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingMilestone(null);
-                  }}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                  キャンセル
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all"
-                >
-                  更新
-                </button>
-              </div>
-            </form>
+              {viewMode === 'calendar' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(() => {
+                    const allPhases = getAllPhases();
+                    return allPhases.map((phase) => {
+                      const schedule = schedules[phase.projectId];
+                      const borderColor = getProjectBorderColor(schedule);
+                      const textColor = getProjectTextColor(schedule);
+                      
+                      return (
+                        <motion.div
+                          key={`${phase.projectId}-${phase.id}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`${phase.color} rounded-xl p-4 text-white shadow-lg border-l-8 ${borderColor}`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <span className="text-2xl mr-2">{phase.icon}</span>
+                              <h4 className="font-bold text-lg">{phase.title}</h4>
+                            </div>
+                            <div className="bg-white/20 px-2 py-1 rounded-full">
+                              <span className="text-xs font-medium">{phase.projectTitle}</span>
+                            </div>
+                          </div>
+                          <p className="text-sm opacity-90 mb-3">{phase.description}</p>
+                          <div className="text-sm">
+                            <p className="font-medium">
+                              {formatDate(phase.startDate)}
+                              {phase.endDate && ` - ${formatDate(phase.endDate)}`}
+                            </p>
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-2 ${
+                              phase.status === 'completed' ? 'bg-green-200 text-green-800' :
+                              phase.status === 'in_progress' ? 'bg-yellow-200 text-yellow-800' :
+                              'bg-gray-200 text-gray-800'
+                            }`}>
+                              {phase.status === 'completed' ? '完了' :
+                               phase.status === 'in_progress' ? '進行中' : '待機中'}
+                            </span>
+                          </div>
+                        </motion.div>
+                      );
+                    });
+                  })()}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(() => {
+                    const allPhases = getAllPhases();
+                    return allPhases.map((phase) => {
+                      const schedule = schedules[phase.projectId];
+                      const borderColor = getProjectBorderColor(schedule);
+                      const textColor = getProjectTextColor(schedule);
+                      
+                      return (
+                        <motion.div
+                          key={`${phase.projectId}-${phase.id}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl border-l-4 ${borderColor}`}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className={`w-4 h-4 rounded-full ${
+                              phase.status === 'completed' ? 'bg-green-500' :
+                              phase.status === 'in_progress' ? 'bg-yellow-500' : 'bg-gray-300'
+                            }`}></div>
+                            <span className="text-2xl">{phase.icon}</span>
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <p className="font-medium text-gray-800">{phase.title}</p>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${textColor} bg-gray-100`}>
+                                  {phase.projectTitle}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600">{phase.description}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-800">
+                              {formatDate(phase.startDate)}
+                              {phase.endDate && ` - ${formatDate(phase.endDate)}`}
+                            </p>
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                              phase.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              phase.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {phase.status === 'completed' ? '完了' :
+                               phase.status === 'in_progress' ? '進行中' : '待機中'}
+                            </span>
+                          </div>
+                        </motion.div>
+                      );
+                    });
+                  })()}
+                </div>
+              )}
+            </div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

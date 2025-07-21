@@ -3,7 +3,7 @@
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/analytics.tsx -> chart.js/auto": {
@@ -26,119 +26,119 @@
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/company-profile.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/influencer/[id].tsx -> ../../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/login.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/my-applications.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/notifications.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/opportunities.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/profile.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/project-detail.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/projects/[id].tsx -> ../../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/projects/create.tsx -> ../../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/projects/index.tsx -> ../../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/register.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/reviews.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/search-simple.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/search.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   },
   "pages/team-management.tsx -> ../services/api": {
     "id": 2184,
     "files": [
       "static/chunks/66-187f57243d4a51bf.js",
-      "static/chunks/184-ef2e8ef07d2e5f4f.js"
+      "static/chunks/184-02a3a7ef609f6ae8.js"
     ]
   }
 }

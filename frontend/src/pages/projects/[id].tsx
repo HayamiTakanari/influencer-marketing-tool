@@ -47,6 +47,33 @@ interface ProjectDetails {
   additionalInfo: string;
   createdAt: string;
   applications: Application[];
+  // 新しい詳細項目
+  advertiserName?: string;
+  brandName?: string;
+  productName?: string;
+  productUrl?: string;
+  productPrice?: number;
+  productFeatures?: string;
+  campaignObjective?: string;
+  campaignTarget?: string;
+  postingPeriodStart?: string;
+  postingPeriodEnd?: string;
+  postingMedia?: string[];
+  messageToConvey?: string;
+  shootingAngle?: string;
+  packagePhotography?: string;
+  productOrientationSpecified?: string;
+  musicUsage?: string;
+  brandContentSettings?: string;
+  advertiserAccount?: string;
+  desiredHashtags?: string[];
+  ngItems?: string;
+  legalRequirements?: string;
+  notes?: string;
+  secondaryUsage?: string;
+  secondaryUsageScope?: string;
+  secondaryUsagePeriod?: string;
+  insightDisclosure?: string;
   matchedInfluencer?: {
     id: string;
     displayName: string;
@@ -56,6 +83,69 @@ interface ProjectDetails {
 interface Props {
   projectId: string;
 }
+
+// 各項目の説明文
+const fieldDescriptions: Record<string, string> = {
+  advertiserName: '広告を出稿する企業・ブランドの正式名称です。',
+  brandName: '宣伝したい商品やサービスのブランド名です。',
+  productName: '具体的な商品・サービスの正式名称です。',
+  productUrl: '商品の詳細情報が掲載されている公式ページのURLです。',
+  productPrice: '商品の税込み価格です。フォロワーが購入を検討する際の参考になります。',
+  productFeatures: '商品の特徴や魅力を250文字程度で説明します。インフルエンサーがコンテンツを作る際の参考になります。',
+  campaignObjective: 'このキャンペーンで達成したい目標（認知拡大、売上向上、ブランドイメージ向上など）です。',
+  campaignTarget: 'ターゲットとする顧客層（年齢、性別、興味関心など）です。',
+  postingPeriodStart: 'インフルエンサーに投稿してもらいたい期間の開始日です。',
+  postingPeriodEnd: 'インフルエンサーに投稿してもらいたい期間の終了日です。',
+  postingMedia: '投稿してもらいたいSNSプラットフォーム（Instagram、TikTok、YouTubeなど）です。',
+  messageToConvey: '投稿を通じてフォロワーに伝えたいメッセージや訴求ポイントです。',
+  shootingAngle: '人物を撮影する際の角度の指定です。商品との組み合わせや見せ方に影響します。',
+  packagePhotography: '商品の外装やパッケージを撮影に含めるかどうかの指定です。',
+  productOrientationSpecified: '商品の向きや角度について具体的な指定があるかどうかです。',
+  musicUsage: 'BGMや効果音の使用について。著作権の関係で商用利用可能な音源のみ使用を推奨します。',
+  brandContentSettings: 'SNSプラットフォームのブランドコンテンツ機能を使用するかどうかの設定です。',
+  advertiserAccount: '広告主の公式SNSアカウント名です。タグ付けに使用されることがあります。',
+  desiredHashtags: 'キャンペーンで使用してもらいたいハッシュタグです（最大5つまで）。',
+  ngItems: 'コンテンツ制作時に避けてもらいたい内容や表現です。',
+  legalRequirements: '薬機法など法的規制に基づいて必要な表現や注釈です。',
+  notes: '上記以外で特に注意してもらいたい点や要望です。',
+  secondaryUsage: 'インフルエンサーのコンテンツを広告主が二次利用（転載・再利用）できるかどうかです。',
+  secondaryUsageScope: '二次利用が許可されている場合の使用範囲（公式サイト、広告など）です。',
+  secondaryUsagePeriod: '二次利用が許可されている期間です。',
+  insightDisclosure: '投稿のパフォーマンスデータ（いいね数、リーチ数など）の開示を求めるかどうかです。'
+};
+
+// ヘルプボタンコンポーネント
+const HelpButton: React.FC<{ field: string }> = ({ field }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const description = fieldDescriptions[field];
+
+  if (!description) return null;
+
+  return (
+    <div className="relative inline-block ml-2">
+      <button
+        type="button"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onClick={() => setShowTooltip(!showTooltip)}
+        className="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition-colors cursor-pointer"
+        aria-label="ヘルプを表示"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+      {showTooltip && (
+        <div className="absolute z-50 w-64 p-3 mt-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg left-6 top-0">
+          <div className="absolute -left-2 top-2">
+            <div className="w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+          </div>
+          {description}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
   const [user, setUser] = useState<any>(null);
@@ -315,8 +405,16 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-gray-900">{project.title}</h2>
-            <div className="text-2xl font-bold text-green-600">{formatPrice(project.budget)}</div>
+            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+              {project.title}
+              <span className="ml-2 inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 cursor-pointer" title="プロジェクトのタイトル">
+                ?
+              </span>
+            </h2>
+            <div className="flex items-center">
+              <div className="text-2xl font-bold text-green-600">{formatPrice(project.budget)}</div>
+              <div className="ml-2 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-pointer" title="プロジェクトの予算">?</div>
+            </div>
           </div>
           
           <p className="text-gray-700 mb-6">{project.description}</p>
@@ -484,6 +582,319 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                 )}
               </div>
             </div>
+
+            {/* 商品・広告主情報 */}
+            {(project.advertiserName || project.brandName || project.productName) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">商品・広告主情報</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {project.advertiserName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        広告主名
+                        <HelpButton field="advertiserName" />
+                      </h4>
+                      <p className="text-gray-700">{project.advertiserName}</p>
+                    </div>
+                  )}
+                  {project.brandName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        ブランド名
+                        <HelpButton field="brandName" />
+                      </h4>
+                      <p className="text-gray-700">{project.brandName}</p>
+                    </div>
+                  )}
+                  {project.productName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品正式名称
+                        <HelpButton field="productName" />
+                      </h4>
+                      <p className="text-gray-700">{project.productName}</p>
+                    </div>
+                  )}
+                  {project.productUrl && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品URL
+                        <HelpButton field="productUrl" />
+                      </h4>
+                      <a href={project.productUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                        {project.productUrl}
+                      </a>
+                    </div>
+                  )}
+                  {project.productPrice && project.productPrice > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品税込価格
+                        <HelpButton field="productPrice" />
+                      </h4>
+                      <p className="text-gray-700">{formatPrice(project.productPrice)}</p>
+                    </div>
+                  )}
+                  {project.advertiserAccount && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        広告主アカウント
+                        <HelpButton field="advertiserAccount" />
+                      </h4>
+                      <p className="text-gray-700 font-mono">{project.advertiserAccount}</p>
+                    </div>
+                  )}
+                  {project.productFeatures && (
+                    <div className="md:col-span-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品特徴
+                        <HelpButton field="productFeatures" />
+                      </h4>
+                      <p className="text-gray-700">{project.productFeatures}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* キャンペーン詳細 */}
+            {(project.campaignObjective || project.campaignTarget || project.messageToConvey) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h3>
+                <div className="space-y-6">
+                  {project.campaignObjective && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        施策の目的
+                        <HelpButton field="campaignObjective" />
+                      </h4>
+                      <p className="text-gray-700">{project.campaignObjective}</p>
+                    </div>
+                  )}
+                  {project.campaignTarget && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        施策ターゲット
+                        <HelpButton field="campaignTarget" />
+                      </h4>
+                      <p className="text-gray-700">{project.campaignTarget}</p>
+                    </div>
+                  )}
+                  {(project.postingPeriodStart || project.postingPeriodEnd) && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        投稿期間
+                        <HelpButton field="postingPeriodStart" />
+                      </h4>
+                      <p className="text-gray-700">
+                        {project.postingPeriodStart && project.postingPeriodEnd
+                          ? `${project.postingPeriodStart} 〜 ${project.postingPeriodEnd}`
+                          : project.postingPeriodStart || project.postingPeriodEnd
+                        }
+                      </p>
+                    </div>
+                  )}
+                  {project.postingMedia && project.postingMedia.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        投稿メディア
+                        <HelpButton field="postingMedia" />
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {project.postingMedia.map(media => (
+                          <span key={media} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                            {media === 'INSTAGRAM' ? '📸 Instagram' :
+                             media === 'YOUTUBE' ? '🎥 YouTube' :
+                             media === 'TIKTOK' ? '🎵 TikTok' :
+                             media === 'TWITTER' ? '🐦 Twitter' : media}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.messageToConvey && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        投稿を通じて伝えたいこと
+                        <HelpButton field="messageToConvey" />
+                      </h4>
+                      <p className="text-gray-700">{project.messageToConvey}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 撮影・制作仕様 */}
+            {(project.shootingAngle || project.packagePhotography || project.productOrientationSpecified || 
+              project.musicUsage || project.brandContentSettings) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {project.shootingAngle && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        人物の撮影アングル
+                        <HelpButton field="shootingAngle" />
+                      </h4>
+                      <p className="text-gray-700">{project.shootingAngle}</p>
+                    </div>
+                  )}
+                  {project.packagePhotography && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        外装やパッケージ撮影
+                        <HelpButton field="packagePhotography" />
+                      </h4>
+                      <p className="text-gray-700">{project.packagePhotography}</p>
+                    </div>
+                  )}
+                  {project.productOrientationSpecified && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品の向きの撮影指定
+                        <HelpButton field="productOrientationSpecified" />
+                      </h4>
+                      <p className="text-gray-700">{project.productOrientationSpecified}</p>
+                    </div>
+                  )}
+                  {project.musicUsage && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        音楽使用
+                        <HelpButton field="musicUsage" />
+                      </h4>
+                      <p className="text-gray-700">{project.musicUsage}</p>
+                    </div>
+                  )}
+                  {project.brandContentSettings && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        ブランドコンテンツ設定
+                        <HelpButton field="brandContentSettings" />
+                      </h4>
+                      <p className="text-gray-700">{project.brandContentSettings}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ハッシュタグ・制約事項 */}
+            {(project.desiredHashtags?.length || project.ngItems || project.legalRequirements || project.notes) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・制約事項</h3>
+                <div className="space-y-6">
+                  {project.desiredHashtags && project.desiredHashtags.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        希望ハッシュタグ
+                        <HelpButton field="desiredHashtags" />
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {project.desiredHashtags.filter(tag => tag).map((hashtag, index) => (
+                          <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-mono">
+                            {hashtag.startsWith('#') ? hashtag : `#${hashtag}`}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.ngItems && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        NG項目
+                        <HelpButton field="ngItems" />
+                      </h4>
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-red-800">{project.ngItems}</p>
+                      </div>
+                    </div>
+                  )}
+                  {project.legalRequirements && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        薬機法に基づく表現や注釈が必要な表現
+                        <HelpButton field="legalRequirements" />
+                      </h4>
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p className="text-yellow-800">{project.legalRequirements}</p>
+                      </div>
+                    </div>
+                  )}
+                  {project.notes && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        注意点
+                        <HelpButton field="notes" />
+                      </h4>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-blue-800">{project.notes}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 二次利用・開示設定 */}
+            {(project.secondaryUsage || project.secondaryUsageScope || project.secondaryUsagePeriod || project.insightDisclosure) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">二次利用・開示設定</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {project.secondaryUsage && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        二次利用有無
+                        <HelpButton field="secondaryUsage" />
+                      </h4>
+                      <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                        project.secondaryUsage === '許可（条件なし）' 
+                          ? 'bg-green-100 text-green-800' 
+                          : project.secondaryUsage === '許可（条件あり）'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {project.secondaryUsage}
+                      </p>
+                    </div>
+                  )}
+                  {project.insightDisclosure && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        投稿のインサイト開示
+                        <HelpButton field="insightDisclosure" />
+                      </h4>
+                      <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                        project.insightDisclosure === '必要' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {project.insightDisclosure}
+                      </p>
+                    </div>
+                  )}
+                  {project.secondaryUsageScope && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        二次利用範囲
+                        <HelpButton field="secondaryUsageScope" />
+                      </h4>
+                      <p className="text-gray-700">{project.secondaryUsageScope}</p>
+                    </div>
+                  )}
+                  {project.secondaryUsagePeriod && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        二次利用期間
+                        <HelpButton field="secondaryUsagePeriod" />
+                      </h4>
+                      <p className="text-gray-700">{project.secondaryUsagePeriod}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 

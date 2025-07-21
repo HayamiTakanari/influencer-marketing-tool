@@ -15,6 +15,12 @@ interface CompanyProfile {
   budget?: number;
   targetAudience?: string;
   location?: string;
+  // 口座情報
+  bankName?: string;
+  branchName?: string;
+  accountType?: string;
+  accountNumber?: string;
+  accountName?: string;
 }
 
 const CompanyProfilePage: React.FC = () => {
@@ -35,7 +41,13 @@ const CompanyProfilePage: React.FC = () => {
     description: '',
     budget: 0,
     targetAudience: '',
-    location: ''
+    location: '',
+    // 口座情報
+    bankName: '',
+    branchName: '',
+    accountType: '',
+    accountNumber: '',
+    accountName: ''
   });
 
   const industries = [
@@ -52,6 +64,11 @@ const CompanyProfilePage: React.FC = () => {
     '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県',
     '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
     '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
+  ];
+
+  const accountTypes = [
+    '普通預金',
+    '当座預金'
   ];
 
   useEffect(() => {
@@ -92,7 +109,13 @@ const CompanyProfilePage: React.FC = () => {
           description: result.description || '',
           budget: result.budget || 0,
           targetAudience: result.targetAudience || '',
-          location: result.location || ''
+          location: result.location || '',
+          // 口座情報
+          bankName: result.bankName || '',
+          branchName: result.branchName || '',
+          accountType: result.accountType || '',
+          accountNumber: result.accountNumber || '',
+          accountName: result.accountName || ''
         });
       }
     } catch (err: any) {
@@ -200,7 +223,7 @@ const CompanyProfilePage: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {profile?.budget && (
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">{formatPrice(profile.budget)}</div>
@@ -219,6 +242,15 @@ const CompanyProfilePage: React.FC = () => {
                 <div className="text-gray-600 text-sm">所在地</div>
               </div>
             )}
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${profile?.bankName ? 'text-green-600' : 'text-gray-400'}`}>
+                {profile?.bankName ? '✓' : '✗'}
+              </div>
+              <div className="text-gray-600 text-sm">口座情報</div>
+              {profile?.bankName && (
+                <div className="text-xs text-gray-500 mt-1">{profile.bankName}</div>
+              )}
+            </div>
           </div>
         </motion.div>
 
@@ -353,6 +385,83 @@ const CompanyProfilePage: React.FC = () => {
               />
             </div>
 
+            {/* 口座情報セクション */}
+            <div className="border-t border-gray-200 pt-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <span className="mr-2">🏦</span>
+                口座情報（支払い用）
+              </h4>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                <div className="flex items-center">
+                  <span className="text-yellow-600 mr-2">ℹ️</span>
+                  <p className="text-sm text-yellow-800">
+                    インフルエンサーへの報酬支払いに使用する口座情報を入力してください。この情報は安全に暗号化されて保存されます。
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">銀行名</label>
+                  <input
+                    type="text"
+                    value={formData.bankName}
+                    onChange={(e) => setFormData({...formData, bankName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="例：三菱UFJ銀行"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">支店名</label>
+                  <input
+                    type="text"
+                    value={formData.branchName}
+                    onChange={(e) => setFormData({...formData, branchName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="例：渋谷支店"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">口座種別</label>
+                  <select
+                    value={formData.accountType}
+                    onChange={(e) => setFormData({...formData, accountType: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {accountTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">口座番号</label>
+                  <input
+                    type="text"
+                    value={formData.accountNumber}
+                    onChange={(e) => setFormData({...formData, accountNumber: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="例：1234567"
+                    maxLength={8}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">口座名義</label>
+                  <input
+                    type="text"
+                    value={formData.accountName}
+                    onChange={(e) => setFormData({...formData, accountName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="例：カブシキガイシャ〇〇"
+                  />
+                </div>
+              </div>
+            </div>
+
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -389,6 +498,10 @@ const CompanyProfilePage: React.FC = () => {
             <div className="flex items-start space-x-3">
               <span className="text-blue-600 font-bold">•</span>
               <p>ウェブサイトを登録することで、インフルエンサーが事前に企業研究できます</p>
+            </div>
+            <div className="flex items-start space-x-3">
+              <span className="text-blue-600 font-bold">•</span>
+              <p>口座情報を登録することで、インフルエンサーへのスムーズな報酬支払いが可能になります</p>
             </div>
           </div>
         </motion.div>

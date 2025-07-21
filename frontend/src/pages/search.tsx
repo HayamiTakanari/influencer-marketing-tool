@@ -13,6 +13,7 @@ interface SimpleInfluencer {
   location: string;
   age: number;
   bio: string;
+  gender: string;
 }
 
 const SearchPage: React.FC = () => {
@@ -179,7 +180,11 @@ const SearchPage: React.FC = () => {
                   className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300"
                 >
                   <div className="text-center mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <div 
+                      className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-3 cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+                      onClick={() => router.push(`/influencer/${influencer.id}`)}
+                      title={`${influencer.name}の詳細を見る`}
+                    >
                       <span className="text-white font-bold text-xl">
                         {influencer.name.charAt(0)}
                       </span>
@@ -214,6 +219,10 @@ const SearchPage: React.FC = () => {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">年齢</span>
                       <span className="font-semibold">{influencer.age}歳</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">性別</span>
+                      <span className="font-semibold">{influencer.gender}</span>
                     </div>
                   </div>
 

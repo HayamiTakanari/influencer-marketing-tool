@@ -3,6 +3,22 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
+interface AssignedInfluencer {
+  id: string;
+  displayName: string;
+  platform: string;
+  followerCount: number;
+  contractPrice: number;
+}
+
+interface ProjectDetails {
+  listupCount: number;
+  assignedCount: number;
+  publishDate: string;
+  manager: string;
+  assignedInfluencers: AssignedInfluencer[];
+}
+
 interface Project {
   id: string;
   title: string;
@@ -25,6 +41,7 @@ interface Project {
     displayName: string;
     avatar?: string;
   };
+  projectDetails?: ProjectDetails;
 }
 
 const ProjectsPage: React.FC = () => {
@@ -262,43 +279,108 @@ const ProjectsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">対象プラットフォーム</h4>
-                    <div className="flex space-x-2">
-                      {project.targetPlatforms.map(platform => (
-                        <span key={platform} className="text-lg">
-                          {getPlatformIcon(platform)}
-                        </span>
-                      ))}
+                {/* 進行中プロジェクトの詳細情報 */}
+                {project.status === 'IN_PROGRESS' && project.projectDetails ? (
+                  <div className="space-y-4">
+                    {/* プロジェクト進行状況 */}
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 border border-green-200">
+                      <h4 className="font-bold text-green-800 mb-3 flex items-center">
+                        <span className="mr-2">🚀</span>
+                        プロジェクト進行状況
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{project.projectDetails.listupCount}</div>
+                          <div className="text-sm text-gray-600">リストアップ数</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{project.projectDetails.assignedCount}</div>
+                          <div className="text-sm text-gray-600">アサイン数</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-purple-600">{formatDate(project.projectDetails.publishDate)}</div>
+                          <div className="text-sm text-gray-600">投稿予定日</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-orange-600">{project.projectDetails.manager}</div>
+                          <div className="text-sm text-gray-600">担当者</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* アサイン済みインフルエンサー */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200">
+                      <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                        <span className="mr-2">👥</span>
+                        アサイン済みインフルエンサー
+                      </h4>
+                      <div className="space-y-3">
+                        {project.projectDetails.assignedInfluencers.map((influencer: AssignedInfluencer, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-center space-x-3">
+                              <div 
+                                className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:shadow-md transition-all"
+                                onClick={() => router.push(`/influencer/${influencer.id}`)}
+                                title={`${influencer.displayName}の詳細を見る`}
+                              >
+                                {influencer.displayName.charAt(0)}
+                              </div>
+                              <div>
+                                <div className="font-semibold text-gray-900">{influencer.displayName}</div>
+                                <div className="text-sm text-gray-600">
+                                  {getPlatformIcon(influencer.platform)} {influencer.platform} • {influencer.followerCount.toLocaleString()}フォロワー
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-green-600">{formatPrice(influencer.contractPrice)}</div>
+                              <div className="text-xs text-gray-500">契約金額</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
+                ) : (
+                  // 通常のプロジェクト情報表示
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">対象プラットフォーム</h4>
+                      <div className="flex space-x-2">
+                        {project.targetPlatforms.map(platform => (
+                          <span key={platform} className="text-lg">
+                            {getPlatformIcon(platform)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">対象地域</h4>
-                    <p className="text-gray-600">{project.targetPrefecture}</p>
-                  </div>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">対象地域</h4>
+                      <p className="text-gray-600">{project.targetPrefecture}</p>
+                    </div>
 
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">年齢層</h4>
-                    <p className="text-gray-600">
-                      {project.targetAgeMin > 0 && project.targetAgeMax > 0 
-                        ? `${project.targetAgeMin}-${project.targetAgeMax}歳`
-                        : '指定なし'
-                      }
-                    </p>
-                  </div>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">年齢層</h4>
+                      <p className="text-gray-600">
+                        {project.targetAgeMin > 0 && project.targetAgeMax > 0 
+                          ? `${project.targetAgeMin}-${project.targetAgeMax}歳`
+                          : '指定なし'
+                        }
+                      </p>
+                    </div>
 
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">応募状況</h4>
-                    <p className="text-gray-600">
-                      {project.matchedInfluencer 
-                        ? `${project.matchedInfluencer.displayName}とマッチング`
-                        : `${project.applicationsCount}件の応募`
-                      }
-                    </p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">応募状況</h4>
+                      <p className="text-gray-600">
+                        {project.matchedInfluencer 
+                          ? `${project.matchedInfluencer.displayName}とマッチング`
+                          : `${project.applicationsCount}件の応募`
+                        }
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </motion.div>
             ))
           )}

@@ -586,6 +586,17 @@ const BulkInquiryPage: React.FC = () => {
                         onChange={() => toggleInfluencer(influencer.id)}
                         className="rounded"
                       />
+                      <div 
+                        className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:shadow-md transition-all flex-shrink-0"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.push(`/influencer/${influencer.id}`);
+                        }}
+                        title={`${influencer.displayName}の詳細を見る`}
+                      >
+                        {influencer.displayName?.charAt(0) || 'U'}
+                      </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
                           <p className="font-medium">{influencer.displayName}</p>
@@ -753,7 +764,16 @@ const BulkInquiryPage: React.FC = () => {
                       {inquiry.responses.map((response) => (
                         <div key={response.id} className="bg-gray-50 rounded-lg p-3">
                           <div className="flex justify-between items-start mb-2">
-                            <p className="font-medium text-sm">{response.influencer.displayName}</p>
+                            <div className="flex items-center space-x-2">
+                              <div 
+                                className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs cursor-pointer hover:shadow-md transition-all"
+                                onClick={() => router.push(`/influencer/${response.influencer.id}`)}
+                                title={`${response.influencer.displayName}の詳細を見る`}
+                              >
+                                {response.influencer.displayName.charAt(0)}
+                              </div>
+                              <p className="font-medium text-sm">{response.influencer.displayName}</p>
+                            </div>
                             <span className={`px-2 py-1 rounded-full text-xs ${statusColors[response.status]}`}>
                               {statusLabels[response.status]}
                             </span>

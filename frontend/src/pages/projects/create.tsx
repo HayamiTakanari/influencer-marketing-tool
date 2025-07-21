@@ -3,6 +3,82 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
+// 各項目の説明文
+const fieldDescriptions: Record<string, string> = {
+  title: 'プロジェクトのタイトルです。インフルエンサーが興味を持つような魅力的なタイトルを設定してください。',
+  description: 'プロジェクトの詳細な説明です。目的、期待する成果、具体的な要望などを記載してください。',
+  category: 'プロジェクトのカテゴリーです。適切なカテゴリーを選択することで、関連するインフルエンサーに見つけてもらいやすくなります。',
+  budget: 'プロジェクトの総予算です。インフルエンサーへの報酬の目安となります。',
+  targetPlatforms: '投稿してもらいたいSNSプラットフォームを選択してください。',
+  targetPrefecture: 'ターゲットとする地域や、インフルエンサーの活動地域を指定できます。',
+  targetCity: '特定の市区町村をターゲットにする場合は入力してください。',
+  targetGender: 'ターゲットとする性別、またはインフルエンサーの性別を指定できます。',
+  targetAge: 'ターゲット層の年齢範囲を設定してください。',
+  targetFollower: 'インフルエンサーのフォロワー数の範囲を指定できます。',
+  date: 'プロジェクトの実施期間です。投稿してもらいたい期間を設定してください。',
+  deliverables: 'インフルエンサーに求める具体的な成果物（投稿回数、動画の長さなど）を記載してください。',
+  requirements: '投稿内容に関する具体的な要求事項（ハッシュタグ、メンション、投稿時間など）を記載してください。',
+  additionalInfo: '上記以外の補足情報や特記事項があれば記載してください。',
+  advertiserName: '広告を出稿する企業・ブランドの正式名称です。',
+  brandName: '宣伝したい商品やサービスのブランド名です。',
+  productName: '具体的な商品・サービスの正式名称です。',
+  productUrl: '商品の詳細情報が掲載されている公式ページのURLです。',
+  productPrice: '商品の税込み価格です。フォロワーが購入を検討する際の参考になります。',
+  productFeatures: '商品の特徴や魅力を250文字程度で説明します。インフルエンサーがコンテンツを作る際の参考になります。',
+  campaignObjective: 'このキャンペーンで達成したい目標（認知拡大、売上向上、ブランドイメージ向上など）です。',
+  campaignTarget: 'ターゲットとする顧客層（年齢、性別、興味関心など）です。',
+  postingPeriod: 'インフルエンサーに投稿してもらいたい期間です。',
+  postingMedia: '投稿してもらいたいSNSプラットフォーム（Instagram、TikTok、YouTubeなど）です。',
+  messageToConvey: '投稿を通じてフォロワーに伝えたいメッセージや訴求ポイントです。',
+  shootingAngle: '人物を撮影する際の角度の指定です。商品との組み合わせや見せ方に影響します。',
+  packagePhotography: '商品の外装やパッケージを撮影に含めるかどうかの指定です。',
+  productOrientationSpecified: '商品の向きや角度について具体的な指定があるかどうかです。',
+  musicUsage: 'BGMや効果音の使用について。著作権の関係で商用利用可能な音源のみ使用を推奨します。',
+  brandContentSettings: 'SNSプラットフォームのブランドコンテンツ機能を使用するかどうかの設定です。',
+  advertiserAccount: '広告主の公式SNSアカウント名です。タグ付けに使用されることがあります。',
+  desiredHashtags: 'キャンペーンで使用してもらいたいハッシュタグです（最大5つまで）。',
+  ngItems: 'コンテンツ制作時に避けてもらいたい内容や表現です。',
+  legalRequirements: '薬機法など法的規制に基づいて必要な表現や注釈です。',
+  notes: '上記以外で特に注意してもらいたい点や要望です。',
+  secondaryUsage: 'インフルエンサーのコンテンツを広告主が二次利用（転載・再利用）できるかどうかです。',
+  secondaryUsageScope: '二次利用が許可されている場合の使用範囲（公式サイト、広告など）です。',
+  secondaryUsagePeriod: '二次利用が許可されている期間です。',
+  insightDisclosure: '投稿のパフォーマンスデータ（いいね数、リーチ数など）の開示を求めるかどうかです。'
+};
+
+// ヘルプボタンコンポーネント
+const HelpButton: React.FC<{ field: string }> = ({ field }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const description = fieldDescriptions[field];
+
+  if (!description) return null;
+
+  return (
+    <div className="relative inline-block ml-2">
+      <button
+        type="button"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onClick={() => setShowTooltip(!showTooltip)}
+        className="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition-colors cursor-pointer"
+        aria-label="ヘルプを表示"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+      {showTooltip && (
+        <div className="absolute z-50 w-64 p-3 mt-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg left-6 top-0">
+          <div className="absolute -left-2 top-2">
+            <div className="w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+          </div>
+          {description}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const CreateProjectPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -26,7 +102,34 @@ const CreateProjectPage: React.FC = () => {
     endDate: '',
     deliverables: '',
     requirements: '',
-    additionalInfo: ''
+    additionalInfo: '',
+    // 新しい詳細項目
+    advertiserName: '',
+    brandName: '',
+    productName: '',
+    productUrl: '',
+    productPrice: 0,
+    productFeatures: '',
+    campaignObjective: '',
+    campaignTarget: '',
+    postingPeriodStart: '',
+    postingPeriodEnd: '',
+    postingMedia: [] as string[],
+    messageToConvey: '',
+    shootingAngle: '',
+    packagePhotography: '',
+    productOrientationSpecified: '',
+    musicUsage: '',
+    brandContentSettings: '',
+    advertiserAccount: '',
+    desiredHashtags: [] as string[],
+    ngItems: '',
+    legalRequirements: '',
+    notes: '',
+    secondaryUsage: '',
+    secondaryUsageScope: '',
+    secondaryUsagePeriod: '',
+    insightDisclosure: ''
   });
 
   const categories = [
@@ -40,6 +143,34 @@ const CreateProjectPage: React.FC = () => {
     { value: 'YOUTUBE', label: 'YouTube', icon: '🎥' },
     { value: 'TIKTOK', label: 'TikTok', icon: '🎵' },
     { value: 'TWITTER', label: 'Twitter', icon: '🐦' }
+  ];
+
+  const shootingAngles = [
+    '指定なし', '正面', '斜め上', '斜め下', '横向き', '後ろ姿', 'アップ', '全身'
+  ];
+
+  const packagePhotographyOptions = [
+    '不要', '外装のみ', 'パッケージのみ', '外装・パッケージ両方'
+  ];
+
+  const productOrientationOptions = [
+    '指定なし', 'ラベル正面', '商品名が見えるように', 'ロゴが見えるように'
+  ];
+
+  const musicUsageOptions = [
+    'なし', '商用利用フリー音源のみ', 'ブランド指定楽曲', '相談'
+  ];
+
+  const brandContentOptions = [
+    '設定不要', '設定必要', '相談して決定'
+  ];
+
+  const secondaryUsageOptions = [
+    '禁止', '許可（条件あり）', '許可（条件なし）'
+  ];
+
+  const insightDisclosureOptions = [
+    '必要', '不要'
   ];
 
   const prefectures = [
@@ -83,6 +214,40 @@ const CreateProjectPage: React.FC = () => {
       targetPlatforms: prev.targetPlatforms.includes(platform)
         ? prev.targetPlatforms.filter(p => p !== platform)
         : [...prev.targetPlatforms, platform]
+    }));
+  };
+
+  const handlePostingMediaToggle = (media: string) => {
+    setFormData(prev => ({
+      ...prev,
+      postingMedia: prev.postingMedia.includes(media)
+        ? prev.postingMedia.filter(m => m !== media)
+        : [...prev.postingMedia, media]
+    }));
+  };
+
+  const handleHashtagChange = (index: number, value: string) => {
+    const newHashtags = [...formData.desiredHashtags];
+    newHashtags[index] = value;
+    setFormData(prev => ({
+      ...prev,
+      desiredHashtags: newHashtags
+    }));
+  };
+
+  const addHashtag = () => {
+    if (formData.desiredHashtags.length < 5) {
+      setFormData(prev => ({
+        ...prev,
+        desiredHashtags: [...prev.desiredHashtags, '']
+      }));
+    }
+  };
+
+  const removeHashtag = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      desiredHashtags: prev.desiredHashtags.filter((_, i) => i !== index)
     }));
   };
 
@@ -162,7 +327,10 @@ const CreateProjectPage: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    プロジェクト名 <span className="text-red-500">*</span>
+                    <span className="flex items-center">
+                      プロジェクト名 <span className="text-red-500">*</span>
+                      <HelpButton field="title" />
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -176,7 +344,10 @@ const CreateProjectPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    カテゴリー <span className="text-red-500">*</span>
+                    <span className="flex items-center">
+                      カテゴリー <span className="text-red-500">*</span>
+                      <HelpButton field="category" />
+                    </span>
                   </label>
                   <select
                     value={formData.category}
@@ -193,7 +364,10 @@ const CreateProjectPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    プロジェクト詳細 <span className="text-red-500">*</span>
+                    <span className="flex items-center">
+                      プロジェクト詳細 <span className="text-red-500">*</span>
+                      <HelpButton field="description" />
+                    </span>
                   </label>
                   <textarea
                     value={formData.description}
@@ -207,7 +381,10 @@ const CreateProjectPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    予算 <span className="text-red-500">*</span>
+                    <span className="flex items-center">
+                      予算 <span className="text-red-500">*</span>
+                      <HelpButton field="budget" />
+                    </span>
                   </label>
                   <div className="relative">
                     <input
@@ -232,7 +409,10 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 対象プラットフォーム */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">対象プラットフォーム</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                対象プラットフォーム
+                <HelpButton field="targetPlatforms" />
+              </h2>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {platforms.map(platform => (
@@ -260,7 +440,12 @@ const CreateProjectPage: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">対象地域</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      対象地域
+                      <HelpButton field="targetPrefecture" />
+                    </span>
+                  </label>
                   <select
                     value={formData.targetPrefecture}
                     onChange={(e) => setFormData({...formData, targetPrefecture: e.target.value})}
@@ -274,7 +459,12 @@ const CreateProjectPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">市区町村</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      市区町村
+                      <HelpButton field="targetCity" />
+                    </span>
+                  </label>
                   <input
                     type="text"
                     value={formData.targetCity}
@@ -356,7 +546,12 @@ const CreateProjectPage: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">開始日</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      開始日
+                      <HelpButton field="date" />
+                    </span>
+                  </label>
                   <input
                     type="date"
                     value={formData.startDate}
@@ -366,7 +561,12 @@ const CreateProjectPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">終了日</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      終了日
+                      <HelpButton field="date" />
+                    </span>
+                  </label>
                   <input
                     type="date"
                     value={formData.endDate}
@@ -383,7 +583,12 @@ const CreateProjectPage: React.FC = () => {
               
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">成果物・納品物</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      成果物・納品物
+                      <HelpButton field="deliverables" />
+                    </span>
+                  </label>
                   <textarea
                     value={formData.deliverables}
                     onChange={(e) => setFormData({...formData, deliverables: e.target.value})}
@@ -394,7 +599,12 @@ const CreateProjectPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">要求事項</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      要求事項
+                      <HelpButton field="requirements" />
+                    </span>
+                  </label>
                   <textarea
                     value={formData.requirements}
                     onChange={(e) => setFormData({...formData, requirements: e.target.value})}
@@ -405,13 +615,462 @@ const CreateProjectPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">その他の情報</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      その他の情報
+                      <HelpButton field="additionalInfo" />
+                    </span>
+                  </label>
                   <textarea
                     value={formData.additionalInfo}
                     onChange={(e) => setFormData({...formData, additionalInfo: e.target.value})}
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="商品サンプル提供、撮影場所、その他の特記事項など..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 商品・広告主情報 */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">商品・広告主情報</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    広告主名 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.advertiserName}
+                    onChange={(e) => setFormData({...formData, advertiserName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="株式会社○○"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ブランド名 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.brandName}
+                    onChange={(e) => setFormData({...formData, brandName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="ブランド名"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    商品正式名称 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.productName}
+                    onChange={(e) => setFormData({...formData, productName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="商品の正式名称"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    商品URL
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.productUrl}
+                    onChange={(e) => setFormData({...formData, productUrl: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://example.com/product"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    商品税込価格（円）
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.productPrice || ''}
+                    onChange={(e) => setFormData({...formData, productPrice: parseInt(e.target.value) || 0})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="1980"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    広告主アカウント
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.advertiserAccount}
+                    onChange={(e) => setFormData({...formData, advertiserAccount: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="@advertiser_account"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    商品特徴（250文字程度）
+                  </label>
+                  <textarea
+                    value={formData.productFeatures}
+                    onChange={(e) => setFormData({...formData, productFeatures: e.target.value})}
+                    rows={4}
+                    maxLength={250}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="商品の特徴、効果、使用方法などを記載してください..."
+                  />
+                  <div className="text-right text-sm text-gray-500 mt-1">
+                    {formData.productFeatures.length}/250文字
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* キャンペーン詳細 */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    施策の目的 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.campaignObjective}
+                    onChange={(e) => setFormData({...formData, campaignObjective: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="認知拡大、購入促進、ブランディングなど"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    施策ターゲット <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.campaignTarget}
+                    onChange={(e) => setFormData({...formData, campaignTarget: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="20-30代女性、美容に関心がある方など"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    投稿期間（開始日） <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.postingPeriodStart}
+                    onChange={(e) => setFormData({...formData, postingPeriodStart: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    投稿期間（終了日） <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.postingPeriodEnd}
+                    onChange={(e) => setFormData({...formData, postingPeriodEnd: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    投稿メディア <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    {platforms.map(platform => (
+                      <motion.button
+                        key={platform.value}
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handlePostingMediaToggle(platform.value)}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all ${
+                          formData.postingMedia.includes(platform.value)
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <span>{platform.icon}</span>
+                        <span>{platform.label}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    投稿を通じて伝えたいこと <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    required
+                    value={formData.messageToConvey}
+                    onChange={(e) => setFormData({...formData, messageToConvey: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="商品の魅力、使用感、効果など、フォロワーに伝えたいメッセージ"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 撮影・制作仕様 */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    人物の撮影アングル
+                  </label>
+                  <select
+                    value={formData.shootingAngle}
+                    onChange={(e) => setFormData({...formData, shootingAngle: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {shootingAngles.map(angle => (
+                      <option key={angle} value={angle}>{angle}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    外装やパッケージ撮影の有無
+                  </label>
+                  <select
+                    value={formData.packagePhotography}
+                    onChange={(e) => setFormData({...formData, packagePhotography: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {packagePhotographyOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    商品の向きの撮影指定の有無
+                  </label>
+                  <select
+                    value={formData.productOrientationSpecified}
+                    onChange={(e) => setFormData({...formData, productOrientationSpecified: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {productOrientationOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    音楽使用
+                  </label>
+                  <select
+                    value={formData.musicUsage}
+                    onChange={(e) => setFormData({...formData, musicUsage: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {musicUsageOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ブランドコンテンツ設定
+                  </label>
+                  <select
+                    value={formData.brandContentSettings}
+                    onChange={(e) => setFormData({...formData, brandContentSettings: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {brandContentOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* ハッシュタグ・制約事項 */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・制約事項</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    希望ハッシュタグ（5つまで）
+                  </label>
+                  <div className="space-y-3">
+                    {formData.desiredHashtags.map((hashtag, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={hashtag}
+                            onChange={(e) => handleHashtagChange(index, e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="#ハッシュタグ"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeHashtag(index)}
+                          className="px-3 py-2 text-red-600 hover:text-red-800 transition-colors"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    ))}
+                    {formData.desiredHashtags.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addHashtag}
+                        className="px-4 py-2 text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                      >
+                        + ハッシュタグを追加
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    NG項目
+                  </label>
+                  <textarea
+                    value={formData.ngItems}
+                    onChange={(e) => setFormData({...formData, ngItems: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="投稿で避けるべき表現、競合他社の言及、使用禁止ワードなど"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    薬機法に基づく表現や注釈が必要な表現
+                  </label>
+                  <textarea
+                    value={formData.legalRequirements}
+                    onChange={(e) => setFormData({...formData, legalRequirements: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="薬機法、景表法に関連する注意事項、必要な表記など"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    注意点
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="その他の注意点、特別な要望など"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 二次利用・開示設定 */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">二次利用・開示設定</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    二次利用有無 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={formData.secondaryUsage}
+                    onChange={(e) => setFormData({...formData, secondaryUsage: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {secondaryUsageOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="flex items-center">
+                      投稿のインサイト開示有無
+                      <HelpButton field="insightDisclosure" />
+                    </span>
+                  </label>
+                  <select
+                    value={formData.insightDisclosure}
+                    onChange={(e) => setFormData({...formData, insightDisclosure: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">選択してください</option>
+                    {insightDisclosureOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    二次利用範囲
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.secondaryUsageScope}
+                    onChange={(e) => setFormData({...formData, secondaryUsageScope: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="自社サイト、広告素材、SNS公式アカウントなど"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    二次利用期間
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.secondaryUsagePeriod}
+                    onChange={(e) => setFormData({...formData, secondaryUsagePeriod: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="6ヶ月、1年、無制限など"
                   />
                 </div>
               </div>
