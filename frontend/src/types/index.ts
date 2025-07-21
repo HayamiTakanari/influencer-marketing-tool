@@ -202,3 +202,103 @@ export interface ApiResponse<T> {
   message?: string;
   error?: string;
 }
+
+// 請求書関連の型定義
+export enum InvoiceStatus {
+  DRAFT = 'DRAFT',          // 下書き
+  SENT = 'SENT',            // 送信済み
+  PAID = 'PAID',            // 支払い完了
+  OVERDUE = 'OVERDUE',      // 期限超過
+  CANCELLED = 'CANCELLED',   // キャンセル
+}
+
+export interface InvoiceItem {
+  id: string;
+  description: string;      // サービス内容
+  quantity: number;         // 数量
+  unitPrice: number;        // 単価
+  amount: number;           // 小計 (quantity * unitPrice)
+  taxRate: number;          // 税率 (%)
+  taxAmount: number;        // 税額
+  totalAmount: number;      // 合計 (amount + taxAmount)
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;    // 請求書番号 (例: INV-2024-001)
+  projectId: string;        // 関連プロジェクトID
+  influencerId: string;     // インフルエンサーID
+  clientId: string;         // クライアントID
+  
+  // 基本情報
+  title: string;            // 請求書タイトル
+  description?: string;     // 説明・備考
+  status: InvoiceStatus;
+  
+  // 日付関連
+  issueDate: string;        // 発行日
+  dueDate: string;          // 支払期限
+  paidDate?: string;        // 支払日
+  
+  // 金額関連
+  subtotal: number;         // 小計
+  taxAmount: number;        // 消費税額
+  totalAmount: number;      // 合計金額
+  
+  // 明細
+  items: InvoiceItem[];
+  
+  // 支払い情報
+  paymentMethod?: string;   // 支払い方法
+  bankInfo?: {              // 振込先情報
+    bankName: string;
+    branchName: string;
+    accountType: string;
+    accountNumber: string;
+    accountName: string;
+  };
+  
+  // メタ情報
+  createdAt: string;
+  updatedAt: string;
+  
+  // リレーション
+  project: Project;
+  influencer: Influencer;
+  client: Client;
+}
+
+export interface InvoiceCreateRequest {
+  projectId: string;
+  title: string;
+  description?: string;
+  dueDate: string;
+  items: Omit<InvoiceItem, 'id'>[];
+  paymentMethod?: string;
+  bankInfo?: Invoice['bankInfo'];
+}
+
+export interface InvoiceUpdateRequest {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  items?: Omit<InvoiceItem, 'id'>[];
+  paymentMethod?: string;
+  bankInfo?: Invoice['bankInfo'];
+}
+
+export interface InvoiceListResponse {
+  invoices: Invoice[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  summary: {
+    totalAmount: number;
+    paidAmount: number;
+    unpaidAmount: number;
+    overdueAmount: number;
+  };
+}

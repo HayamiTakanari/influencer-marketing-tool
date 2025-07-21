@@ -2,14 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getInquiryStats = exports.getBulkInquiryById = exports.updateInquiryResponse = exports.getMyInquiryResponses = exports.getMyBulkInquiries = exports.createBulkInquiry = void 0;
 const client_1 = require("@prisma/client");
-const bulkInquiry_1 = require("../../schemas/bulkInquiry");
+const bulkInquiry_1 = require("../schemas/bulkInquiry");
 const prisma = new client_1.PrismaClient();
 // v3.0 新機能: 一斉問い合わせコントローラー
 const createBulkInquiry = async (req, res) => {
     try {
         const { user } = req;
-        if (!user || user.role !== 'CLIENT') {
-            return res.status(403).json({ error: 'クライアントのみ問い合わせを作成できます' });
+        if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
+            return res.status(403).json({ error: 'クライアント・企業のみ問い合わせを作成できます' });
         }
         const validatedData = bulkInquiry_1.createBulkInquirySchema.parse(req.body);
         const client = await prisma.client.findUnique({
@@ -80,8 +80,8 @@ exports.createBulkInquiry = createBulkInquiry;
 const getMyBulkInquiries = async (req, res) => {
     try {
         const { user } = req;
-        if (!user || user.role !== 'CLIENT') {
-            return res.status(403).json({ error: 'クライアントのみアクセスできます' });
+        if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
+            return res.status(403).json({ error: 'クライアント・企業のみアクセスできます' });
         }
         const client = await prisma.client.findUnique({
             where: { userId: user.userId },
@@ -270,7 +270,7 @@ const getBulkInquiryById = async (req, res) => {
             return res.status(404).json({ error: '問い合わせが見つかりません' });
         }
         // アクセス権限チェック
-        if (user?.role === 'CLIENT') {
+        if (user?.role === 'CLIENT' || user?.role === 'COMPANY') {
             const client = await prisma.client.findUnique({
                 where: { userId: user.userId },
             });
@@ -300,8 +300,8 @@ exports.getBulkInquiryById = getBulkInquiryById;
 const getInquiryStats = async (req, res) => {
     try {
         const { user } = req;
-        if (!user || user.role !== 'CLIENT') {
-            return res.status(403).json({ error: 'クライアントのみアクセスできます' });
+        if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
+            return res.status(403).json({ error: 'クライアント・企業のみアクセスできます' });
         }
         const client = await prisma.client.findUnique({
             where: { userId: user.userId },

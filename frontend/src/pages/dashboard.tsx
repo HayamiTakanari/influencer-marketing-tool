@@ -209,6 +209,19 @@ const DashboardPage: React.FC = () => {
                   <p className="text-gray-600">複数案件への回答管理</p>
                 </motion.div>
               </Link>
+
+              <Link href="/invoices">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.8 }}
+                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">📄</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">請求書管理</h3>
+                  <p className="text-gray-600">請求書の作成・送信・管理</p>
+                </motion.div>
+              </Link>
             </>
           ) : (
             <>
@@ -224,28 +237,10 @@ const DashboardPage: React.FC = () => {
                 <p className="text-gray-600">条件に合うインフルエンサーを探す</p>
               </motion.div>
 
-              <Link href="/search-advanced">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.15 }}
-                  className="bg-gradient-to-br from-purple-100 to-pink-100 backdrop-blur-xl border border-purple-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">⚡</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">高度な検索（パフォーマンステスト）</h3>
-                  <p className="text-gray-600">キャッシュ・ページネーション機能付き</p>
-                  <div className="mt-2">
-                    <span className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold">
-                      10,000件データテスト可能
-                    </span>
-                  </div>
-                </motion.div>
-              </Link>
-
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
+                transition={{ duration: 0.8, delay: 0.15 }}
                 onClick={() => handleNavigation('/company-profile')}
                 className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
               >
@@ -354,6 +349,19 @@ const DashboardPage: React.FC = () => {
                   <div className="text-4xl mb-4">📅</div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">スケジュール管理</h3>
                   <p className="text-gray-600">プロジェクトの進行管理</p>
+                </motion.div>
+              </Link>
+
+              <Link href="/invoices/received">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.9 }}
+                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="text-4xl mb-4">📄</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">請求書管理</h3>
+                  <p className="text-gray-600">受け取った請求書の確認・支払い</p>
                 </motion.div>
               </Link>
             </>

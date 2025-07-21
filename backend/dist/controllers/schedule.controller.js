@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendMilestoneNotifications = exports.getUpcomingMilestones = exports.updateMilestone = exports.getProjectSchedule = exports.createProjectSchedule = void 0;
 const client_1 = require("@prisma/client");
-const schedule_1 = require("../../schemas/schedule");
+const schedule_1 = require("../schemas/schedule");
 const prisma = new client_1.PrismaClient();
 // v3.0 新機能: スケジュール管理コントローラー
 const createProjectSchedule = async (req, res) => {

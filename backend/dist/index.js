@@ -43,7 +43,7 @@ try {
 catch (error) {
     console.error('Socket.io initialization error:', error);
 }
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5002;
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes

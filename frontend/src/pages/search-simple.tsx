@@ -82,6 +82,15 @@ const SearchPage: React.FC = () => {
             <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold">IM</span>
             </Link>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg hover:shadow-xl transition-all text-gray-700 hover:text-blue-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="font-medium">ダッシュボードに戻る</span>
+            </button>
             <div>
               <h1 className="text-xl font-bold text-gray-900">インフルエンサー検索</h1>
               <p className="text-sm text-gray-600">あなたのブランドに最適なインフルエンサーを見つけよう</p>

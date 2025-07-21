@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateServicePricing = exports.deleteServicePricing = exports.updateServicePricing = exports.getServicePricingByInfluencer = exports.getMyServicePricing = exports.bulkCreateServicePricing = exports.createServicePricing = void 0;
 const client_1 = require("@prisma/client");
-const servicePricing_1 = require("../../schemas/servicePricing");
+const servicePricing_1 = require("../schemas/servicePricing");
 const prisma = new client_1.PrismaClient();
 // v3.0 新機能: 料金体系管理コントローラー
 const createServicePricing = async (req, res) => {

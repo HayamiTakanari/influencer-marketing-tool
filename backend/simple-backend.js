@@ -59,9 +59,9 @@ const mockInfluencers = [
     followerCount: 150000,
     engagementRate: 4.2,
     platform: "Instagram",
-    location: "東京",
+    location: "東京都",
     age: 25,
-    bio: "美容とライフスタイルについて発信しています"
+    bio: "美容とライフスタイルについて発信しています。スキンケアやメイクのコツを日々共有中。"
   },
   {
     id: "2",
@@ -70,9 +70,75 @@ const mockInfluencers = [
     followerCount: 80000,
     engagementRate: 5.1,
     platform: "YouTube",
-    location: "大阪",
+    location: "大阪府",
     age: 28,
-    bio: "健康的なライフスタイルを提案します"
+    bio: "健康的なライフスタイルを提案します。筋トレ、栄養、ダイエットのアドバイスを発信。"
+  },
+  {
+    id: "3",
+    name: "グルメブロガー佐藤",
+    category: "グルメ",
+    followerCount: 45000,
+    engagementRate: 3.8,
+    platform: "Instagram",
+    location: "東京都",
+    age: 32,
+    bio: "東京の隠れた名店を紹介。食べ歩きが趣味で、本当に美味しいお店だけを厳選して紹介しています。"
+  },
+  {
+    id: "4",
+    name: "ファッションモデル鈴木",
+    category: "ファッション",
+    followerCount: 200000,
+    engagementRate: 4.5,
+    platform: "Instagram",
+    location: "東京都",
+    age: 23,
+    bio: "トレンドファッションを発信。プチプラからハイブランドまで幅広くコーディネートを提案。"
+  },
+  {
+    id: "5",
+    name: "旅行系YouTuber伊藤",
+    category: "旅行",
+    followerCount: 120000,
+    engagementRate: 4.8,
+    platform: "YouTube",
+    location: "神奈川県",
+    age: 30,
+    bio: "世界中の絶景スポットを紹介。旅行のコツや格安旅行術も発信中。"
+  },
+  {
+    id: "6",
+    name: "ライフスタイルクリエイター高橋",
+    category: "ライフスタイル",
+    followerCount: 65000,
+    engagementRate: 4.1,
+    platform: "Instagram",
+    location: "愛知県",
+    age: 27,
+    bio: "暮らしを豊かにする情報を発信。インテリア、収納、料理など日常生活のアイデアを共有。"
+  },
+  {
+    id: "7",
+    name: "美容系TikToker中村",
+    category: "美容",
+    followerCount: 95000,
+    engagementRate: 6.2,
+    platform: "TikTok",
+    location: "福岡県",
+    age: 22,
+    bio: "プチプラコスメのレビューやメイクテクニックを発信。10代20代に人気のメイク動画クリエイター。"
+  },
+  {
+    id: "8",
+    name: "フィットネスインストラクター小林",
+    category: "フィットネス",
+    followerCount: 35000,
+    engagementRate: 4.9,
+    platform: "Instagram",
+    location: "大阪府",
+    age: 26,
+    bio: "自宅でできるトレーニングを中心に発信。ヨガやピラティスも指導しています。"
   }
 ];
 
@@ -118,35 +184,183 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Influencer search endpoint
+// Influencer search endpoint with pagination and performance testing
 app.get('/api/influencers/search', (req, res) => {
   try {
-    const { category, minFollowers, maxFollowers, location } = req.query;
+    const startTime = process.hrtime();
+    const { 
+      category, 
+      minFollowers, 
+      maxFollowers, 
+      location, 
+      prefecture,
+      page = 1, 
+      limit = 20,
+      testLargeData = false 
+    } = req.query;
     
-    let filtered = [...mockInfluencers];
+    // Generate large dataset for performance testing
+    const totalDataSize = testLargeData === 'true' ? 10000 : mockInfluencers.length;
     
-    if (category) {
+    let allInfluencers = [];
+    if (testLargeData === 'true') {
+      // Generate 10,000 mock influencers for performance testing
+      allInfluencers = Array.from({ length: totalDataSize }, (_, index) => ({
+        id: `perf-test-${index}`,
+        name: `パフォーマンステスト${index + 1}`,
+        displayName: `パフォーマンステスト${index + 1}`,
+        category: ['美容', 'ライフスタイル', 'ファッション', 'グルメ', 'フィットネス'][index % 5],
+        followerCount: Math.floor(Math.random() * 100000) + 1000,
+        engagementRate: Math.round((Math.random() * 3 + 2) * 10) / 10,
+        platform: ['Instagram', 'YouTube', 'TikTok', 'Twitter'][index % 4],
+        location: ['東京都', '大阪府', '神奈川県', '愛知県', '福岡県'][index % 5],
+        prefecture: ['東京都', '大阪府', '神奈川県', '愛知県', '福岡県'][index % 5],
+        age: Math.floor(Math.random() * 20) + 20,
+        bio: `パフォーマンステスト用プロフィール${index + 1}`,
+        priceMin: (index % 10 + 1) * 10000,
+        priceMax: (index % 10 + 1) * 50000,
+        categories: [['美容', 'ライフスタイル', 'ファッション', 'グルメ', 'フィットネス'][index % 5]],
+        socialAccounts: [{
+          platform: ['Instagram', 'YouTube', 'TikTok', 'Twitter'][index % 4],
+          followerCount: Math.floor(Math.random() * 100000) + 1000,
+          engagementRate: Math.round((Math.random() * 3 + 2) * 10) / 10
+        }]
+      }));
+    } else {
+      // Use regular mock data with multiple social accounts
+      allInfluencers = mockInfluencers.map(inf => {
+        const socialAccounts = [];
+        
+        // 各インフルエンサーに複数のSNSアカウントを追加
+        const platforms = ['Instagram', 'TikTok', 'YouTube', 'X'];
+        platforms.forEach(platform => {
+          // メインプラットフォームは元のフォロワー数、他は70-130%の範囲でランダム生成
+          let followerCount;
+          let engagementRate;
+          
+          if (platform === inf.platform) {
+            followerCount = inf.followerCount;
+            engagementRate = inf.engagementRate;
+          } else {
+            // 30-80%の確率で他のプラットフォームも持っている
+            const hasAccount = Math.random() > 0.4;
+            if (!hasAccount) return;
+            
+            followerCount = Math.floor(inf.followerCount * (0.3 + Math.random() * 0.7));
+            engagementRate = Math.round((inf.engagementRate * (0.8 + Math.random() * 0.4)) * 10) / 10;
+          }
+          
+          socialAccounts.push({
+            platform: platform,
+            followerCount: followerCount,
+            engagementRate: engagementRate
+          });
+        });
+        
+        return {
+          ...inf,
+          displayName: inf.name,
+          prefecture: inf.location,
+          categories: [inf.category],
+          socialAccounts: socialAccounts
+        };
+      });
+    }
+    
+    // Apply filters with exact matching
+    let filtered = [...allInfluencers];
+    
+    // キーワード検索（名前、バイオ、カテゴリーを含む）
+    const query = req.query.query;
+    if (query && query.trim()) {
+      const searchQuery = query.toLowerCase().trim();
       filtered = filtered.filter(inf => 
-        inf.category.toLowerCase().includes(category.toLowerCase())
+        inf.name.toLowerCase().includes(searchQuery) ||
+        inf.displayName.toLowerCase().includes(searchQuery) ||
+        inf.bio.toLowerCase().includes(searchQuery) ||
+        inf.categories.some(cat => cat.toLowerCase().includes(searchQuery))
       );
     }
     
+    // カテゴリー検索（完全一致）
+    if (category && category.trim()) {
+      filtered = filtered.filter(inf => 
+        inf.categories.some(cat => cat === category) ||
+        inf.category === category
+      );
+    }
+    
+    // 都道府県検索（完全一致）
+    if (prefecture && prefecture.trim()) {
+      filtered = filtered.filter(inf => 
+        inf.prefecture === prefecture
+      );
+    }
+    
+    // フォロワー数の範囲検索
     if (minFollowers) {
-      filtered = filtered.filter(inf => inf.followerCount >= parseInt(minFollowers));
+      const min = parseInt(minFollowers);
+      if (!isNaN(min)) {
+        filtered = filtered.filter(inf => inf.followerCount >= min);
+      }
     }
     
     if (maxFollowers) {
-      filtered = filtered.filter(inf => inf.followerCount <= parseInt(maxFollowers));
+      const max = parseInt(maxFollowers);
+      if (!isNaN(max)) {
+        filtered = filtered.filter(inf => inf.followerCount <= max);
+      }
     }
     
-    if (location) {
-      filtered = filtered.filter(inf => 
-        inf.location.toLowerCase().includes(location.toLowerCase())
+    // Sort by highest follower count across all platforms (descending)
+    filtered.sort((a, b) => {
+      // 各インフルエンサーの最大フォロワー数を取得
+      const aMaxFollowers = Math.max(
+        ...(a.socialAccounts?.map(acc => acc.followerCount) || [a.followerCount || 0])
       );
-    }
+      const bMaxFollowers = Math.max(
+        ...(b.socialAccounts?.map(acc => acc.followerCount) || [b.followerCount || 0])
+      );
+      return bMaxFollowers - aMaxFollowers;
+    });
     
-    res.json({ influencers: filtered });
+    // Calculate pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const totalCount = filtered.length;
+    const totalPages = Math.ceil(totalCount / limitNum);
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = Math.min(startIndex + limitNum, totalCount);
+    
+    // Get page data
+    const paginatedInfluencers = filtered.slice(startIndex, endIndex);
+    
+    // Calculate performance metrics
+    const endTime = process.hrtime(startTime);
+    const responseTimeMs = Math.round((endTime[0] * 1000) + (endTime[1] / 1000000));
+    
+    const response = {
+      influencers: paginatedInfluencers,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: totalCount,
+        totalPages: totalPages,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1
+      },
+      performance: {
+        responseTime: responseTimeMs,
+        cacheHit: false,
+        dataSize: totalDataSize
+      }
+    };
+    
+    console.log(`Search API: page=${pageNum}, limit=${limitNum}, total=${totalCount}, responseTime=${responseTimeMs}ms`);
+    
+    res.json(response);
   } catch (error) {
+    console.error('Search API error:', error);
     res.status(500).json({ error: 'サーバーエラー' });
   }
 });
@@ -395,7 +609,7 @@ app.get('/api/projects', (req, res) => {
         description: '新発売のファンデーションを使用した投稿をお願いします。',
         category: '美容・化粧品',
         budget: 300000,
-        status: 'PENDING',
+        status: 'IN_PROGRESS',
         targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
         targetPrefecture: '東京都',
         targetAgeMin: 20,
@@ -406,7 +620,34 @@ app.get('/api/projects', (req, res) => {
         endDate: '2024-02-28',
         createdAt: '2024-01-15',
         applicationsCount: 12,
-        clientId: 'current-user' // この企業のプロジェクト
+        clientId: 'current-user', // この企業のプロジェクト
+        matchedInfluencer: {
+          id: 'inf1',
+          displayName: '美容インフルエンサー田中'
+        },
+        // 進行中プロジェクト用の詳細情報
+        projectDetails: {
+          listupCount: 35, // リストアップ数
+          assignedCount: 2, // アサイン数
+          publishDate: '2024-02-15', // 投稿予定日
+          manager: '山田美咲', // 担当者
+          assignedInfluencers: [
+            {
+              id: 'inf1',
+              displayName: '美容インフルエンサー田中',
+              platform: 'Instagram',
+              followerCount: 150000,
+              contractPrice: 180000
+            },
+            {
+              id: 'inf7',
+              displayName: '美容系TikToker中村',
+              platform: 'TikTok',
+              followerCount: 95000,
+              contractPrice: 120000
+            }
+          ]
+        }
       },
       {
         id: '2',
@@ -429,7 +670,94 @@ app.get('/api/projects', (req, res) => {
         matchedInfluencer: {
           id: 'inf1',
           displayName: '鈴木さやか'
+        },
+        // 進行中プロジェクト用の詳細情報
+        projectDetails: {
+          listupCount: 25, // リストアップ数
+          assignedCount: 3, // アサイン数（実際に契約したインフルエンサー数）
+          publishDate: '2024-02-20', // 投稿予定日
+          manager: '田中太郎', // 担当者
+          assignedInfluencers: [
+            {
+              id: 'inf1',
+              displayName: '鈴木さやか',
+              platform: 'Instagram',
+              followerCount: 60000,
+              contractPrice: 120000
+            },
+            {
+              id: 'inf2', 
+              displayName: '山田花子',
+              platform: 'YouTube',
+              followerCount: 45000,
+              contractPrice: 80000
+            },
+            {
+              id: 'inf3',
+              displayName: '佐藤健',
+              platform: 'TikTok', 
+              followerCount: 35000,
+              contractPrice: 60000
+            }
+          ]
         }
+      },
+      {
+        id: '3',
+        title: 'フィットネス器具のプロモーション',
+        description: '新発売のホームトレーニング器具の使用感をレビューしてください。',
+        category: 'フィットネス',
+        budget: 200000,
+        status: 'IN_PROGRESS',
+        targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
+        targetPrefecture: '全国',
+        targetAgeMin: 25,
+        targetAgeMax: 40,
+        targetFollowerMin: 20000,
+        targetFollowerMax: 80000,
+        startDate: '2024-01-25',
+        endDate: '2024-02-25',
+        createdAt: '2024-01-20',
+        applicationsCount: 15,
+        clientId: 'current-user',
+        matchedInfluencer: {
+          id: 'inf2',
+          displayName: 'フィットネス山田'
+        },
+        projectDetails: {
+          listupCount: 18,
+          assignedCount: 1,
+          publishDate: '2024-02-18',
+          manager: '鈴木一郎',
+          assignedInfluencers: [
+            {
+              id: 'inf2',
+              displayName: 'フィットネス山田',
+              platform: 'YouTube',
+              followerCount: 80000,
+              contractPrice: 150000
+            }
+          ]
+        }
+      },
+      {
+        id: '4',
+        title: 'グルメ系新店舗オープンPR',
+        description: '渋谷の新しいレストランの紹介をお願いします。',
+        category: 'グルメ',
+        budget: 150000,
+        status: 'PENDING',
+        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+        targetPrefecture: '東京都',
+        targetAgeMin: 20,
+        targetAgeMax: 30,
+        targetFollowerMin: 15000,
+        targetFollowerMax: 60000,
+        startDate: '2024-02-10',
+        endDate: '2024-03-10',
+        createdAt: '2024-02-01',
+        applicationsCount: 8,
+        clientId: 'current-user'
       }
     ];
     

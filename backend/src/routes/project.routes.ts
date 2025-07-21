@@ -15,6 +15,11 @@ import {
   deleteProject,
   updateProjectStatus,
 } from '../controllers/project.controller';
+import {
+  getProjectSchedule,
+  createProjectSchedule,
+  updateMilestone as updateProjectSchedule,
+} from '../controllers/schedule.controller';
 
 const router = express.Router();
 
@@ -51,6 +56,11 @@ router.get('/my-projects', getMyProjects);
 
 // Get project by ID
 router.get('/:projectId', getProjectById);
+
+// プロジェクトスケジュール関連ルート
+router.get('/:projectId/schedule', getProjectSchedule);
+router.post('/:projectId/schedule', createProjectSchedule);
+router.put('/:projectId/schedule', updateProjectSchedule);
 
 // Update project (for clients)
 router.put('/:projectId', updateProject);

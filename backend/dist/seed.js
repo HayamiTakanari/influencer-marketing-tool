@@ -79,10 +79,96 @@ async function main() {
             targetFollowerMin: 10000,
         },
     });
+    // Create additional test influencers
+    const influencer2 = await prisma.user.create({
+        data: {
+            email: 'beauty@test.com',
+            password: hashedPassword,
+            role: 'INFLUENCER',
+            isVerified: true,
+        },
+    });
+    await prisma.influencer.create({
+        data: {
+            userId: influencer2.id,
+            displayName: '美容インフルエンサー',
+            bio: '美容・コスメ専門のインフルエンサーです。',
+            categories: ['BEAUTY', 'FASHION'],
+            gender: 'FEMALE',
+            prefecture: '大阪府',
+            city: '大阪市',
+            priceMin: 30000,
+            priceMax: 150000,
+            isRegistered: true,
+        },
+    });
+    const influencer3 = await prisma.user.create({
+        data: {
+            email: 'food@test.com',
+            password: hashedPassword,
+            role: 'INFLUENCER',
+            isVerified: true,
+        },
+    });
+    await prisma.influencer.create({
+        data: {
+            userId: influencer3.id,
+            displayName: 'グルメインフルエンサー',
+            bio: 'フード・グルメ専門のインフルエンサーです。',
+            categories: ['FOOD'],
+            gender: 'MALE',
+            prefecture: '東京都',
+            city: '新宿区',
+            priceMin: 20000,
+            priceMax: 100000,
+            isRegistered: true,
+        },
+    });
+    // Create additional test projects
+    const project2 = await prisma.project.create({
+        data: {
+            title: '新作コスメのPRキャンペーン',
+            description: '新しく発売される化粧品のInstagram投稿とストーリーでのPR。美容に特化したインフルエンサーを募集しています。',
+            budget: 80000,
+            endDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+            status: 'PENDING',
+            clientId: clientProfile.id,
+            category: 'BEAUTY',
+            targetPlatforms: ['INSTAGRAM'],
+            targetPrefecture: '大阪府',
+            targetGender: 'FEMALE',
+            targetAgeMin: 18,
+            targetAgeMax: 30,
+            targetFollowerMin: 5000,
+        },
+    });
+    const project3 = await prisma.project.create({
+        data: {
+            title: 'レストラン新メニューの紹介',
+            description: 'レストランの新メニューをグルメインフルエンサーに紹介してもらうキャンペーン。',
+            budget: 50000,
+            endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
+            status: 'PENDING',
+            clientId: clientProfile.id,
+            category: 'FOOD',
+            targetPlatforms: ['INSTAGRAM', 'YOUTUBE'],
+            targetPrefecture: '東京都',
+            targetAgeMin: 25,
+            targetAgeMax: 40,
+            targetFollowerMin: 8000,
+        },
+    });
     console.log('Database seeded successfully!');
     console.log('Test accounts created:');
     console.log('Company: company@test.com / test123');
     console.log('Influencer: influencer@test.com / test123');
+    console.log('Beauty Influencer: beauty@test.com / test123');
+    console.log('Food Influencer: food@test.com / test123');
+    console.log('');
+    console.log('Sample projects created:');
+    console.log('1. テスト商品プロモーション (ライフスタイル)');
+    console.log('2. 新作コスメのPRキャンペーン (美容)');
+    console.log('3. レストラン新メニューの紹介 (グルメ)');
 }
 main()
     .catch((e) => {

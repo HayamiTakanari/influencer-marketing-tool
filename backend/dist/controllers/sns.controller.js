@@ -45,6 +45,40 @@ exports.syncAllMyAccounts = syncAllMyAccounts;
 const getSyncStatus = async (req, res) => {
     try {
         const userId = req.user?.id;
+        const userRole = req.user?.role;
+        if (userRole === 'ADMIN') {
+            // Admin can see all influencers' sync status
+            const allSocialAccounts = await prisma.socialAccount.findMany({
+                include: {
+                    influencer: {
+                        select: {
+                            id: true,
+                            user: {
+                                select: {
+                                    email: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                    platform: true,
+                    username: true,
+                    lastSynced: true,
+                    followerCount: true,
+                    engagementRate: true,
+                    isVerified: true,
+                    influencer: true,
+                },
+            });
+            res.json({
+                totalAccounts: allSocialAccounts.length,
+                accounts: allSocialAccounts,
+            });
+            return;
+        }
+        // Regular users see only their own accounts
         const influencer = await prisma.influencer.findUnique({
             where: { userId },
             include: {
@@ -82,11 +116,16 @@ const syncAllInfluencers = async (req, res) => {
         if (userRole !== 'ADMIN') {
             return res.status(403).json({ error: 'Admin access required' });
         }
+        // Get total number of influencers for progress tracking
+        const totalInfluencers = await prisma.influencer.count({
+            where: { isRegistered: true },
+        });
         // Run sync in background
         snsService.scheduleSyncForAllInfluencers()
             .catch(error => console.error('Background sync error:', error));
         res.json({
             message: 'Sync started for all influencers',
+            totalInfluencers,
         });
     }
     catch (error) {

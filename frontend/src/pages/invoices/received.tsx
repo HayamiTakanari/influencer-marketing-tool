@@ -3,7 +3,16 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { getInvoices, markInvoiceAsPaid } from '../../services/api';
-import { Invoice, InvoiceStatus } from '../../types';
+import { Invoice } from '../../types';
+
+// Define InvoiceStatus locally to avoid import issues
+enum InvoiceStatus {
+  DRAFT = 'DRAFT',
+  SENT = 'SENT', 
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED',
+}
 
 const ReceivedInvoicesPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);

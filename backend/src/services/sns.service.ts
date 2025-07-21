@@ -45,7 +45,7 @@ export class TwitterService {
         'tweet.fields': ['public_metrics', 'created_at'],
       });
 
-      return tweets.data?.map((tweet) => ({
+      return tweets.data?.map((tweet: any) => ({
         id: tweet.id,
         text: tweet.text,
         createdAt: tweet.created_at,
@@ -110,7 +110,7 @@ export class InstagramService {
         throw new Error('Failed to fetch Instagram media');
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.data || [];
     } catch (error) {
       console.error('Instagram API error:', error);
@@ -182,7 +182,7 @@ export class YouTubeService {
         throw new Error('Failed to fetch YouTube videos');
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.items || [];
     } catch (error) {
       console.error('YouTube API error:', error);
@@ -200,7 +200,7 @@ export class YouTubeService {
         throw new Error('Failed to fetch YouTube video stats');
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const video = data.items?.[0];
 
       if (!video) {

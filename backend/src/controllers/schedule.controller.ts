@@ -3,6 +3,49 @@ import { PrismaClient } from '@prisma/client';
 import { createProjectScheduleSchema, updateMilestoneSchemaExport } from '../schemas/schedule';
 import { AuthRequest } from '../middleware/auth';
 
+// フェーズの色とアイコンのマッピング
+const getPhaseColor = (type: string): string => {
+  const colorMap: Record<string, string> = {
+    FORMAL_REQUEST: 'bg-blue-500',
+    PRODUCT_RECEIPT: 'bg-green-500', 
+    DRAFT_CREATION: 'bg-purple-500',
+    DRAFT_SUBMISSION: 'bg-indigo-500',
+    SCRIPT_FEEDBACK: 'bg-yellow-500',
+    SCRIPT_REVISION: 'bg-orange-500',
+    SCRIPT_FINALIZE: 'bg-red-500',
+    SHOOTING_PERIOD: 'bg-pink-500',
+    VIDEO_DRAFT_SUBMIT: 'bg-teal-500',
+    VIDEO_FEEDBACK: 'bg-cyan-500',
+    VIDEO_REVISION: 'bg-emerald-500',
+    VIDEO_FINAL_SUBMIT: 'bg-lime-500',
+    VIDEO_FINALIZE: 'bg-amber-500',
+    POSTING_PERIOD: 'bg-rose-500',
+    INSIGHT_SUBMIT: 'bg-violet-500'
+  };
+  return colorMap[type] || 'bg-gray-500';
+};
+
+const getPhaseIcon = (type: string): string => {
+  const iconMap: Record<string, string> = {
+    FORMAL_REQUEST: '📄',
+    PRODUCT_RECEIPT: '📦',
+    DRAFT_CREATION: '✏️',
+    DRAFT_SUBMISSION: '📝',
+    SCRIPT_FEEDBACK: '💬',
+    SCRIPT_REVISION: '🔄',
+    SCRIPT_FINALIZE: '✅',
+    SHOOTING_PERIOD: '🎥',
+    VIDEO_DRAFT_SUBMIT: '🎬',
+    VIDEO_FEEDBACK: '📹',
+    VIDEO_REVISION: '🎞️',
+    VIDEO_FINAL_SUBMIT: '💾',
+    VIDEO_FINALIZE: '🎯',
+    POSTING_PERIOD: '📱',
+    INSIGHT_SUBMIT: '📊'
+  };
+  return iconMap[type] || '📋';
+};
+
 const prisma = new PrismaClient();
 
 // v3.0 新機能: スケジュール管理コントローラー
@@ -130,7 +173,25 @@ export const getProjectSchedule = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'スケジュールが見つかりません' });
     }
 
-    res.json({ schedule });
+    // フロントエンド用のフォーマットに変換
+    const phases = schedule.milestones.map(milestone => ({
+      id: milestone.id,
+      type: milestone.type,
+      title: milestone.title,
+      description: milestone.description,
+      startDate: milestone.dueDate?.toISOString(),
+      endDate: milestone.endDate?.toISOString(),
+      status: milestone.status.toLowerCase(),
+      isDateRange: !!milestone.endDate,
+      color: getPhaseColor(milestone.type),
+      icon: getPhaseIcon(milestone.type),
+    }));
+
+    res.json({ 
+      phases,
+      createdAt: schedule.createdAt.toISOString(),
+      updatedAt: schedule.updatedAt.toISOString()
+    });
   } catch (error) {
     console.error('Get project schedule error:', error);
     res.status(500).json({ error: 'サーバーエラーが発生しました' });

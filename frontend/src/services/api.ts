@@ -166,8 +166,11 @@ export const searchInfluencers = async (filters: any = {}) => {
     }
   }
   
-  // Vercel環境ではパフォーマンステスト用のモックデータ
-  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+  // Vercel環境またはlocalhost環境ではパフォーマンステスト用のモックデータ
+  if (typeof window !== 'undefined' && 
+      (window.location.hostname.includes('vercel.app') || 
+       window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1')) {
     console.log('Using mock data for influencer search with pagination');
     
     // パフォーマンステスト用設定
@@ -184,7 +187,7 @@ export const searchInfluencers = async (filters: any = {}) => {
         id: `mock-influencer-${actualIndex}`,
         displayName: `テストインフルエンサー${actualIndex + 1}`,
         bio: `プロフィール${actualIndex + 1}：美容・ライフスタイル系インフルエンサーです。`,
-        categories: ['美容', 'ライフスタイル', 'ファッション'][actualIndex % 3] ? ['美容', 'ライフスタイル', 'ファッション'] : ['グルメ', '旅行'],
+        categories: actualIndex % 2 === 0 ? ['美容', 'ライフスタイル'] : ['グルメ', '旅行'],
         prefecture: ['東京都', '大阪府', '神奈川県', '愛知県', '福岡県'][actualIndex % 5],
         priceMin: (actualIndex % 10 + 1) * 10000,
         priceMax: (actualIndex % 10 + 1) * 50000,
@@ -192,29 +195,162 @@ export const searchInfluencers = async (filters: any = {}) => {
         age: 20 + (actualIndex % 25),
         socialAccounts: [
           {
-            platform: 'INSTAGRAM',
+            platform: 'Instagram',
             followerCount: Math.floor(Math.random() * 100000) + 1000,
+            engagementRate: Math.round(Math.random() * 50 + 10) / 10,
+          },
+          {
+            platform: 'TikTok',
+            followerCount: Math.floor(Math.random() * 50000) + 500,
+            engagementRate: Math.round(Math.random() * 80 + 20) / 10,
+          },
+          {
+            platform: 'YouTube',
+            followerCount: Math.floor(Math.random() * 200000) + 2000,
+            engagementRate: Math.round(Math.random() * 30 + 5) / 10,
+          },
+          {
+            platform: 'X',
+            followerCount: Math.floor(Math.random() * 30000) + 300,
+            engagementRate: Math.round(Math.random() * 40 + 15) / 10,
           }
         ],
       };
     });
     
+    // プラットフォームフィルタリング
+    let filteredInfluencers = mockInfluencers;
+    if (filters.platform) {
+      filteredInfluencers = mockInfluencers.filter(influencer => 
+        influencer.socialAccounts.some(account => account.platform === filters.platform)
+      );
+      
+      // フィルタリング後の総数を調整
+      const filteredTotalCount = Math.ceil(totalCount * 0.25); // 各プラットフォーム約25%と仮定
+      if (filteredInfluencers.length < limit) {
+        // 不足分を補填（実際のプラットフォームフィルタリング結果をシミュレート）
+        const additionalNeeded = Math.min(limit - filteredInfluencers.length, filteredTotalCount - startIndex - filteredInfluencers.length);
+        for (let i = 0; i < additionalNeeded; i++) {
+          const additionalIndex = startIndex + filteredInfluencers.length + i;
+          filteredInfluencers.push({
+            id: `mock-${filters.platform}-influencer-${additionalIndex}`,
+            displayName: `${filters.platform}インフルエンサー${additionalIndex + 1}`,
+            bio: `${filters.platform}専門のインフルエンサーです。`,
+            categories: ['美容', 'ライフスタイル'],
+            prefecture: ['東京都', '大阪府', '神奈川県'][i % 3],
+            priceMin: (i % 10 + 1) * 10000,
+            priceMax: (i % 10 + 1) * 50000,
+            gender: ['男性', '女性'][i % 2],
+            age: 20 + (i % 25),
+            socialAccounts: mockInfluencers[0].socialAccounts
+          });
+        }
+      }
+    }
+    
     // SimpleInfluencer型に変換
-    const convertedInfluencers = mockInfluencers.map(influencer => ({
-      id: influencer.id,
-      name: influencer.displayName,
-      category: Array.isArray(influencer.categories) ? influencer.categories[0] : influencer.categories,
-      followerCount: influencer.socialAccounts[0]?.followerCount || 0,
-      engagementRate: Math.round(Math.random() * 50 + 10) / 10, // 1.0-6.0%
-      platform: influencer.socialAccounts[0]?.platform || 'Instagram',
-      location: influencer.prefecture,
-      age: influencer.age,
-      bio: influencer.bio,
-      gender: influencer.gender
-    }));
+    const convertedInfluencers = filteredInfluencers.map(influencer => {
+      // 選択されたプラットフォームまたは最初のアカウントを使用
+      const targetAccount = filters.platform 
+        ? influencer.socialAccounts.find(acc => acc.platform === filters.platform)
+        : influencer.socialAccounts[0];
+      
+      return {
+        id: influencer.id,
+        displayName: influencer.displayName,
+        name: influencer.displayName,
+        category: Array.isArray(influencer.categories) ? influencer.categories[0] : influencer.categories,
+        categories: influencer.categories,
+        followerCount: targetAccount?.followerCount || 0,
+        engagementRate: targetAccount?.engagementRate || 0,
+        platform: targetAccount?.platform || 'Instagram',
+        location: influencer.prefecture,
+        prefecture: influencer.prefecture,
+        age: influencer.age,
+        bio: influencer.bio,
+        gender: influencer.gender,
+        priceMin: influencer.priceMin,
+        priceMax: influencer.priceMax,
+        socialAccounts: influencer.socialAccounts
+      };
+    });
+    
+    // プラットフォームフィルタ適用時は総数を調整
+    const adjustedTotalCount = filters.platform ? Math.ceil(totalCount * 0.25) : totalCount;
     
     const result = {
       influencers: convertedInfluencers,
+      pagination: {
+        page,
+        limit,
+        total: adjustedTotalCount,
+        totalPages: Math.ceil(adjustedTotalCount / limit),
+        hasNext: page < Math.ceil(adjustedTotalCount / limit),
+        hasPrev: page > 1,
+      },
+      performance: {
+        responseTime: Math.floor(Math.random() * 100) + 50, // 50-150ms
+        cacheHit: false,
+      }
+    };
+    
+    // キャッシュに保存
+    influencerCache.set(cacheKey, {
+      data: result,
+      timestamp: Date.now()
+    });
+    
+    return result;
+  }
+  
+  try {
+    const response = await api.get('/influencers/search', { params: filters });
+    
+    // キャッシュに保存
+    influencerCache.set(cacheKey, {
+      data: response.data,
+      timestamp: Date.now()
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error calling real API, falling back to mock data:', error);
+    
+    // API失敗時のフォールバック（ローカル開発環境用）
+    console.log('Using fallback mock data for influencer search');
+    
+    // パフォーマンステスト用設定
+    const totalCount = filters.testLargeData ? 10000 : 50;
+    const page = parseInt(filters.page) || 1;
+    const limit = parseInt(filters.limit) || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = Math.min(startIndex + limit, totalCount);
+    
+    // 大量データのシミュレーション
+    const mockInfluencers = Array.from({ length: endIndex - startIndex }, (_, index) => {
+      const actualIndex = startIndex + index;
+      return {
+        id: `mock-influencer-${actualIndex}`,
+        displayName: `テストインフルエンサー${actualIndex + 1}`,
+        bio: `プロフィール${actualIndex + 1}：美容・ライフスタイル系インフルエンサーです。`,
+        categories: actualIndex % 2 === 0 ? ['美容', 'ライフスタイル'] : ['グルメ', '旅行'],
+        prefecture: ['東京都', '大阪府', '神奈川県', '愛知県', '福岡県'][actualIndex % 5],
+        priceMin: (actualIndex % 10 + 1) * 10000,
+        priceMax: (actualIndex % 10 + 1) * 50000,
+        gender: ['男性', '女性'][actualIndex % 2],
+        age: 20 + (actualIndex % 25),
+        socialAccounts: [
+          {
+            platform: 'Instagram',
+            followerCount: Math.floor(Math.random() * 100000) + 1000,
+            engagementRate: Math.round(Math.random() * 50 + 10) / 10,
+          }
+        ],
+      };
+    });
+    
+    const result = {
+      influencers: mockInfluencers,
       pagination: {
         page,
         limit,
@@ -237,16 +373,6 @@ export const searchInfluencers = async (filters: any = {}) => {
     
     return result;
   }
-  
-  const response = await api.get('/influencers/search', { params: filters });
-  
-  // キャッシュに保存
-  influencerCache.set(cacheKey, {
-    data: response.data,
-    timestamp: Date.now()
-  });
-  
-  return response.data;
 };
 
 // AIによるインフルエンサーレコメンド機能
@@ -1139,60 +1265,91 @@ export const createProject = async (data: any) => {
 };
 
 export const getMyProjects = async () => {
-  // Mock response for Vercel environment
-  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    console.log('Using mock getMyProjects for Vercel environment');
-    const mockProjects = {
-      projects: [
-        {
-          id: '1',
-          title: '新商品コスメのPRキャンペーン',
-          description: '新発売のファンデーションを使用した投稿をお願いします。',
-          category: '美容・化粧品',
-          budget: 300000,
-          status: 'PENDING',
-          targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-          targetPrefecture: '東京都',
-          targetAgeMin: 20,
-          targetAgeMax: 35,
-          targetFollowerMin: 10000,
-          targetFollowerMax: 100000,
-          startDate: '2024-02-01',
-          endDate: '2024-02-28',
-          createdAt: '2024-01-15',
-          applicationsCount: 12,
-          clientId: 'current-user'
-        },
-        {
-          id: '2',
-          title: 'ライフスタイル商品のレビュー',
-          description: '日常使いできる便利グッズの紹介をお願いします。',
-          category: 'ライフスタイル',
-          budget: 150000,
-          status: 'IN_PROGRESS',
-          targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
-          targetPrefecture: '全国',
-          targetAgeMin: 25,
-          targetAgeMax: 45,
-          targetFollowerMin: 5000,
-          targetFollowerMax: 50000,
-          startDate: '2024-01-20',
-          endDate: '2024-02-20',
-          createdAt: '2024-01-10',
-          applicationsCount: 8,
-          clientId: 'current-user',
-          matchedInfluencer: {
-            id: 'inf1',
-            displayName: '鈴木さやか'
-          }
-        }
-      ]
-    };
+  console.log('getMyProjects called');
+  
+  // モックデータを定義
+  const mockProjects = {
+    projects: [
+      {
+        id: '1',
+        title: '新商品コスメのPRキャンペーン',
+        description: '新発売のファンデーションを使用した投稿をお願いします。',
+        category: '美容・化粧品',
+        budget: 300000,
+        status: 'IN_PROGRESS',
+        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+        targetPrefecture: '東京都',
+        targetAgeMin: 20,
+        targetAgeMax: 35,
+        targetFollowerMin: 10000,
+        targetFollowerMax: 100000,
+        startDate: '2024-02-01',
+        endDate: '2024-02-28',
+        createdAt: '2024-01-15',
+        applicationsCount: 12,
+        clientId: 'current-user'
+      },
+      {
+        id: '2',
+        title: 'ライフスタイル商品のレビュー',
+        description: '日常使いできる便利グッズの紹介をお願いします。',
+        category: 'ライフスタイル',
+        budget: 150000,
+        status: 'IN_PROGRESS',
+        targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
+        targetPrefecture: '全国',
+        targetAgeMin: 25,
+        targetAgeMax: 45,
+        targetFollowerMin: 5000,
+        targetFollowerMax: 50000,
+        startDate: '2024-01-20',
+        endDate: '2024-02-20',
+        createdAt: '2024-01-10',
+        applicationsCount: 8,
+        clientId: 'current-user',
+        matchedInfluencerId: 'inf1'
+      },
+      {
+        id: '3',
+        title: 'フィットネス関連商品のPR',
+        description: 'トレーニングウェアを着用した投稿をお願いします。',
+        category: 'スポーツ・フィットネス',
+        budget: 200000,
+        status: 'PLANNING',
+        targetPlatforms: ['INSTAGRAM', 'YOUTUBE'],
+        targetPrefecture: '関東',
+        targetAgeMin: 18,
+        targetAgeMax: 30,
+        targetFollowerMin: 15000,
+        targetFollowerMax: 80000,
+        startDate: '2024-02-15',
+        endDate: '2024-03-15',
+        createdAt: '2024-01-20',
+        applicationsCount: 5,
+        clientId: 'current-user'
+      }
+    ]
+  };
+
+  // Vercel環境または明示的にモックモードの場合
+  if (typeof window !== 'undefined' && 
+      (window.location.hostname.includes('vercel.app') || 
+       window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1')) {
+    console.log('Using mock getMyProjects data');
     return mockProjects;
   }
   
-  const response = await api.get('/projects');
-  return response.data;
+  // 実際のAPIを試行し、失敗した場合はモックデータを返す
+  try {
+    console.log('Attempting to fetch projects from API...');
+    const response = await api.get('/projects');
+    console.log('API response received:', response.data);
+    return response.data;
+  } catch (error) {
+    console.warn('API request failed, falling back to mock data:', error);
+    return mockProjects;
+  }
 };
 
 export const getProjectById = async (projectId: string) => {
@@ -1684,6 +1841,481 @@ export const deleteReview = async (reviewId: string) => {
 export const getRatingStats = async (userId: string) => {
   const response = await api.get(`/reviews/user/${userId}/stats`);
   return response.data;
+};
+
+// 請求書関連のAPI関数
+import { Invoice, InvoiceCreateRequest, InvoiceUpdateRequest, InvoiceListResponse, InvoiceStatus } from '../types';
+
+export const getInvoices = async (params: {
+  page?: number;
+  limit?: number;
+  status?: InvoiceStatus;
+  projectId?: string;
+  type?: 'sent' | 'received';  // 送信済み or 受信済み
+} = {}) => {
+  console.log('Fetching invoices with params:', params);
+  
+  // Vercel環境またはlocalhost環境ではモックデータを使用
+  if (typeof window !== 'undefined' && 
+      (window.location.hostname.includes('vercel.app') || 
+       window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1')) {
+    console.log('Using mock invoice data');
+    
+    const { page = 1, limit = 20, status, type = 'sent' } = params;
+    
+    // モック請求書データ
+    const mockInvoices: Invoice[] = [
+      {
+        id: 'inv-1',
+        invoiceNumber: 'INV-2024-001',
+        projectId: '1',
+        influencerId: 'inf-1',
+        clientId: 'client-1',
+        title: '新商品コスメのPRキャンペーン - 請求書',
+        description: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本の制作費用',
+        status: InvoiceStatus.PAID,
+        issueDate: '2024-01-20',
+        dueDate: '2024-02-19',
+        paidDate: '2024-02-10',
+        subtotal: 150000,
+        taxAmount: 15000,
+        totalAmount: 165000,
+        items: [
+          {
+            id: 'item-1',
+            description: 'Instagram投稿制作',
+            quantity: 2,
+            unitPrice: 50000,
+            amount: 100000,
+            taxRate: 10,
+            taxAmount: 10000,
+            totalAmount: 110000
+          },
+          {
+            id: 'item-2',
+            description: 'ストーリー投稿制作',
+            quantity: 3,
+            unitPrice: 10000,
+            amount: 30000,
+            taxRate: 10,
+            taxAmount: 3000,
+            totalAmount: 33000
+          },
+          {
+            id: 'item-3',
+            description: 'TikTok動画制作',
+            quantity: 1,
+            unitPrice: 20000,
+            amount: 20000,
+            taxRate: 10,
+            taxAmount: 2000,
+            totalAmount: 22000
+          }
+        ],
+        paymentMethod: '銀行振込',
+        bankInfo: {
+          bankName: 'みずほ銀行',
+          branchName: '渋谷支店',
+          accountType: '普通',
+          accountNumber: '1234567',
+          accountName: 'タナカ ミサキ'
+        },
+        createdAt: '2024-01-20T09:00:00Z',
+        updatedAt: '2024-02-10T15:30:00Z',
+        project: {
+          id: '1',
+          title: '新商品コスメのPRキャンペーン'
+        } as any,
+        influencer: {
+          id: 'inf-1',
+          displayName: '田中美咲'
+        } as any,
+        client: {
+          id: 'client-1',
+          companyName: 'コスメブランド株式会社'
+        } as any
+      },
+      {
+        id: 'inv-2',
+        invoiceNumber: 'INV-2024-002',
+        projectId: '2',
+        influencerId: 'inf-2',
+        clientId: 'client-2',
+        title: 'ライフスタイル商品のレビュー - 請求書',
+        description: 'YouTube動画1本、Instagram投稿1回の制作費用',
+        status: InvoiceStatus.SENT,
+        issueDate: '2024-01-25',
+        dueDate: '2024-02-24',
+        subtotal: 120000,
+        taxAmount: 12000,
+        totalAmount: 132000,
+        items: [
+          {
+            id: 'item-4',
+            description: 'YouTube動画制作',
+            quantity: 1,
+            unitPrice: 80000,
+            amount: 80000,
+            taxRate: 10,
+            taxAmount: 8000,
+            totalAmount: 88000
+          },
+          {
+            id: 'item-5',
+            description: 'Instagram投稿制作',
+            quantity: 1,
+            unitPrice: 40000,
+            amount: 40000,
+            taxRate: 10,
+            taxAmount: 4000,
+            totalAmount: 44000
+          }
+        ],
+        paymentMethod: '銀行振込',
+        bankInfo: {
+          bankName: 'りそな銀行',
+          branchName: '大阪本店',
+          accountType: '普通',
+          accountNumber: '9876543',
+          accountName: 'スズキ サヤカ'
+        },
+        createdAt: '2024-01-25T10:00:00Z',
+        updatedAt: '2024-01-25T10:00:00Z',
+        project: {
+          id: '2',
+          title: 'ライフスタイル商品のレビュー'
+        } as any,
+        influencer: {
+          id: 'inf-2',
+          displayName: '鈴木さやか'
+        } as any,
+        client: {
+          id: 'client-2',
+          companyName: 'ライフスタイル商品株式会社'
+        } as any
+      }
+    ];
+    
+    // ユーザー情報を取得してフィルタリング
+    let filteredByType = mockInvoices;
+    const userData = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (type === 'received' && (user.role === 'CLIENT' || user.role === 'COMPANY')) {
+        // 企業が受け取った請求書のみ表示（実際はclientIdでフィルタリング）
+        filteredByType = mockInvoices.filter(invoice => 
+          invoice.status !== InvoiceStatus.DRAFT // 下書き以外
+        );
+      } else if (type === 'sent' && user.role === 'INFLUENCER') {
+        // インフルエンサーが送信した請求書のみ表示
+        filteredByType = mockInvoices;
+      }
+    }
+    
+    // ステータスフィルタリング
+    const filteredInvoices = status 
+      ? filteredByType.filter(invoice => invoice.status === status)
+      : filteredByType;
+    
+    // ページネーション
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
+    
+    const response: InvoiceListResponse = {
+      invoices: paginatedInvoices,
+      pagination: {
+        page,
+        limit,
+        total: filteredInvoices.length,
+        totalPages: Math.ceil(filteredInvoices.length / limit),
+      },
+      summary: {
+        totalAmount: mockInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
+        paidAmount: mockInvoices
+          .filter(inv => inv.status === InvoiceStatus.PAID)
+          .reduce((sum, inv) => sum + inv.totalAmount, 0),
+        unpaidAmount: mockInvoices
+          .filter(inv => inv.status === InvoiceStatus.SENT)
+          .reduce((sum, inv) => sum + inv.totalAmount, 0),
+        overdueAmount: mockInvoices
+          .filter(inv => inv.status === InvoiceStatus.OVERDUE)
+          .reduce((sum, inv) => sum + inv.totalAmount, 0),
+      }
+    };
+    
+    return response;
+  }
+  
+  try {
+    const response = await api.get('/invoices', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching invoices, using fallback data:', error);
+    // API失敗時のフォールバック
+    return {
+      invoices: [],
+      pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+      summary: { totalAmount: 0, paidAmount: 0, unpaidAmount: 0, overdueAmount: 0 }
+    };
+  }
+};
+
+export const getInvoiceById = async (id: string): Promise<Invoice> => {
+  console.log('Fetching invoice by id:', id);
+  
+  // Vercel環境またはlocalhost環境ではモックデータを使用
+  if (typeof window !== 'undefined' && 
+      (window.location.hostname.includes('vercel.app') || 
+       window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1')) {
+    console.log('Using mock invoice detail data');
+    
+    // モック請求書詳細データ
+    const mockInvoice: Invoice = {
+      id,
+      invoiceNumber: 'INV-2024-001',
+      projectId: '1',
+      influencerId: 'inf-1',
+      clientId: 'client-1',
+      title: '新商品コスメのPRキャンペーン - 請求書',
+      description: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本の制作費用',
+      status: InvoiceStatus.SENT,
+      issueDate: '2024-01-20',
+      dueDate: '2024-02-19',
+      subtotal: 150000,
+      taxAmount: 15000,
+      totalAmount: 165000,
+      items: [
+        {
+          id: 'item-1',
+          description: 'Instagram投稿制作',
+          quantity: 2,
+          unitPrice: 50000,
+          amount: 100000,
+          taxRate: 10,
+          taxAmount: 10000,
+          totalAmount: 110000
+        },
+        {
+          id: 'item-2',
+          description: 'ストーリー投稿制作',
+          quantity: 3,
+          unitPrice: 10000,
+          amount: 30000,
+          taxRate: 10,
+          taxAmount: 3000,
+          totalAmount: 33000
+        },
+        {
+          id: 'item-3',
+          description: 'TikTok動画制作',
+          quantity: 1,
+          unitPrice: 20000,
+          amount: 20000,
+          taxRate: 10,
+          taxAmount: 2000,
+          totalAmount: 22000
+        }
+      ],
+      paymentMethod: '銀行振込',
+      bankInfo: {
+        bankName: 'みずほ銀行',
+        branchName: '渋谷支店',
+        accountType: '普通',
+        accountNumber: '1234567',
+        accountName: 'タナカ ミサキ'
+      },
+      createdAt: '2024-01-20T09:00:00Z',
+      updatedAt: '2024-01-20T09:00:00Z',
+      project: {
+        id: '1',
+        title: '新商品コスメのPRキャンペーン',
+        description: '新発売のファンデーションを使用した投稿をお願いします。',
+        budget: 300000
+      } as any,
+      influencer: {
+        id: 'inf-1',
+        displayName: '田中美咲',
+        bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。'
+      } as any,
+      client: {
+        id: 'client-1',
+        companyName: 'コスメブランド株式会社',
+        contactName: '山田太郎'
+      } as any
+    };
+    
+    return mockInvoice;
+  }
+  
+  try {
+    const response = await api.get(`/invoices/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching invoice detail:', error);
+    throw error;
+  }
+};
+
+export const createInvoice = async (data: InvoiceCreateRequest): Promise<Invoice> => {
+  console.log('Creating invoice:', data);
+  
+  // Vercel環境またはlocalhost環境ではモックレスポンス
+  if (typeof window !== 'undefined' && 
+      (window.location.hostname.includes('vercel.app') || 
+       window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1')) {
+    console.log('Using mock invoice creation');
+    
+    // 計算ロジック
+    const subtotal = data.items.reduce((sum, item) => sum + item.amount, 0);
+    const taxAmount = data.items.reduce((sum, item) => sum + item.taxAmount, 0);
+    const totalAmount = subtotal + taxAmount;
+    
+    const mockInvoice: Invoice = {
+      id: `inv-${Date.now()}`,
+      invoiceNumber: `INV-2024-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
+      projectId: data.projectId,
+      influencerId: 'current-user-id',
+      clientId: 'project-client-id',
+      title: data.title,
+      description: data.description,
+      status: InvoiceStatus.DRAFT,
+      issueDate: new Date().toISOString().split('T')[0],
+      dueDate: data.dueDate,
+      subtotal,
+      taxAmount,
+      totalAmount,
+      items: data.items.map((item, index) => ({
+        ...item,
+        id: `item-${index + 1}`
+      })),
+      paymentMethod: data.paymentMethod,
+      bankInfo: data.bankInfo,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      project: { id: data.projectId, title: 'プロジェクト' } as any,
+      influencer: { id: 'current-user-id', displayName: 'ユーザー名' } as any,
+      client: { id: 'client-id', companyName: '企業名' } as any
+    };
+    
+    return mockInvoice;
+  }
+  
+  try {
+    const response = await api.post('/invoices', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating invoice:', error);
+    throw error;
+  }
+};
+
+export const updateInvoice = async (id: string, data: InvoiceUpdateRequest): Promise<Invoice> => {
+  console.log('Updating invoice:', id, data);
+  
+  try {
+    const response = await api.put(`/invoices/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating invoice:', error);
+    throw error;
+  }
+};
+
+export const deleteInvoice = async (id: string): Promise<void> => {
+  console.log('Deleting invoice:', id);
+  
+  try {
+    await api.delete(`/invoices/${id}`);
+  } catch (error) {
+    console.error('Error deleting invoice:', error);
+    throw error;
+  }
+};
+
+export const sendInvoice = async (id: string): Promise<Invoice> => {
+  console.log('Sending invoice:', id);
+  
+  try {
+    const response = await api.post(`/invoices/${id}/send`);
+    return response.data;
+  } catch (error) {
+    console.error('Error sending invoice:', error);
+    throw error;
+  }
+};
+
+export const markInvoiceAsPaid = async (id: string, paidDate?: string): Promise<Invoice> => {
+  console.log('Marking invoice as paid:', id);
+  
+  try {
+    const response = await api.post(`/invoices/${id}/mark-paid`, { paidDate });
+    return response.data;
+  } catch (error) {
+    console.error('Error marking invoice as paid:', error);
+    throw error;
+  }
+};
+
+// プロジェクト完了時の自動請求書生成
+export const generateInvoiceFromProject = async (projectId: string): Promise<Invoice> => {
+  console.log('Generating invoice from project:', projectId);
+  
+  // Vercel環境またはlocalhost環境ではモック生成
+  if (typeof window !== 'undefined' && 
+      (window.location.hostname.includes('vercel.app') || 
+       window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1')) {
+    console.log('Using mock invoice generation from project');
+    
+    // プロジェクト情報に基づいた自動請求書生成のモック
+    const mockInvoice: Invoice = {
+      id: `inv-auto-${Date.now()}`,
+      invoiceNumber: `INV-2024-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
+      projectId,
+      influencerId: 'current-user-id',
+      clientId: 'project-client-id',
+      title: `プロジェクト完了 - 請求書`,
+      description: 'プロジェクト完了による自動生成請求書',
+      status: InvoiceStatus.DRAFT,
+      issueDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30日後
+      subtotal: 200000,
+      taxAmount: 20000,
+      totalAmount: 220000,
+      items: [
+        {
+          id: 'auto-item-1',
+          description: 'プロジェクト制作費用',
+          quantity: 1,
+          unitPrice: 200000,
+          amount: 200000,
+          taxRate: 10,
+          taxAmount: 20000,
+          totalAmount: 220000
+        }
+      ],
+      paymentMethod: '銀行振込',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      project: { id: projectId, title: 'プロジェクト' } as any,
+      influencer: { id: 'current-user-id', displayName: 'ユーザー名' } as any,
+      client: { id: 'client-id', companyName: '企業名' } as any
+    };
+    
+    return mockInvoice;
+  }
+  
+  try {
+    const response = await api.post(`/projects/${projectId}/generate-invoice`);
+    return response.data;
+  } catch (error) {
+    console.error('Error generating invoice from project:', error);
+    throw error;
+  }
 };
 
 export default api;

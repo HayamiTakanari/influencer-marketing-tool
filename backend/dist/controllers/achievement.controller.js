@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAchievementStats = exports.deleteAchievement = exports.updateAchievement = exports.getAchievementsByInfluencer = exports.getMyAchievements = exports.createAchievement = void 0;
 const client_1 = require("@prisma/client");
-const achievements_1 = require("../../schemas/achievements");
+const achievements_1 = require("../schemas/achievements");
 const prisma = new client_1.PrismaClient();
 // v3.0 新機能: 実績管理コントローラー
 const createAchievement = async (req, res) => {
