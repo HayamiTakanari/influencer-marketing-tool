@@ -63,12 +63,16 @@ export const checkConteAlignment = async (
       ...projectInfo.campaignObjective.toLowerCase().split(/\s+/),
       ...projectInfo.messageToConvey.toLowerCase().split(/\s+/),
       ...projectInfo.productFeatures.toLowerCase().split(/\s+/)
-    ];
+    ].filter(word => word.length > 2); // 2文字以下の単語は除外
     
     const conteThemeWords = conteInfo.overallTheme.toLowerCase().split(/\s+/);
+    
+    // より柔軟な類似度チェック（関連キーワードも含める）
+    const beautyKeywords = ['スキンケア', '化粧', '美容', '保湿', 'ケア', '肌'];
     const hasCommonKeywords = projectKeywords.some(keyword => 
       conteThemeWords.some(word => word.includes(keyword) || keyword.includes(word))
-    );
+    ) || (projectInfo.category === '美容・化粧品' && 
+         beautyKeywords.some(keyword => conteInfo.overallTheme.includes(keyword)));
     
     if (!hasCommonKeywords) {
       issues.push({
@@ -86,9 +90,19 @@ export const checkConteAlignment = async (
   // キーメッセージの整合性チェック
   if (conteInfo.keyMessages && conteInfo.keyMessages.length > 0) {
     const projectMessages = projectInfo.messageToConvey.toLowerCase();
+    const projectMessageWords = projectMessages.split(/\s+/).filter(word => word.length > 1);
+    
     const hasAlignedMessages = conteInfo.keyMessages.some(message => {
       const messageWords = message.toLowerCase().split(/\s+/);
-      return messageWords.some(word => projectMessages.includes(word));
+      // より緩い条件：関連キーワードも考慮
+      return messageWords.some(word => 
+        projectMessageWords.some(pWord => 
+          word.includes(pWord) || pWord.includes(word) || 
+          (word.length > 2 && pWord.length > 2 && 
+           (word.includes('効果') || word.includes('実感') || word.includes('潤い')) &&
+           (pWord.includes('効果') || pWord.includes('保湿') || pWord.includes('乾燥')))
+        )
+      );
     });
     
     if (!hasAlignedMessages) {
