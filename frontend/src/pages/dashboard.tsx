@@ -95,10 +95,8 @@ const DashboardPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold mb-1">新着オファー</h3>
               <p className="text-blue-100 text-sm mb-4">未確認のプロジェクト機会</p>
-              <Link href="/opportunities">
-                <a className="inline-flex items-center text-white hover:text-blue-100 transition-colors">
-                  確認する →
-                </a>
+              <Link href="/opportunities" className="inline-flex items-center text-white hover:text-blue-100 transition-colors">
+                確認する →
               </Link>
             </div>
 
@@ -110,10 +108,8 @@ const DashboardPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold mb-1">今月の収益</h3>
               <p className="text-green-100 text-sm mb-4">前月比 +12%</p>
-              <Link href="/revenue">
-                <a className="inline-flex items-center text-white hover:text-green-100 transition-colors">
-                  詳細を見る →
-                </a>
+              <Link href="/revenue" className="inline-flex items-center text-white hover:text-green-100 transition-colors">
+                詳細を見る →
               </Link>
             </div>
 
@@ -125,10 +121,8 @@ const DashboardPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold mb-1">要対応</h3>
               <p className="text-purple-100 text-sm mb-4">返信待ちメッセージ</p>
-              <Link href="/chat">
-                <a className="inline-flex items-center text-white hover:text-purple-100 transition-colors">
-                  対応する →
-                </a>
+              <Link href="/chat" className="inline-flex items-center text-white hover:text-purple-100 transition-colors">
+                対応する →
               </Link>
             </div>
           </motion.div>
@@ -147,10 +141,8 @@ const DashboardPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold mb-1">進行中のプロジェクト</h3>
               <p className="text-blue-100 text-sm mb-4">アクティブなキャンペーン</p>
-              <Link href="/projects">
-                <a className="inline-flex items-center text-white hover:text-blue-100 transition-colors">
-                  管理する →
-                </a>
+              <Link href="/projects" className="inline-flex items-center text-white hover:text-blue-100 transition-colors">
+                管理する →
               </Link>
             </div>
 
@@ -162,10 +154,8 @@ const DashboardPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold mb-1">アクティブチャット</h3>
               <p className="text-purple-100 text-sm mb-4">進行中プロジェクトの会話</p>
-              <Link href="/chat">
-                <a className="inline-flex items-center text-white hover:text-purple-100 transition-colors">
-                  チャットを開く →
-                </a>
+              <Link href="/chat" className="inline-flex items-center text-white hover:text-purple-100 transition-colors">
+                チャットを開く →
               </Link>
             </div>
 
@@ -177,10 +167,8 @@ const DashboardPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold mb-1">未払い請求書</h3>
               <p className="text-orange-100 text-sm mb-4">支払い待ちの請求</p>
-              <Link href="/invoices/received">
-                <a className="inline-flex items-center text-white hover:text-orange-100 transition-colors">
-                  確認する →
-                </a>
+              <Link href="/invoices/received" className="inline-flex items-center text-white hover:text-orange-100 transition-colors">
+                確認する →
               </Link>
             </div>
           </motion.div>
@@ -221,10 +209,8 @@ const DashboardPage: React.FC = () => {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">進行中プロジェクト</h3>
-              <Link href="/projects">
-                <a className="text-blue-500 hover:text-blue-600 text-sm font-medium">
-                  すべて見る →
-                </a>
+              <Link href="/projects" className="text-blue-500 hover:text-blue-600 text-sm font-medium">
+                すべて見る →
               </Link>
             </div>
             

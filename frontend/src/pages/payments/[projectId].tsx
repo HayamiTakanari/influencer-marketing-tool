@@ -256,18 +256,22 @@ const PaymentPage: React.FC = () => {
           </p>
           <div className="space-y-3">
             <Link href="/projects">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                プロジェクト一覧に戻る
-              </motion.button>
+              <span className="inline-block w-full">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                >
+                  プロジェクト一覧に戻る
+                </motion.button>
+              </span>
             </Link>
             <Link href="/payments/history">
-              <button className="w-full px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-xl font-semibold transition-colors">
-                支払い履歴を見る
-              </button>
+              <span className="inline-block w-full">
+                <button className="w-full px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-xl font-semibold transition-colors">
+                  支払い履歴を見る
+                </button>
+              </span>
             </Link>
           </div>
         </motion.div>

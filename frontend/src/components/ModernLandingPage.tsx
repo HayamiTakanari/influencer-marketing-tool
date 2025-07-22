@@ -175,22 +175,26 @@ const ModernLandingPage: React.FC = () => {
 
             <div className="flex items-center space-x-3">
               <Link href="/login">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-4 py-2 rounded-lg"
-                >
-                  ログイン
-                </motion.button>
+                <span className="inline-block">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-4 py-2 rounded-lg"
+                  >
+                    ログイン
+                  </motion.button>
+                </span>
               </Link>
               <Link href="/register">
-                <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)" }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-xl font-semibold shadow-lg"
-                >
-                  登録
-                </motion.button>
+                <span className="inline-block">
+                  <motion.button
+                    whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)" }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-xl font-semibold shadow-lg"
+                  >
+                    登録
+                  </motion.button>
+                </span>
               </Link>
             </div>
           </div>
@@ -249,34 +253,38 @@ const ModernLandingPage: React.FC = () => {
               className="flex flex-col sm:flex-row items-center justify-center gap-6"
             >
               <Link href="/register">
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.05, 
-                    boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)",
-                    y: -5
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="group relative px-12 py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl text-xl font-bold overflow-hidden shadow-xl"
-                >
-                  <span className="relative z-10">無料で始める</span>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600"
-                    initial={{ x: "100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.5 }}
-                  />
-                  <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                </motion.button>
+                <span className="inline-block">
+                  <motion.button
+                    whileHover={{ 
+                      scale: 1.05, 
+                      boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)",
+                      y: -5
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="group relative px-12 py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl text-xl font-bold overflow-hidden shadow-xl"
+                  >
+                    <span className="relative z-10">無料で始める</span>
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600"
+                      initial={{ x: "100%" }}
+                      whileHover={{ x: 0 }}
+                      transition={{ duration: 0.5 }}
+                    />
+                    <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </motion.button>
+                </span>
               </Link>
 
               <Link href="/demo">
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-12 py-5 border-2 border-gray-300 rounded-2xl text-xl font-bold hover:bg-gray-50 hover:border-gray-400 transition-all backdrop-blur-sm"
-                >
-                  デモを見る
-                </motion.button>
+                <span className="inline-block">
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-12 py-5 border-2 border-gray-300 rounded-2xl text-xl font-bold hover:bg-gray-50 hover:border-gray-400 transition-all backdrop-blur-sm"
+                  >
+                    デモを見る
+                  </motion.button>
+                </span>
               </Link>
             </motion.div>
           </motion.div>
@@ -466,18 +474,20 @@ const ModernLandingPage: React.FC = () => {
               </p>
               
               <Link href="/register">
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.05, 
-                    boxShadow: "0 25px 50px rgba(59, 130, 246, 0.4)",
-                    y: -10
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-16 py-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl text-2xl font-black relative overflow-hidden shadow-xl"
-                >
-                  <span className="relative z-10">無料で始める</span>
-                  <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 hover:opacity-100 transition-opacity" />
-                </motion.button>
+                <span className="inline-block">
+                  <motion.button
+                    whileHover={{ 
+                      scale: 1.05, 
+                      boxShadow: "0 25px 50px rgba(59, 130, 246, 0.4)",
+                      y: -10
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-16 py-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl text-2xl font-black relative overflow-hidden shadow-xl"
+                  >
+                    <span className="relative z-10">無料で始める</span>
+                    <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 hover:opacity-100 transition-opacity" />
+                  </motion.button>
+                </span>
               </Link>
             </div>
           </div>
