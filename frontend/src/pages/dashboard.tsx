@@ -154,17 +154,17 @@ const DashboardPage: React.FC = () => {
               </Link>
             </div>
 
-            {/* 新規応募 */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl p-6 shadow-xl">
+            {/* プロジェクトチャット */}
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-6 shadow-xl">
               <div className="flex items-center justify-between mb-4">
-                <div className="text-4xl">👥</div>
-                <span className="text-2xl font-bold">12</span>
+                <div className="text-4xl">💬</div>
+                <span className="text-2xl font-bold">2</span>
               </div>
-              <h3 className="text-lg font-semibold mb-1">新規応募</h3>
-              <p className="text-green-100 text-sm mb-4">未確認の応募者</p>
-              <Link href="/applications">
-                <a className="inline-flex items-center text-white hover:text-green-100 transition-colors">
-                  確認する →
+              <h3 className="text-lg font-semibold mb-1">アクティブチャット</h3>
+              <p className="text-purple-100 text-sm mb-4">進行中プロジェクトの会話</p>
+              <Link href="/chat">
+                <a className="inline-flex items-center text-white hover:text-purple-100 transition-colors">
+                  チャットを開く →
                 </a>
               </Link>
             </div>
@@ -210,6 +210,68 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* 企業向け：進行中プロジェクトクイックアクセス */}
+        {user.type !== 'influencer' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 mb-8 shadow-lg"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">進行中プロジェクト</h3>
+              <Link href="/projects">
+                <a className="text-blue-500 hover:text-blue-600 text-sm font-medium">
+                  すべて見る →
+                </a>
+              </Link>
+            </div>
+            
+            {/* 模擬的な進行中プロジェクト一覧 */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    PR
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">美容コスメ PR キャンペーン</div>
+                    <div className="text-sm text-gray-600">田中美咲 • 進行中</div>
+                  </div>
+                </div>
+                <Link href="/project-chat/1">
+                  <button className="relative px-3 py-1 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
+                    💬 チャット
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                      3
+                    </span>
+                  </button>
+                </Link>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    LF
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">ライフスタイルコンテンツ制作</div>
+                    <div className="text-sm text-gray-600">鈴木さやか • 構成案待ち</div>
+                  </div>
+                </div>
+                <Link href="/project-chat/2">
+                  <button className="relative px-3 py-1 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
+                    💬 チャット
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                      1
+                    </span>
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* 機能カード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -262,8 +324,8 @@ const DashboardPage: React.FC = () => {
                   className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
                 >
                   <div className="text-4xl mb-4">💬</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">チャット</h3>
-                  <p className="text-gray-600">企業とのリアルタイム会話</p>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトチャット</h3>
+                  <p className="text-gray-600">企業とのプロジェクト関連の会話</p>
                 </motion.div>
               </Link>
 

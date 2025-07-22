@@ -268,7 +268,22 @@ const ProjectsPage: React.FC = () => {
                       <span>🏷️ {project.category}</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4 mt-4 lg:mt-0">
+                  <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+                    {/* チャットボタン（マッチング済みまたは進行中の場合のみ表示） */}
+                    {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS') && project.matchedInfluencer && (
+                      <Link href={`/project-chat/${project.id}`}>
+                        <button className="relative px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors hover:scale-105 flex items-center space-x-2">
+                          <span>💬</span>
+                          <span className="hidden md:inline">チャット</span>
+                          {/* 未読バッジ（例：2件の未読がある場合） */}
+                          {Math.random() > 0.5 && (
+                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                              {Math.floor(Math.random() * 9) + 1}
+                            </span>
+                          )}
+                        </button>
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         console.log('Detail button clicked!');
