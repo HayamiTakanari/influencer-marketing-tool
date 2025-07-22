@@ -926,120 +926,131 @@ const ProjectChatPage: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-6"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">{project.title}</h2>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span>企業: {project.client.companyName}</span>
-                  <span>•</span>
-                  <span>インフルエンサー: {project.matchedInfluencer.displayName}</span>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">{project.title}</h2>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>企業: {project.client.companyName}</span>
+                    <span>•</span>
+                    <span>インフルエンサー: {project.matchedInfluencer.displayName}</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex space-x-2">
+              
+              {/* アクションボタン */}
+              <div className="border-t border-gray-100 pt-4">
                 {user?.role === 'INFLUENCER' && (
-                  <>
-                    <button
-                      onClick={() => setShowProposalForm(true)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      📝 構成案提出
-                    </button>
-                    <button
-                      onClick={() => {
-                        setConteType('initial');
-                        setShowConteForm(true);
-                      }}
-                      className="px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors"
-                    >
-                      📋 コンテ提出
-                    </button>
-                    <button
-                      onClick={() => {
-                        setVideoSubmitType('initial');
-                        setShowVideoSubmitForm(true);
-                      }}
-                      className="px-4 py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
-                    >
-                      🎬 動画提出
-                    </button>
-                    <button
-                      onClick={() => setShowVideoForm(true)}
-                      className="px-4 py-2 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
-                    >
-                      🎥 参考動画
-                    </button>
-                  </>
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-700 min-w-[100px]">基本提出:</span>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setShowProposalForm(true)}
+                          className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                        >
+                          📝 構成案提出
+                        </button>
+                        <button
+                          onClick={() => {
+                            setConteType('initial');
+                            setShowConteForm(true);
+                          }}
+                          className="px-3 py-1.5 bg-purple-500 text-white text-sm rounded-lg font-medium hover:bg-purple-600 transition-colors"
+                        >
+                          📋 コンテ提出
+                        </button>
+                        <button
+                          onClick={() => {
+                            setVideoSubmitType('initial');
+                            setShowVideoSubmitForm(true);
+                          }}
+                          className="px-3 py-1.5 bg-green-500 text-white text-sm rounded-lg font-medium hover:bg-green-600 transition-colors"
+                        >
+                          🎬 動画提出
+                        </button>
+                        <button
+                          onClick={() => setShowVideoForm(true)}
+                          className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                        >
+                          🎥 参考動画
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-700 min-w-[100px]">修正版提出:</span>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => {
+                            setConteType('revised');
+                            setShowConteForm(true);
+                          }}
+                          className="px-3 py-1.5 bg-purple-100 text-purple-700 text-sm rounded-lg font-medium hover:bg-purple-200 transition-colors"
+                        >
+                          📋 修正稿コンテ
+                        </button>
+                        <button
+                          onClick={() => {
+                            setVideoSubmitType('revised');
+                            setShowVideoSubmitForm(true);
+                          }}
+                          className="px-3 py-1.5 bg-green-100 text-green-700 text-sm rounded-lg font-medium hover:bg-green-200 transition-colors"
+                        >
+                          🎬 修正版動画
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 
                 {/* 企業向け修正依頼ボタン */}
                 {user?.role === 'CLIENT' && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setConteType('revised');
-                        // Open revision request modal or send message
-                        const revisionMessage = {
-                          id: Date.now().toString(),
-                          content: 'コンテの修正をお願いします。',
-                          createdAt: new Date().toISOString(),
-                          senderId: user.id,
-                          messageType: 'text' as const,
-                          sender: {
-                            id: user.id,
-                            role: user.role,
-                            displayName: project?.client.displayName || 'クライアント'
-                          }
-                        };
-                        setMessages(prev => [...prev, revisionMessage]);
-                      }}
-                      className="px-4 py-2 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors"
-                    >
-                      📝 コンテ修正依頼
-                    </button>
-                    <button
-                      onClick={() => {
-                        const revisionMessage = {
-                          id: Date.now().toString(),
-                          content: '動画の修正をお願いします。',
-                          createdAt: new Date().toISOString(),
-                          senderId: user.id,
-                          messageType: 'text' as const,
-                          sender: {
-                            id: user.id,
-                            role: user.role,
-                            displayName: project?.client.displayName || 'クライアント'
-                          }
-                        };
-                        setMessages(prev => [...prev, revisionMessage]);
-                      }}
-                      className="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
-                    >
-                      🎬 動画修正依頼
-                    </button>
-                  </>
-                )}
-                
-                {/* インフルエンサー向け修正版提出ボタン */}
-                {user?.role === 'INFLUENCER' && (
-                  <div className="flex space-x-2 pt-2">
-                    <button
-                      onClick={() => {
-                        setConteType('revised');
-                        setShowConteForm(true);
-                      }}
-                      className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-lg font-medium hover:bg-purple-200 transition-colors"
-                    >
-                      📋 修正稿コンテ
-                    </button>
-                    <button
-                      onClick={() => {
-                        setVideoSubmitType('revised');
-                        setShowVideoSubmitForm(true);
-                      }}
-                      className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-lg font-medium hover:bg-green-200 transition-colors"
-                    >
-                      🎬 修正版動画
-                    </button>
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-gray-700 min-w-[100px]">修正依頼:</span>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => {
+                          setConteType('revised');
+                          const revisionMessage = {
+                            id: Date.now().toString(),
+                            content: 'コンテの修正をお願いします。',
+                            createdAt: new Date().toISOString(),
+                            senderId: user.id,
+                            messageType: 'text' as const,
+                            sender: {
+                              id: user.id,
+                              role: user.role,
+                              displayName: project?.client.displayName || 'クライアント'
+                            }
+                          };
+                          setMessages(prev => [...prev, revisionMessage]);
+                        }}
+                        className="px-3 py-1.5 bg-orange-500 text-white text-sm rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                      >
+                        📝 コンテ修正依頼
+                      </button>
+                      <button
+                        onClick={() => {
+                          const revisionMessage = {
+                            id: Date.now().toString(),
+                            content: '動画の修正をお願いします。',
+                            createdAt: new Date().toISOString(),
+                            senderId: user.id,
+                            messageType: 'text' as const,
+                            sender: {
+                              id: user.id,
+                              role: user.role,
+                              displayName: project?.client.displayName || 'クライアント'
+                            }
+                          };
+                          setMessages(prev => [...prev, revisionMessage]);
+                        }}
+                        className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg font-medium hover:bg-red-600 transition-colors"
+                      >
+                        🎬 動画修正依頼
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
