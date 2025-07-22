@@ -269,112 +269,129 @@ const ProjectAIMatchingPage: React.FC = () => {
             )}
           </div>
 
+          {!aiLoading && recommendedInfluencers.length > 0 && (
+            <div className="hidden lg:flex items-center px-3 pb-2 text-xs text-gray-500 font-medium border-b border-gray-200 mb-2">
+              <div className="w-16 text-center mr-3">スコア</div>
+              <div className="w-48 mr-4">アカウント名</div>
+              <div className="w-24 text-center mr-4">フォロワー</div>
+              <div className="w-20 text-center mr-4">平均Eng</div>
+              <div className="w-24 text-center mr-4">平均再生</div>
+              <div className="flex-1 mr-4">紹介文</div>
+              <div className="w-36">アクション</div>
+            </div>
+          )}
+
           {aiLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, index) => (
+            <div className="space-y-2">
+              {[...Array(8)].map((_, index) => (
                 <div key={index} className="animate-pulse">
-                  <div className="bg-gray-200 rounded-xl h-64"></div>
+                  <div className="bg-gray-200 rounded-lg h-16"></div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendedInfluencers.map((influencer) => (
-                <motion.div
-                  key={influencer.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className={`bg-gradient-to-br from-white to-gray-50 border-2 rounded-xl p-6 hover:shadow-xl transition-all cursor-pointer ${
-                    influencer.isRecommended ? 'border-green-300 shadow-lg' : 'border-gray-200'
-                  }`}
-                  onClick={() => router.push(`/influencer/${influencer.id}`)}
-                >
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                      {influencer.displayName.charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-900">{influencer.displayName}</h4>
-                      <p className="text-sm text-gray-600">{influencer.prefecture}</p>
-                    </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      influencer.aiScore >= 90 ? 'bg-green-100 text-green-800' :
-                      influencer.aiScore >= 80 ? 'bg-blue-100 text-blue-800' :
-                      influencer.aiScore >= 70 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {influencer.aiScore}%
-                    </div>
-                  </div>
+            <div className="space-y-2">
+              {recommendedInfluencers.map((influencer, index) => {
+                // 平均エンゲージメント率を計算
+                const avgEngagement = influencer.socialAccounts.length > 0 
+                  ? (influencer.socialAccounts.reduce((sum, acc) => sum + acc.engagementRate, 0) / influencer.socialAccounts.length).toFixed(1)
+                  : '0.0';
+                
+                // 推定平均再生数（YouTubeの場合は再生数、その他はフォロワー数×エンゲージメント率）
+                const avgViews = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'youtube')
+                  ? Math.round(influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'youtube')!.followerCount * 0.1) // YouTubeは登録者数の10%を仮定
+                  : Math.round(influencer.socialAccounts[0]?.followerCount * (influencer.socialAccounts[0]?.engagementRate / 100) || 0);
 
-                  {influencer.isRecommended && (
-                    <div className="mb-3 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold text-center">
-                      🌟 AIおすすめ
-                    </div>
-                  )}
+                return (
+                  <motion.div
+                    key={influencer.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className={`bg-white border rounded-lg hover:shadow-md transition-all ${
+                      influencer.isRecommended ? 'border-green-400' : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center p-3">
+                      {/* AIスコアとおすすめマーク */}
+                      <div className="w-16 text-center mr-3">
+                        <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full text-sm font-bold ${
+                          influencer.aiScore >= 90 ? 'bg-green-100 text-green-800' :
+                          influencer.aiScore >= 80 ? 'bg-blue-100 text-blue-800' :
+                          influencer.aiScore >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {influencer.aiScore}%
+                        </div>
+                        {influencer.isRecommended && (
+                          <div className="text-xs text-green-600 font-semibold mt-1">推奨</div>
+                        )}
+                      </div>
 
-                  <p className="text-sm text-gray-700 mb-3 line-clamp-2">{influencer.bio}</p>
+                      {/* アカウント名とプロフィール画像 */}
+                      <div className="flex items-center w-48 mr-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-2 flex-shrink-0">
+                          {influencer.displayName.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-gray-900 truncate">{influencer.displayName}</h4>
+                          <div className="flex items-center space-x-2 text-xs text-gray-500">
+                            {influencer.socialAccounts.map((account, idx) => (
+                              <span key={idx} title={account.platform}>
+                                {getPlatformIcon(account.platform)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
 
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {influencer.categories.map(category => (
-                      <span
-                        key={category}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
-                      >
-                        {category}
-                      </span>
-                    ))}
-                  </div>
+                      {/* フォロワー数 */}
+                      <div className="w-24 text-center mr-4">
+                        <div className="text-sm font-semibold text-gray-900">
+                          {formatNumber(influencer.socialAccounts.reduce((sum, acc) => sum + acc.followerCount, 0))}
+                        </div>
+                        <div className="text-xs text-gray-500">フォロワー</div>
+                      </div>
 
-                  {/* マッチング理由 */}
-                  {influencer.matchReasons && influencer.matchReasons.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs font-medium text-gray-700 mb-1">マッチング理由:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {influencer.matchReasons.map((reason: string, index: number) => (
-                          <span key={index} className="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs">
-                            {reason}
-                          </span>
-                        ))}
+                      {/* 平均エンゲージメント率 */}
+                      <div className="w-20 text-center mr-4">
+                        <div className="text-sm font-semibold text-gray-900">{avgEngagement}%</div>
+                        <div className="text-xs text-gray-500">平均Eng</div>
+                      </div>
+
+                      {/* 平均再生数 */}
+                      <div className="w-24 text-center mr-4">
+                        <div className="text-sm font-semibold text-gray-900">{formatNumber(avgViews)}</div>
+                        <div className="text-xs text-gray-500">平均再生</div>
+                      </div>
+
+                      {/* 紹介文 */}
+                      <div className="flex-1 mr-4">
+                        <p className="text-sm text-gray-700 line-clamp-2">{influencer.bio}</p>
+                      </div>
+
+                      {/* アクションボタン */}
+                      <div className="flex space-x-2 w-36">
+                        <button
+                          onClick={() => router.push(`/influencer/${influencer.id}`)}
+                          className="px-3 py-1.5 bg-blue-500 text-white rounded text-sm font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap"
+                        >
+                          詳細
+                        </button>
+                        <button
+                          onClick={() => {
+                            // TODO: 問い合わせ機能の実装
+                            alert('問い合わせ機能は準備中です');
+                          }}
+                          className="px-3 py-1.5 bg-green-500 text-white rounded text-sm font-semibold hover:bg-green-600 transition-colors whitespace-nowrap"
+                        >
+                          問い合わせ
+                        </button>
                       </div>
                     </div>
-                  )}
-
-                  {/* ソーシャルメディア情報 */}
-                  <div className="flex justify-between items-center text-xs text-gray-500 mb-3">
-                    {influencer.socialAccounts.map((account, index) => (
-                      <div key={index} className="flex items-center space-x-1">
-                        <span>{getPlatformIcon(account.platform)}</span>
-                        <span>{formatNumber(account.followerCount)}</span>
-                        {account.isVerified && <span className="text-blue-500">✓</span>}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/influencer/${influencer.id}`);
-                      }}
-                      className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      詳細を見る
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // TODO: 問い合わせ機能の実装
-                        alert('問い合わせ機能は準備中です');
-                      }}
-                      className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-sm font-semibold hover:bg-green-600 transition-colors"
-                    >
-                      問い合わせ
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
 
