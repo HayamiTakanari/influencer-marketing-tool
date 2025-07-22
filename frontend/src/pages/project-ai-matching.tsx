@@ -55,6 +55,7 @@ const ProjectAIMatchingPage: React.FC = () => {
     sortBy: 'aiScore' // 'aiScore', 'followers', 'engagement'
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedInfluencers, setSelectedInfluencers] = useState<Set<string>>(new Set());
   const router = useRouter();
   const { projectId } = router.query;
 
@@ -228,6 +229,122 @@ const ProjectAIMatchingPage: React.FC = () => {
     });
   };
 
+  const handleSelectInfluencer = (influencerId: string) => {
+    const newSelected = new Set(selectedInfluencers);
+    if (newSelected.has(influencerId)) {
+      newSelected.delete(influencerId);
+    } else {
+      newSelected.add(influencerId);
+    }
+    setSelectedInfluencers(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    const filteredInfluencers = applyFilters(recommendedInfluencers);
+    if (selectedInfluencers.size === filteredInfluencers.length) {
+      // 全て選択されている場合は全て解除
+      setSelectedInfluencers(new Set());
+    } else {
+      // 一部または何も選択されていない場合は全て選択
+      setSelectedInfluencers(new Set(filteredInfluencers.map(inf => inf.id)));
+    }
+  };
+
+  const exportToCSV = () => {
+    const selectedData = recommendedInfluencers.filter(inf => selectedInfluencers.has(inf.id));
+    
+    if (selectedData.length === 0) {
+      alert('エクスポートするインフルエンサーを選択してください。');
+      return;
+    }
+
+    // CSVヘッダー
+    const headers = [
+      'ID',
+      'アカウント名',
+      '自己紹介',
+      'カテゴリ',
+      '都道府県',
+      'AIスコア',
+      'おすすめ',
+      'Instagram_フォロワー数',
+      'Instagram_エンゲージメント率',
+      'Instagram_認証',
+      'YouTube_登録者数',
+      'YouTube_エンゲージメント率',
+      'YouTube_認証',
+      'TikTok_フォロワー数',
+      'TikTok_エンゲージメント率',
+      'TikTok_認証',
+      'Twitter_フォロワー数',
+      'Twitter_エンゲージメント率',
+      'Twitter_認証',
+      'マッチング理由'
+    ];
+
+    // CSVデータ
+    const csvData = selectedData.map(influencer => {
+      const instagram = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'instagram');
+      const youtube = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'youtube');
+      const tiktok = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'tiktok');
+      const twitter = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'twitter');
+
+      return [
+        influencer.id,
+        influencer.displayName,
+        `"${influencer.bio.replace(/"/g, '""')}"`, // CSVエスケープ
+        influencer.categories.join('・'),
+        influencer.prefecture,
+        influencer.aiScore,
+        influencer.isRecommended ? 'はい' : 'いいえ',
+        instagram?.followerCount || '',
+        instagram?.engagementRate || '',
+        instagram?.isVerified ? 'はい' : 'いいえ',
+        youtube?.followerCount || '',
+        youtube?.engagementRate || '',
+        youtube?.isVerified ? 'はい' : 'いいえ',
+        tiktok?.followerCount || '',
+        tiktok?.engagementRate || '',
+        tiktok?.isVerified ? 'はい' : 'いいえ',
+        twitter?.followerCount || '',
+        twitter?.engagementRate || '',
+        twitter?.isVerified ? 'はい' : 'いいえ',
+        `"${influencer.matchReasons.join(' / ').replace(/"/g, '""')}"` // CSVエスケープ
+      ];
+    });
+
+    // CSV文字列を作成
+    const csvContent = [headers, ...csvData]
+      .map(row => row.join(','))
+      .join('\n');
+
+    // BOM付きUTF-8でダウンロード
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // ファイル名を生成
+    const now = new Date();
+    const dateStr = now.getFullYear() + 
+      String(now.getMonth() + 1).padStart(2, '0') + 
+      String(now.getDate()).padStart(2, '0') + '_' +
+      String(now.getHours()).padStart(2, '0') + 
+      String(now.getMinutes()).padStart(2, '0');
+    
+    const filename = `AI_recommended_influencers_${project?.title || 'project'}_${dateStr}.csv`;
+    
+    // ダウンロード
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -358,6 +475,26 @@ const ProjectAIMatchingPage: React.FC = () => {
               )}
               {!aiLoading && recommendedInfluencers.length > 0 && (
                 <>
+                  <div className="flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-lg">
+                    <span className="text-sm text-green-700 font-medium">
+                      {selectedInfluencers.size}人選択中
+                    </span>
+                    {selectedInfluencers.size > 0 && (
+                      <button
+                        onClick={exportToCSV}
+                        className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm font-semibold hover:bg-green-600 transition-colors"
+                      >
+                        <span className="mr-1">📊</span>
+                        CSV出力
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleSelectAll}
+                    className="px-4 py-2 bg-purple-100 text-purple-700 rounded-xl font-semibold hover:bg-purple-200 transition-all"
+                  >
+                    {selectedInfluencers.size === applyFilters(recommendedInfluencers).length ? '全て解除' : '全て選択'}
+                  </button>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`px-4 py-2 rounded-xl font-semibold transition-all ${
@@ -498,6 +635,14 @@ const ProjectAIMatchingPage: React.FC = () => {
 
           {!aiLoading && recommendedInfluencers.length > 0 && (
             <div className="hidden lg:flex items-center px-3 pb-2 text-xs text-gray-500 font-medium border-b border-gray-200 mb-2">
+              <div className="w-8 text-center mr-2">
+                <input
+                  type="checkbox"
+                  checked={selectedInfluencers.size === applyFilters(recommendedInfluencers).length && applyFilters(recommendedInfluencers).length > 0}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                />
+              </div>
               <div className="w-14 text-center mr-2">スコア</div>
               <div className="w-40 mr-3">アカウント名</div>
               <div className="flex-1 mr-3">
@@ -557,6 +702,16 @@ const ProjectAIMatchingPage: React.FC = () => {
                     }`}
                   >
                     <div className="flex flex-col lg:flex-row lg:items-center p-2">
+                      {/* チェックボックス */}
+                      <div className="w-8 text-center mr-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedInfluencers.has(influencer.id)}
+                          onChange={() => handleSelectInfluencer(influencer.id)}
+                          className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                      </div>
+
                       {/* AIスコアとおすすめマーク */}
                       <div className="w-14 text-center mr-2">
                         <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-xs font-bold ${
