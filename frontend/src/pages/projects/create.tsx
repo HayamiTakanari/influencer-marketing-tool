@@ -261,7 +261,24 @@ const CreateProjectPage: React.FC = () => {
       const result = await createProject(formData);
       console.log('Project created:', result);
       
-      router.push(`/project-detail?id=${result.project.id}`);
+      // プロジェクトデータを一時的に保存（AIマッチング用）
+      const projectForAI = {
+        id: result.project.id,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        budget: formData.budget,
+        targetPlatforms: formData.targetPlatforms,
+        brandName: formData.brandName,
+        productName: formData.productName,
+        campaignObjective: formData.campaignObjective,
+        campaignTarget: formData.campaignTarget,
+        messageToConvey: formData.messageToConvey
+      };
+      localStorage.setItem('recentProject', JSON.stringify(projectForAI));
+      
+      // AIマッチングページにリダイレクト
+      router.push(`/project-ai-matching?projectId=${result.project.id}`);
     } catch (err: any) {
       console.error('Error creating project:', err);
       setError(err.response?.data?.error || 'プロジェクトの作成に失敗しました。');

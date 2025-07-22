@@ -548,6 +548,216 @@ export const getAIRecommendedInfluencers = async (inquiryData: {
   return response.data;
 };
 
+// プロジェクト情報に基づくAIインフルエンサーレコメンド機能
+export const getAIRecommendedInfluencersForProject = async (projectData: {
+  title: string;
+  description: string;
+  category: string;
+  budget: number;
+  targetPlatforms: string[];
+  brandName?: string;
+  productName?: string;
+  campaignObjective?: string;
+  campaignTarget?: string;
+  messageToConvey?: string;
+}) => {
+  // Mock response for Vercel environment
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock AI project recommendations for Vercel environment');
+    
+    // プロジェクト内容を分析してマッチング
+    const analysisKeywords = {
+      '美容・化粧品': ['美容', 'コスメ', '化粧品', 'スキンケア', 'メイク', 'beauty', 'cosmetic', 'skincare'],
+      'ファッション': ['ファッション', '服装', 'おしゃれ', 'fashion', 'style', 'コーデ', 'アパレル'],
+      'フード・飲料': ['料理', '食べ物', 'グルメ', 'レシピ', 'food', 'cooking', '飲料', 'ドリンク'],
+      'ライフスタイル': ['ライフスタイル', '日常', '暮らし', 'lifestyle', '生活', 'インテリア', '雑貨'],
+      'スポーツ・フィットネス': ['フィットネス', '運動', 'ダイエット', '健康', 'fitness', 'workout', 'トレーニング'],
+      '旅行・観光': ['旅行', '観光', 'travel', '旅', 'ホテル', '温泉', 'レジャー'],
+      'テクノロジー': ['テクノロジー', 'ガジェット', 'tech', 'IT', 'デバイス', 'アプリ', 'ソフトウェア'],
+      'エンターテイメント': ['エンタメ', '映画', '音楽', 'ゲーム', 'アニメ', 'entertainment'],
+      '教育': ['教育', '学習', '勉強', 'education', '資格', 'スキル'],
+      'ヘルスケア': ['健康', '医療', 'healthcare', 'ヘルス', '病気', '治療'],
+      '自動車': ['車', '自動車', 'カー', 'car', 'バイク', '運転'],
+      '金融': ['金融', '投資', '保険', 'finance', 'マネー', '資産']
+    };
+
+    const searchText = `${projectData.title} ${projectData.description} ${projectData.category} ${projectData.brandName || ''} ${projectData.productName || ''} ${projectData.campaignObjective || ''} ${projectData.messageToConvey || ''}`.toLowerCase();
+    
+    // カテゴリ別のマッチングスコア算出
+    const categoryScores: Record<string, number> = {};
+    for (const [category, keywords] of Object.entries(analysisKeywords)) {
+      categoryScores[category] = keywords.reduce((score, keyword) => {
+        return score + (searchText.includes(keyword.toLowerCase()) ? 1 : 0);
+      }, 0);
+    }
+
+    // 指定されたカテゴリに追加スコア
+    if (projectData.category) {
+      categoryScores[projectData.category] = (categoryScores[projectData.category] || 0) + 5;
+    }
+
+    // 最も関連性の高いカテゴリを特定
+    const primaryCategory = Object.entries(categoryScores).reduce((a, b) => 
+      categoryScores[a[0]] > categoryScores[b[0]] ? a : b
+    )[0];
+
+    const mockInfluencers = [
+      {
+        id: '1',
+        displayName: '田中美咲',
+        bio: '美容・ファッション系インフルエンサー。20代女性向けのコスメレビューとコーディネート提案が得意です。',
+        categories: ['美容・化粧品', 'ファッション'],
+        prefecture: '東京都',
+        socialAccounts: [
+          { id: '1_instagram', platform: 'instagram', followerCount: 125000, engagementRate: 4.2, isVerified: true },
+          { id: '1_youtube', platform: 'youtube', followerCount: 68000, engagementRate: 3.8, isVerified: false }
+        ],
+        aiScore: (primaryCategory === '美容・化粧品' || primaryCategory === 'ファッション') ? 95 : 
+                 (categoryScores['美容・化粧品'] > 0 || categoryScores['ファッション'] > 0) ? 78 : 55,
+        matchReasons: (primaryCategory === '美容・化粧品' || primaryCategory === 'ファッション') 
+          ? ['美容・ファッション分野の専門知識', '20-30代女性への高い影響力', '商品レビュー経験豊富', 'Instagram・YouTubeでの動画制作スキル']
+          : categoryScores['美容・化粧品'] > 0 || categoryScores['ファッション'] > 0
+            ? ['関連分野での発信経験', '女性ターゲットへの訴求力', '動画制作スキル']
+            : ['多様なコンテンツ制作経験', '安定したフォロワー数'],
+        isRecommended: (primaryCategory === '美容・化粧品' || primaryCategory === 'ファッション') || 
+                      (categoryScores['美容・化粧品'] > 2 || categoryScores['ファッション'] > 2)
+      },
+      {
+        id: '2',
+        displayName: '鈴木さやか',
+        bio: 'ライフスタイル系クリエイター。料理、旅行、インテリアなど暮らしに関する幅広いコンテンツを発信中。',
+        categories: ['ライフスタイル', 'フード・飲料', '旅行・観光'],
+        prefecture: '大阪府',
+        socialAccounts: [
+          { id: '2_instagram', platform: 'instagram', followerCount: 89000, engagementRate: 5.1, isVerified: true },
+          { id: '2_tiktok', platform: 'tiktok', followerCount: 156000, engagementRate: 6.3, isVerified: false }
+        ],
+        aiScore: (primaryCategory === 'ライフスタイル' || primaryCategory === 'フード・飲料' || primaryCategory === '旅行・観光') ? 92 : 
+                 (categoryScores['ライフスタイル'] > 0 || categoryScores['フード・飲料'] > 0) ? 81 : 67,
+        matchReasons: (primaryCategory === 'ライフスタイル' || primaryCategory === 'フード・飲料' || primaryCategory === '旅行・観光')
+          ? ['ライフスタイル分野での豊富な実績', '複数プラットフォームでの影響力', '関西圏での影響力', 'TikTokでのバイラル経験']
+          : ['幅広いカテゴリでの発信経験', '高いエンゲージメント率', 'インスタントコンテンツ制作スキル'],
+        isRecommended: (primaryCategory === 'ライフスタイル' || primaryCategory === 'フード・飲料' || primaryCategory === '旅行・観光')
+      },
+      {
+        id: '3',
+        displayName: '佐藤健太',
+        bio: 'フィットネス・健康系インフルエンサー。科学的根拠に基づいたトレーニング法と栄養指導を専門とする。',
+        categories: ['スポーツ・フィットネス', 'ヘルスケア'],
+        prefecture: '神奈川県',
+        socialAccounts: [
+          { id: '3_youtube', platform: 'youtube', followerCount: 234000, engagementRate: 7.2, isVerified: true },
+          { id: '3_instagram', platform: 'instagram', followerCount: 98000, engagementRate: 5.4, isVerified: true }
+        ],
+        aiScore: (primaryCategory === 'スポーツ・フィットネス' || primaryCategory === 'ヘルスケア') ? 98 : 
+                 (categoryScores['スポーツ・フィットネス'] > 0 || categoryScores['ヘルスケア'] > 0) ? 72 : 42,
+        matchReasons: (primaryCategory === 'スポーツ・フィットネス' || primaryCategory === 'ヘルスケア')
+          ? ['フィットネス分野の専門資格保有', 'YouTubeでの高い影響力', '男性ターゲットへの訴求力', '科学的アプローチでの信頼性']
+          : ['特定分野での専門性', 'YouTube動画制作スキル', '健康意識の高いフォロワー層'],
+        isRecommended: (primaryCategory === 'スポーツ・フィットネス' || primaryCategory === 'ヘルスケア')
+      },
+      {
+        id: '4',
+        displayName: '山田あかり',
+        bio: 'テクノロジー・ガジェット系レビュアー。最新デバイスの詳細レビューと実用的な活用法を紹介。',
+        categories: ['テクノロジー'],
+        prefecture: '東京都',
+        socialAccounts: [
+          { id: '4_youtube', platform: 'youtube', followerCount: 187000, engagementRate: 4.9, isVerified: true },
+          { id: '4_twitter', platform: 'twitter', followerCount: 78000, engagementRate: 3.2, isVerified: false }
+        ],
+        aiScore: primaryCategory === 'テクノロジー' ? 94 : 
+                 categoryScores['テクノロジー'] > 0 ? 69 : 35,
+        matchReasons: primaryCategory === 'テクノロジー'
+          ? ['最新テクノロジーへの深い知識', '詳細なレビュー動画制作スキル', 'IT業界での認知度', '技術系ターゲットへの影響力']
+          : categoryScores['テクノロジー'] > 0
+            ? ['動画制作の技術スキル', 'デジタル機器への理解', '論理的な解説スキル']
+            : ['動画制作経験', 'SNS運用スキル'],
+        isRecommended: primaryCategory === 'テクノロジー'
+      },
+      {
+        id: '5',
+        displayName: '中村麻衣',
+        bio: '旅行・グルメ系インフルエンサー。日本全国の隠れた観光地やローカルグルメスポットを発掘・紹介。',
+        categories: ['旅行・観光', 'フード・飲料'],
+        prefecture: '京都府',
+        socialAccounts: [
+          { id: '5_instagram', platform: 'instagram', followerCount: 67000, engagementRate: 6.1, isVerified: false },
+          { id: '5_tiktok', platform: 'tiktok', followerCount: 43000, engagementRate: 8.2, isVerified: false }
+        ],
+        aiScore: (primaryCategory === '旅行・観光' || primaryCategory === 'フード・飲料') ? 89 : 
+                 (categoryScores['旅行・観光'] > 0 || categoryScores['フード・飲料'] > 0) ? 74 : 48,
+        matchReasons: (primaryCategory === '旅行・観光' || primaryCategory === 'フード・飲料')
+          ? ['全国の観光地での撮影経験', '地域密着型のコンテンツ制作', '高いエンゲージメント率', 'グルメ系コンテンツの豊富な経験']
+          : ['地域性を活かしたコンテンツ', '写真撮影スキル', 'ローカル情報への強み'],
+        isRecommended: (primaryCategory === '旅行・観光' || primaryCategory === 'フード・飲料')
+      },
+      {
+        id: '6',
+        displayName: '高橋りな',
+        bio: 'エンターテイメント系インフルエンサー。映画、音楽、ゲームレビューを中心に若者文化を発信。',
+        categories: ['エンターテイメント'],
+        prefecture: '東京都',
+        socialAccounts: [
+          { id: '6_tiktok', platform: 'tiktok', followerCount: 298000, engagementRate: 9.1, isVerified: true },
+          { id: '6_instagram', platform: 'instagram', followerCount: 134000, engagementRate: 5.7, isVerified: true }
+        ],
+        aiScore: primaryCategory === 'エンターテイメント' ? 96 : 
+                 categoryScores['エンターテイメント'] > 0 ? 71 : 54,
+        matchReasons: primaryCategory === 'エンターテイメント'
+          ? ['エンタメ分野での高い影響力', 'TikTokでのバイラル経験', 'Z世代への強い訴求力', 'トレンドの早期キャッチ能力']
+          : ['若者向けコンテンツ制作経験', 'バイラル性の高いコンテンツ制作', '流行への敏感さ'],
+        isRecommended: primaryCategory === 'エンターテイメント'
+      }
+    ];
+
+    // プラットフォーム一致による追加スコア
+    mockInfluencers.forEach(influencer => {
+      const hasMatchingPlatforms = influencer.socialAccounts.some(account => 
+        projectData.targetPlatforms.some(platform => 
+          platform.toLowerCase() === account.platform.toLowerCase()
+        )
+      );
+      if (hasMatchingPlatforms) {
+        influencer.aiScore += 10;
+        influencer.matchReasons.push('ターゲットプラットフォームでの活動');
+      }
+    });
+
+    // 予算による調整
+    mockInfluencers.forEach(influencer => {
+      if (projectData.budget >= 200000) {
+        influencer.aiScore += 5; // 高予算案件は全体的にスコア上昇
+        influencer.matchReasons.push('予算規模に適したコンテンツ制作が可能');
+      } else if (projectData.budget < 100000) {
+        influencer.aiScore -= 10; // 低予算案件はスコア調整
+      }
+    });
+
+    // スコア順でソート
+    const sortedInfluencers = mockInfluencers
+      .sort((a, b) => b.aiScore - a.aiScore)
+      .map(influencer => ({
+        ...influencer,
+        isRecommended: influencer.aiScore >= 80
+      }));
+
+    return {
+      influencers: sortedInfluencers,
+      analysis: {
+        primaryCategory,
+        detectedKeywords: Object.entries(categoryScores)
+          .filter(([_, score]) => score > 0)
+          .map(([category, score]) => ({ category, score })),
+        recommendationSummary: `プロジェクト「${projectData.title}」の内容を分析した結果、「${primaryCategory}」分野に最も適したインフルエンサーを${sortedInfluencers.filter(i => i.isRecommended).length}名レコメンドしました。予算${(projectData.budget / 10000).toFixed(0)}万円、対象プラットフォーム「${projectData.targetPlatforms.join('・')}」での実施に最適化されています。`
+      }
+    };
+  }
+
+  const response = await api.post('/ai/recommend-influencers-for-project', projectData);
+  return response.data;
+};
+
 export const getInfluencerById = async (id: string) => {
   // Vercel環境やローカルでバックエンドが利用できない場合のモックデータ
   if (typeof window !== 'undefined' && 
