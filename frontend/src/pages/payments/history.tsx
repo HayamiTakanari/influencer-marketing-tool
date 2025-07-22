@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import DateRangeFilter from '../../components/DateRangeFilter';
 
 interface Transaction {
   id: string;
@@ -38,6 +39,8 @@ const PaymentHistoryPage: React.FC = () => {
   const [error, setError] = useState('');
   const [refunding, setRefunding] = useState<string | null>(null);
   const [projectFilter, setProjectFilter] = useState<string>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -201,8 +204,26 @@ const PaymentHistoryPage: React.FC = () => {
   };
 
   const filteredTransactions = transactions.filter(transaction => {
-    if (projectFilter === 'all') return true;
-    return transaction.project.id === projectFilter;
+    // プロジェクトフィルター
+    if (projectFilter !== 'all' && transaction.project.id !== projectFilter) {
+      return false;
+    }
+    
+    // 日付フィルター
+    if (startDate || endDate) {
+      const transactionDate = new Date(transaction.createdAt);
+      const transactionDateString = transactionDate.toISOString().split('T')[0];
+      
+      if (startDate && transactionDateString < startDate) {
+        return false;
+      }
+      
+      if (endDate && transactionDateString > endDate) {
+        return false;
+      }
+    }
+    
+    return true;
   });
 
   const formatPrice = (price: number) => {
@@ -318,30 +339,45 @@ const PaymentHistoryPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* プロジェクトフィルター */}
+        {/* フィルター */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15 }}
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
         >
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-gray-700">プロジェクト:</label>
-            <select
-              value={projectFilter}
-              onChange={(e) => setProjectFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="all">すべてのプロジェクト</option>
-              {projects.map(project => (
-                <option key={project.id} value={project.id}>
-                  {project.title}
-                </option>
-              ))}
-            </select>
-            <span className="text-sm text-gray-600">
-              {filteredTransactions.length}件の取引
-            </span>
+          <div className="space-y-6">
+            {/* プロジェクトフィルター */}
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-gray-700">プロジェクト:</label>
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="all">すべてのプロジェクト</option>
+                {projects.map(project => (
+                  <option key={project.id} value={project.id}>
+                    {project.title}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm text-gray-600">
+                {filteredTransactions.length}件の取引
+              </span>
+            </div>
+            
+            {/* 期間フィルター */}
+            <div>
+              <DateRangeFilter 
+                onDateChange={(start, end) => {
+                  setStartDate(start);
+                  setEndDate(end);
+                }}
+                initialStartDate={startDate}
+                initialEndDate={endDate}
+              />
+            </div>
           </div>
         </motion.div>
 

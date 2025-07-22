@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { getInvoices, markInvoiceAsPaid } from '../../services/api';
 import { Invoice } from '../../types';
+import DateRangeFilter from '../../components/DateRangeFilter';
 
 // Define InvoiceStatus locally to avoid import issues
 enum InvoiceStatus {
@@ -122,42 +123,6 @@ const ReceivedInvoicesPage: React.FC = () => {
     return new Date(dateString).toLocaleDateString('ja-JP');
   };
 
-  // 期間選択のヘルパー関数
-  const handlePeriodChange = (period: string) => {
-    setSelectedPeriod(period);
-    setCurrentPage(1); // ページをリセット
-    
-    const today = new Date();
-    let start = new Date();
-    
-    switch (period) {
-      case 'today':
-        start = new Date(today);
-        break;
-      case 'week':
-        start.setDate(today.getDate() - 7);
-        break;
-      case 'month':
-        start.setMonth(today.getMonth() - 1);
-        break;
-      case '3months':
-        start.setMonth(today.getMonth() - 3);
-        break;
-      case '6months':
-        start.setMonth(today.getMonth() - 6);
-        break;
-      case 'year':
-        start.setFullYear(today.getFullYear() - 1);
-        break;
-      default:
-        setStartDate('');
-        setEndDate('');
-        return;
-    }
-    
-    setStartDate(start.toISOString().split('T')[0]);
-    setEndDate(today.toISOString().split('T')[0]);
-  };
 
   const resetFilters = () => {
     setSelectedPeriod('all');
@@ -270,7 +235,7 @@ const ReceivedInvoicesPage: React.FC = () => {
           transition={{ delay: 0.5 }}
           className="bg-white/80 backdrop-blur-xl rounded-xl p-6 shadow-lg mb-6"
         >
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* ステータスフィルター */}
             <div className="flex flex-wrap items-center gap-4">
               <span className="text-gray-700 font-medium">ステータス:</span>
@@ -319,125 +284,28 @@ const ReceivedInvoicesPage: React.FC = () => {
             </div>
 
             {/* 期間フィルター */}
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-gray-700 font-medium">期間:</span>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handlePeriodChange('all')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    selectedPeriod === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  すべて
-                </button>
-                <button
-                  onClick={() => handlePeriodChange('today')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    selectedPeriod === 'today'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  今日
-                </button>
-                <button
-                  onClick={() => handlePeriodChange('week')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    selectedPeriod === 'week'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  過去1週間
-                </button>
-                <button
-                  onClick={() => handlePeriodChange('month')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    selectedPeriod === 'month'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  過去1ヶ月
-                </button>
-                <button
-                  onClick={() => handlePeriodChange('3months')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    selectedPeriod === '3months'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  過去3ヶ月
-                </button>
-                <button
-                  onClick={() => handlePeriodChange('year')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    selectedPeriod === 'year'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  過去1年
-                </button>
-              </div>
+            <div>
+              <DateRangeFilter 
+                onDateChange={(start, end) => {
+                  setStartDate(start);
+                  setEndDate(end);
+                  setSelectedPeriod(start || end ? 'custom' : 'all');
+                  setCurrentPage(1);
+                }}
+                initialStartDate={startDate}
+                initialEndDate={endDate}
+              />
             </div>
-
-            {/* カスタム期間選択 */}
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-gray-700 font-medium">カスタム期間:</span>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">開始日:</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    setSelectedPeriod('custom');
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <label className="text-sm text-gray-600">終了日:</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => {
-                    setEndDate(e.target.value);
-                    setSelectedPeriod('custom');
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={resetFilters}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  リセット
-                </button>
-              </div>
+            
+            {/* リセットボタン */}
+            <div className="flex justify-end">
+              <button
+                onClick={resetFilters}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                すべてのフィルターをリセット
+              </button>
             </div>
-
-            {/* 現在の期間表示 */}
-            {(startDate || endDate) && (
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">選択中の期間: </span>
-                {startDate && formatDate(startDate)}
-                {startDate && endDate && ' 〜 '}
-                {endDate && formatDate(endDate)}
-                {selectedPeriod !== 'all' && selectedPeriod !== 'custom' && (
-                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                    {selectedPeriod === 'today' && '今日'}
-                    {selectedPeriod === 'week' && '過去1週間'}
-                    {selectedPeriod === 'month' && '過去1ヶ月'}
-                    {selectedPeriod === '3months' && '過去3ヶ月'}
-                    {selectedPeriod === 'year' && '過去1年'}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </motion.div>
 

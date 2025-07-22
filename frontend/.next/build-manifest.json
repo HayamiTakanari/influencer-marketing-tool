@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/8EoQ1oEOEY8il5njKHB6R/_buildManifest.js",
-    "static/8EoQ1oEOEY8il5njKHB6R/_ssgManifest.js"
+    "static/NIq2S7fVxOxIcuLZvKEzo/_buildManifest.js",
+    "static/NIq2S7fVxOxIcuLZvKEzo/_ssgManifest.js"
   ],
   "rootMainFiles": [],
   "pages": {
@@ -31,7 +31,7 @@
       "static/chunks/webpack-8a56974396a178a4.js",
       "static/chunks/framework-840cff9d6bb95703.js",
       "static/chunks/main-854739cfb689f4cd.js",
-      "static/css/b88ac39c478ca4ed.css",
+      "static/css/03a468b136bfa6ac.css",
       "static/chunks/pages/_app-39adfd623f7f5ee1.js"
     ],
     "/_error": [
@@ -105,7 +105,7 @@
       "static/chunks/main-854739cfb689f4cd.js",
       "static/chunks/5841-2cfd2811f73cc21e.js",
       "static/chunks/1664-5092c49100e558e0.js",
-      "static/chunks/pages/dashboard-b09a4c0b1a59ea3c.js"
+      "static/chunks/pages/dashboard-1792528659ed25f6.js"
     ],
     "/demo": [
       "static/chunks/webpack-8a56974396a178a4.js",
@@ -158,7 +158,7 @@
       "static/chunks/1664-5092c49100e558e0.js",
       "static/chunks/7066-75858827eb02fd8d.js",
       "static/chunks/2184-2978a4e2532d51f4.js",
-      "static/chunks/pages/invoices/received-4fb89560300b405f.js"
+      "static/chunks/pages/invoices/received-c6b52ef3782a38ef.js"
     ],
     "/invoices/received/[id]": [
       "static/chunks/webpack-8a56974396a178a4.js",
@@ -191,7 +191,7 @@
       "static/chunks/main-854739cfb689f4cd.js",
       "static/chunks/5841-2cfd2811f73cc21e.js",
       "static/chunks/1664-5092c49100e558e0.js",
-      "static/chunks/pages/notifications-c18245414908e083.js"
+      "static/chunks/pages/notifications-6bd009e5a723bc1a.js"
     ],
     "/opportunities": [
       "static/chunks/webpack-8a56974396a178a4.js",
@@ -216,7 +216,7 @@
       "static/chunks/main-854739cfb689f4cd.js",
       "static/chunks/5841-2cfd2811f73cc21e.js",
       "static/chunks/1664-5092c49100e558e0.js",
-      "static/chunks/pages/payments/history-9ba08d798c90c75d.js"
+      "static/chunks/pages/payments/history-2f1cdf0a9081a5bf.js"
     ],
     "/profile": [
       "static/chunks/webpack-8a56974396a178a4.js",
@@ -258,7 +258,7 @@
       "static/chunks/main-854739cfb689f4cd.js",
       "static/chunks/5841-2cfd2811f73cc21e.js",
       "static/chunks/1664-5092c49100e558e0.js",
-      "static/chunks/pages/projects/[id]-2279330cbafb2484.js"
+      "static/chunks/pages/projects/[id]-f944782e8664e249.js"
     ],
     "/projects/create": [
       "static/chunks/webpack-8a56974396a178a4.js",
@@ -299,7 +299,7 @@
       "static/chunks/5841-2cfd2811f73cc21e.js",
       "static/chunks/7066-75858827eb02fd8d.js",
       "static/chunks/2184-2978a4e2532d51f4.js",
-      "static/chunks/pages/search-2197eaac967f1bc8.js"
+      "static/chunks/pages/search-5974da2b81ae1705.js"
     ],
     "/search-advanced-backup": [
       "static/chunks/webpack-8a56974396a178a4.js",

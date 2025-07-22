@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import BackButton from '../components/BackButton';
 
 const DemoPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -55,9 +56,12 @@ const DemoPage: React.FC = () => {
       {/* ヘッダー */}
       <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-gray-900">
-            IM Tool
-          </Link>
+          <div className="flex items-center space-x-4">
+            <Link href="/" className="text-2xl font-bold text-gray-900">
+              IM Tool
+            </Link>
+            <BackButton text="ホームに戻る" fallbackUrl="/" />
+          </div>
           <Link href="/register">
             <motion.button
               whileHover={{ scale: 1.05 }}

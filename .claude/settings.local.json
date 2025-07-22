@@ -74,7 +74,10 @@
       "Bash(printf '\\033[4l\\033[?7h\\033[m\\033[r\\033[2J\\033[H')",
       "Bash(printf '\\e[0m\\e[?25h\\e[4l')",
       "Bash(exit)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx vercel:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh api:*)"
     ],
     "deny": []
   }
