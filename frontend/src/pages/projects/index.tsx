@@ -156,7 +156,7 @@ const ProjectsPage: React.FC = () => {
             </Link>
             <BackButton text="ダッシュボードに戻る" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">プロジェクト管理</h1>
+              <h1 className="text-xl font-bold text-gray-900">進行中のプロジェクト</h1>
               <p className="text-sm text-gray-600">あなたのマーケティングプロジェクトを管理</p>
             </div>
           </div>

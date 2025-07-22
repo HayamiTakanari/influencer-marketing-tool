@@ -367,7 +367,7 @@ const DashboardPage: React.FC = () => {
                   className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
                 >
                   <div className="text-4xl mb-4">📝</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクト管理</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">進行中のプロジェクト</h3>
                   <p className="text-gray-600">マーケティングプロジェクトを管理</p>
                 </motion.div>
               </Link>

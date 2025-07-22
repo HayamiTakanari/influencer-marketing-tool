@@ -77,7 +77,9 @@
       "Bash(npx tsc:*)",
       "Bash(npx vercel:*)",
       "Bash(gh repo view:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:vercel.com)"
     ],
     "deny": []
   }

@@ -161,7 +161,7 @@ const ProjectAIMatchingPage: React.FC = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span className="font-medium">プロジェクト管理に戻る</span>
+              <span className="font-medium">進行中のプロジェクトに戻る</span>
             </Link>
             <div>
               <h1 className="text-xl font-bold text-gray-900">AI インフルエンサーマッチング</h1>
