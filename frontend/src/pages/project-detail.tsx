@@ -86,6 +86,17 @@ const ProjectDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'applications'>('overview');
+  const [filters, setFilters] = useState({
+    minFollowers: 0,
+    maxFollowers: 1000000,
+    minEngagement: 0,
+    maxEngagement: 10,
+    minViews: 0,
+    maxViews: 1000000,
+    platforms: [] as string[],
+    sortBy: 'aiScore' // 'aiScore', 'followers', 'engagement', 'price'
+  });
+  const [showFilters, setShowFilters] = useState(false);
   const router = useRouter();
   const { id } = router.query;
 
@@ -395,6 +406,87 @@ const ProjectDetailPage: React.FC = () => {
       return (num / 10000).toFixed(1) + '万';
     }
     return num.toLocaleString();
+  };
+
+  const applyFilters = (applications: Application[]) => {
+    return applications.filter(application => {
+      const totalFollowers = application.influencer.socialAccounts.reduce((sum, acc) => sum + acc.followerCount, 0);
+      const avgEngagement = application.influencer.socialAccounts.length > 0 
+        ? application.influencer.socialAccounts.reduce((sum, acc) => sum + acc.engagementRate, 0) / application.influencer.socialAccounts.length
+        : 0;
+      
+      // 平均再生数を算出
+      let avgViews = 0;
+      if (application.influencer.socialAccounts.length > 0) {
+        const youtubeAcc = application.influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'youtube');
+        if (youtubeAcc) {
+          avgViews = Math.round(youtubeAcc.followerCount * 0.1);
+        } else {
+          avgViews = Math.round(totalFollowers * (avgEngagement / 100));
+        }
+      }
+      
+      // フォロワー数フィルター
+      if (totalFollowers < filters.minFollowers || totalFollowers > filters.maxFollowers) {
+        return false;
+      }
+      
+      // エンゲージメント率フィルター
+      if (avgEngagement < filters.minEngagement || avgEngagement > filters.maxEngagement) {
+        return false;
+      }
+      
+      // 平均再生数フィルター
+      if (avgViews < filters.minViews || avgViews > filters.maxViews) {
+        return false;
+      }
+      
+      // プラットフォームフィルター
+      if (filters.platforms.length > 0) {
+        const hasMatchingPlatform = application.influencer.socialAccounts.some(acc => 
+          filters.platforms.includes(acc.platform.toUpperCase())
+        );
+        if (!hasMatchingPlatform) {
+          return false;
+        }
+      }
+      
+      return true;
+    }).sort((a, b) => {
+      switch (filters.sortBy) {
+        case 'followers':
+          const aFollowers = a.influencer.socialAccounts.reduce((sum, acc) => sum + acc.followerCount, 0);
+          const bFollowers = b.influencer.socialAccounts.reduce((sum, acc) => sum + acc.followerCount, 0);
+          return bFollowers - aFollowers;
+        case 'engagement':
+          const aEngagement = a.influencer.socialAccounts.length > 0 
+            ? a.influencer.socialAccounts.reduce((sum, acc) => sum + acc.engagementRate, 0) / a.influencer.socialAccounts.length
+            : 0;
+          const bEngagement = b.influencer.socialAccounts.length > 0 
+            ? b.influencer.socialAccounts.reduce((sum, acc) => sum + acc.engagementRate, 0) / b.influencer.socialAccounts.length
+            : 0;
+          return bEngagement - aEngagement;
+        case 'price':
+          return a.proposedPrice - b.proposedPrice;
+        default: // aiScore
+          const aScore = Math.floor(Math.random() * 30 + 70);
+          const bScore = Math.floor(Math.random() * 30 + 70);
+          return bScore - aScore;
+      }
+    });
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      minFollowers: 0,
+      maxFollowers: 1000000,
+      minEngagement: 0,
+      maxEngagement: 10,
+      minViews: 0,
+      maxViews: 1000000,
+      platforms: [],
+      sortBy: 'aiScore'
+    });
   };
 
   if (loading) {
@@ -813,7 +905,147 @@ const ProjectDetailPage: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
           >
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">応募一覧 ({project.applications.length}人)</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">
+                応募一覧 ({applyFilters(project.applications).length}/{project.applications.length}人)
+              </h3>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`px-4 py-2 rounded-xl font-semibold transition-all ${
+                    showFilters 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className="mr-2">🔍</span>
+                  フィルター
+                </button>
+                <button
+                  onClick={resetFilters}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+                >
+                  リセット
+                </button>
+              </div>
+            </div>
+
+            {/* フィルターセクション */}
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-gray-50 rounded-xl p-6 mb-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                  {/* フォロワー数フィルター */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">フォロワー数</label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="number"
+                        placeholder="最小"
+                        value={filters.minFollowers || ''}
+                        onChange={(e) => setFilters({...filters, minFollowers: parseInt(e.target.value) || 0})}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <input
+                        type="number"
+                        placeholder="最大"
+                        value={filters.maxFollowers || ''}
+                        onChange={(e) => setFilters({...filters, maxFollowers: parseInt(e.target.value) || 1000000})}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* エンゲージメント率フィルター */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">エンゲージメント率(%)</label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="最小"
+                        value={filters.minEngagement || ''}
+                        onChange={(e) => setFilters({...filters, minEngagement: parseFloat(e.target.value) || 0})}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="最大"
+                        value={filters.maxEngagement || ''}
+                        onChange={(e) => setFilters({...filters, maxEngagement: parseFloat(e.target.value) || 10})}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 平均再生数フィルター */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">平均再生数</label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="number"
+                        placeholder="最小"
+                        value={filters.minViews || ''}
+                        onChange={(e) => setFilters({...filters, minViews: parseInt(e.target.value) || 0})}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <input
+                        type="number"
+                        placeholder="最大"
+                        value={filters.maxViews || ''}
+                        onChange={(e) => setFilters({...filters, maxViews: parseInt(e.target.value) || 1000000})}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* ソートフィルター */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">並び順</label>
+                    <select
+                      value={filters.sortBy}
+                      onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="aiScore">AIスコア順</option>
+                      <option value="followers">フォロワー数順</option>
+                      <option value="engagement">エンゲージメント順</option>
+                      <option value="price">料金順</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* プラットフォームフィルター */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">プラットフォーム</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER'].map(platform => (
+                      <button
+                        key={platform}
+                        onClick={() => {
+                          const newPlatforms = filters.platforms.includes(platform)
+                            ? filters.platforms.filter(p => p !== platform)
+                            : [...filters.platforms, platform];
+                          setFilters({...filters, platforms: newPlatforms});
+                        }}
+                        className={`px-3 py-1 text-sm rounded-full font-medium transition-all ${
+                          filters.platforms.includes(platform)
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                        }`}
+                      >
+                        {getPlatformIcon(platform)} {platform}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
             
             {project.applications.length === 0 ? (
               <div className="text-center py-12">
@@ -851,7 +1083,7 @@ const ProjectDetailPage: React.FC = () => {
                   <div className="w-32">アクション</div>
                 </div>
                 
-                {project.applications.map((application, index) => {
+                {applyFilters(project.applications).map((application, index) => {
                   // AIスコアを仮想的に計算（実際にはAIが算出）
                   const aiScore = Math.floor(Math.random() * 30 + 70); // 70-100のスコア
                   
