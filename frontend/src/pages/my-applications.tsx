@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import BackButton from '../components/BackButton';
 
 interface MyApplication {
   id: string;
@@ -148,6 +149,7 @@ const MyApplicationsPage: React.FC = () => {
             <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold">IM</span>
             </Link>
+            <BackButton text="ダッシュボードに戻る" />
             <div>
               <h1 className="text-xl font-bold text-gray-900">応募履歴</h1>
               <p className="text-sm text-gray-600">あなたの応募状況を確認</p>

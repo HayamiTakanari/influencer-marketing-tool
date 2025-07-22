@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DateRangeFilter from '../../components/DateRangeFilter';
+import BackButton from '../../components/BackButton';
 
 interface Transaction {
   id: string;
@@ -277,6 +278,7 @@ const PaymentHistoryPage: React.FC = () => {
             <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold">IM</span>
             </Link>
+            <BackButton text="ダッシュボードに戻る" />
             <div>
               <h1 className="text-xl font-bold text-gray-900">支払い履歴</h1>
               <p className="text-sm text-gray-600">取引履歴と統計情報</p>
