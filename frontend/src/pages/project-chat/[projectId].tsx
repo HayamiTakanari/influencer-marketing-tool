@@ -132,47 +132,94 @@ const ProjectChatPage: React.FC = () => {
           displayName: '美容系インフルエンサー 田中美咲'
         },
         progress: {
-          currentPhase: '構成案レビュー',
-          overallProgress: 65,
+          currentPhase: 'コンテ修正',
+          overallProgress: 47,
           milestones: [
             {
               id: '1',
-              title: 'プロジェクト開始',
+              title: '正式依頼',
               status: 'completed',
               completedAt: '2024-01-15T09:00:00Z'
             },
             {
               id: '2',
-              title: '初回打ち合わせ',
+              title: '商品受領',
               status: 'completed',
               completedAt: '2024-01-16T14:00:00Z'
             },
             {
               id: '3',
-              title: '構成案提出',
+              title: '初稿コンテ作成',
+              status: 'completed',
+              completedAt: '2024-01-18T10:30:00Z'
+            },
+            {
+              id: '4',
+              title: '初稿コンテ提出',
               status: 'completed',
               completedAt: '2024-01-18T16:30:00Z'
             },
             {
-              id: '4',
-              title: '構成案レビュー',
-              status: 'in_progress'
-            },
-            {
               id: '5',
-              title: '動画制作',
-              status: 'pending'
+              title: '初稿コンテ戻し',
+              status: 'completed',
+              completedAt: '2024-01-20T11:15:00Z'
             },
             {
               id: '6',
-              title: '最終確認・納品',
+              title: 'コンテ修正',
+              status: 'in_progress'
+            },
+            {
+              id: '7',
+              title: '修正稿コンテFIX',
+              status: 'pending'
+            },
+            {
+              id: '8',
+              title: '撮影',
+              status: 'pending'
+            },
+            {
+              id: '9',
+              title: '初稿動画提出',
+              status: 'pending'
+            },
+            {
+              id: '10',
+              title: '初稿動画戻し',
+              status: 'pending'
+            },
+            {
+              id: '11',
+              title: '動画修正',
+              status: 'pending'
+            },
+            {
+              id: '12',
+              title: '動画データ提出',
+              status: 'pending'
+            },
+            {
+              id: '13',
+              title: '動画FIX',
+              status: 'pending'
+            },
+            {
+              id: '14',
+              title: '投稿',
+              status: 'pending'
+            },
+            {
+              id: '15',
+              title: 'インサイトデータ提出',
               status: 'pending'
             }
           ],
           nextAction: {
             id: 'action-1',
-            title: '構成案の修正対応',
-            description: 'フィードバックを受けて構成案を修正し、再提出してください',
+            title: 'コンテ修正作業',
+            description: 'クライアントからのフィードバックを反映してコンテを修正し、修正稿を提出してください',
             dueDate: '2024-01-25T23:59:59Z',
             assignee: 'influencer',
             priority: 'high',
@@ -563,39 +610,87 @@ const ProjectChatPage: React.FC = () => {
               </div>
 
               {/* マイルストーン */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">マイルストーン</h4>
-                {project.progress.milestones.map((milestone, index) => (
-                  <div key={milestone.id} className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
-                      milestone.status === 'completed' ? 'bg-green-500' :
-                      milestone.status === 'in_progress' ? 'bg-blue-500' :
-                      'bg-gray-300'
-                    }`}>
-                      {milestone.status === 'completed' && (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className={`text-sm ${
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-700">ワークフロー進捗</h4>
+                
+                {/* 簡易フロー表示 */}
+                <div className="grid grid-cols-5 gap-2 mb-4">
+                  {project.progress.milestones.slice(0, 5).map((milestone, index) => (
+                    <div key={milestone.id} className="text-center">
+                      <div className={`w-6 h-6 rounded-full mx-auto mb-1 flex items-center justify-center text-xs font-bold ${
+                        milestone.status === 'completed' ? 'bg-green-500 text-white' :
+                        milestone.status === 'in_progress' ? 'bg-blue-500 text-white' :
+                        'bg-gray-300 text-gray-600'
+                      }`}>
+                        {milestone.status === 'completed' ? '✓' : index + 1}
+                      </div>
+                      <div className={`text-xs ${
                         milestone.status === 'completed' ? 'text-green-700 font-medium' :
                         milestone.status === 'in_progress' ? 'text-blue-700 font-medium' :
                         'text-gray-600'
                       }`}>
                         {milestone.title}
                       </div>
-                      {milestone.completedAt && (
-                        <div className="text-xs text-gray-500">
-                          完了: {formatDateTime(milestone.completedAt)}
-                        </div>
-                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="grid grid-cols-5 gap-2 mb-4">
+                  {project.progress.milestones.slice(5, 10).map((milestone, index) => (
+                    <div key={milestone.id} className="text-center">
+                      <div className={`w-6 h-6 rounded-full mx-auto mb-1 flex items-center justify-center text-xs font-bold ${
+                        milestone.status === 'completed' ? 'bg-green-500 text-white' :
+                        milestone.status === 'in_progress' ? 'bg-blue-500 text-white' :
+                        'bg-gray-300 text-gray-600'
+                      }`}>
+                        {milestone.status === 'completed' ? '✓' : index + 6}
+                      </div>
+                      <div className={`text-xs ${
+                        milestone.status === 'completed' ? 'text-green-700 font-medium' :
+                        milestone.status === 'in_progress' ? 'text-blue-700 font-medium' :
+                        'text-gray-600'
+                      }`}>
+                        {milestone.title}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="grid grid-cols-5 gap-2">
+                  {project.progress.milestones.slice(10).map((milestone, index) => (
+                    <div key={milestone.id} className="text-center">
+                      <div className={`w-6 h-6 rounded-full mx-auto mb-1 flex items-center justify-center text-xs font-bold ${
+                        milestone.status === 'completed' ? 'bg-green-500 text-white' :
+                        milestone.status === 'in_progress' ? 'bg-blue-500 text-white' :
+                        'bg-gray-300 text-gray-600'
+                      }`}>
+                        {milestone.status === 'completed' ? '✓' : index + 11}
+                      </div>
+                      <div className={`text-xs ${
+                        milestone.status === 'completed' ? 'text-green-700 font-medium' :
+                        milestone.status === 'in_progress' ? 'text-blue-700 font-medium' :
+                        'text-gray-600'
+                      }`}>
+                        {milestone.title}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 現在進行中のステップをハイライト表示 */}
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="text-sm font-medium text-blue-800">
+                      現在進行中: {project.progress.milestones.find(m => m.status === 'in_progress')?.title}
                     </div>
                   </div>
-                ))}
+                  <div className="text-xs text-blue-600 mt-1">
+                    {project.progress.milestones.findIndex(m => m.status === 'in_progress') + 1} / {project.progress.milestones.length} ステップ
+                  </div>
+                </div>
               </div>
             </motion.div>
 
