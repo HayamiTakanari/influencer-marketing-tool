@@ -85,6 +85,14 @@ const CreateProjectPage: React.FC = () => {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  // カスタムフィールドの型定義
+  interface CustomField {
+    id: string;
+    label: string;
+    value: string;
+    fieldType: 'text' | 'textarea' | 'number' | 'date';
+  }
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -129,8 +137,13 @@ const CreateProjectPage: React.FC = () => {
     secondaryUsage: '',
     secondaryUsageScope: '',
     secondaryUsagePeriod: '',
-    insightDisclosure: ''
+    insightDisclosure: '',
+    // カスタムフィールド
+    customFields: [] as CustomField[]
   });
+
+  // カスタムフィールドの管理
+  const [customFieldCount, setCustomFieldCount] = useState(0);
 
   const categories = [
     '美容・化粧品', 'ファッション', 'フード・飲料', 'ライフスタイル', '旅行・観光',
@@ -242,6 +255,40 @@ const CreateProjectPage: React.FC = () => {
         desiredHashtags: [...prev.desiredHashtags, '']
       }));
     }
+  };
+
+  // カスタムフィールド管理関数
+  const addCustomField = () => {
+    if (formData.customFields.length < 10) {
+      const newField: CustomField = {
+        id: `custom-${Date.now()}`,
+        label: '',
+        value: '',
+        fieldType: 'text'
+      };
+      setFormData(prev => ({
+        ...prev,
+        customFields: [...prev.customFields, newField]
+      }));
+      setCustomFieldCount(customFieldCount + 1);
+    }
+  };
+
+  const removeCustomField = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      customFields: prev.customFields.filter(field => field.id !== id)
+    }));
+    setCustomFieldCount(customFieldCount - 1);
+  };
+
+  const updateCustomField = (id: string, updates: Partial<CustomField>) => {
+    setFormData(prev => ({
+      ...prev,
+      customFields: prev.customFields.map(field => 
+        field.id === id ? { ...field, ...updates } : field
+      )
+    }));
   };
 
   const removeHashtag = (index: number) => {
@@ -1117,6 +1164,95 @@ const CreateProjectPage: React.FC = () => {
                     placeholder="6ヶ月、1年、無制限など"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* カスタム項目 */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">カスタム項目</h2>
+              
+              <div className="space-y-4">
+                {formData.customFields.map((field, index) => (
+                  <div key={field.id} className="border border-gray-200 rounded-xl p-6 bg-gray-50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          項目名 <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required={field.label !== ''}
+                          value={field.label}
+                          onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="項目名を入力してください"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          入力形式
+                        </label>
+                        <select
+                          value={field.fieldType}
+                          onChange={(e) => updateCustomField(field.id, { fieldType: e.target.value as 'text' | 'textarea' | 'number' | 'date' })}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="text">テキスト（1行）</option>
+                          <option value="textarea">テキスト（複数行）</option>
+                          <option value="number">数値</option>
+                          <option value="date">日付</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        内容
+                      </label>
+                      {field.fieldType === 'textarea' ? (
+                        <textarea
+                          value={field.value}
+                          onChange={(e) => updateCustomField(field.id, { value: e.target.value })}
+                          rows={3}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="内容を入力してください"
+                        />
+                      ) : (
+                        <input
+                          type={field.fieldType}
+                          value={field.value}
+                          onChange={(e) => updateCustomField(field.id, { value: e.target.value })}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="内容を入力してください"
+                        />
+                      )}
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeCustomField(field.id)}
+                        className="px-4 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        この項目を削除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                {formData.customFields.length < 10 && (
+                  <button
+                    type="button"
+                    onClick={addCustomField}
+                    className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:text-gray-800 hover:border-gray-400 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span>カスタム項目を追加（{formData.customFields.length}/10）</span>
+                  </button>
+                )}
               </div>
             </div>
 
