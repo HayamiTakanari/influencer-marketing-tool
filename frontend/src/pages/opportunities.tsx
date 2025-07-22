@@ -11,6 +11,8 @@ interface ProjectOpportunity {
   budget: number;
   targetPlatforms: string[];
   targetPrefecture: string;
+  targetCity?: string;
+  targetGender?: string;
   targetAgeMin: number;
   targetAgeMax: number;
   targetFollowerMin: number;
@@ -758,7 +760,10 @@ const OpportunitiesPage: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">対象地域</h4>
-                    <p className="text-gray-700">{selectedProject.targetPrefecture}</p>
+                    <p className="text-gray-700">
+                      {selectedProject.targetPrefecture}
+                      {selectedProject.targetCity && ` - ${selectedProject.targetCity}`}
+                    </p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">年齢層</h4>
@@ -769,6 +774,17 @@ const OpportunitiesPage: React.FC = () => {
                       }
                     </p>
                   </div>
+                  {selectedProject.targetGender && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">対象性別</h4>
+                      <p className="text-gray-700">
+                        {selectedProject.targetGender === 'MALE' ? '男性' :
+                         selectedProject.targetGender === 'FEMALE' ? '女性' :
+                         selectedProject.targetGender === 'OTHER' ? 'その他' :
+                         selectedProject.targetGender}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">フォロワー数</h4>
                     <p className="text-gray-700">
@@ -899,7 +915,7 @@ const OpportunitiesPage: React.FC = () => {
               )}
 
               {/* 撮影・制作仕様 */}
-              {(selectedProject.shootingAngle || selectedProject.packagePhotography || selectedProject.musicUsage) && (
+              {(selectedProject.shootingAngle || selectedProject.packagePhotography || selectedProject.productOrientationSpecified || selectedProject.musicUsage || selectedProject.brandContentSettings) && (
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 mb-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                     📸 撮影・制作仕様
@@ -987,7 +1003,7 @@ const OpportunitiesPage: React.FC = () => {
               )}
 
               {/* 二次利用・開示設定 */}
-              {(selectedProject.secondaryUsage || selectedProject.insightDisclosure) && (
+              {(selectedProject.secondaryUsage || selectedProject.secondaryUsageScope || selectedProject.secondaryUsagePeriod || selectedProject.insightDisclosure) && (
                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 mb-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                     🔒 二次利用・開示設定
