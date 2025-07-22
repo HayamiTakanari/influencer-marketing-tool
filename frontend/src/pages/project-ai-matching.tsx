@@ -271,13 +271,30 @@ const ProjectAIMatchingPage: React.FC = () => {
 
           {!aiLoading && recommendedInfluencers.length > 0 && (
             <div className="hidden lg:flex items-center px-3 pb-2 text-xs text-gray-500 font-medium border-b border-gray-200 mb-2">
-              <div className="w-16 text-center mr-3">スコア</div>
-              <div className="w-48 mr-4">アカウント名</div>
-              <div className="w-24 text-center mr-4">フォロワー</div>
-              <div className="w-20 text-center mr-4">平均Eng</div>
-              <div className="w-24 text-center mr-4">平均再生</div>
-              <div className="flex-1 mr-4">紹介文</div>
-              <div className="w-36">アクション</div>
+              <div className="w-14 text-center mr-2">スコア</div>
+              <div className="w-40 mr-3">アカウント名</div>
+              <div className="flex-1 mr-3">
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="space-y-1">
+                    <div>Instagram</div>
+                    <div className="text-[10px] text-gray-400">ﾌｫﾛﾜｰ/Eng%/再生</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div>YouTube</div>
+                    <div className="text-[10px] text-gray-400">登録者/Eng%/再生</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div>TikTok</div>
+                    <div className="text-[10px] text-gray-400">ﾌｫﾛﾜｰ/Eng%/再生</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div>Twitter</div>
+                    <div className="text-[10px] text-gray-400">ﾌｫﾛﾜｰ/Eng%/再生</div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-[2] mr-3">紹介文</div>
+              <div className="w-32">アクション</div>
             </div>
           )}
 
@@ -312,10 +329,10 @@ const ProjectAIMatchingPage: React.FC = () => {
                       influencer.isRecommended ? 'border-green-400' : 'border-gray-200'
                     }`}
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center p-3">
+                    <div className="flex flex-col lg:flex-row lg:items-center p-2">
                       {/* AIスコアとおすすめマーク */}
-                      <div className="w-16 text-center mr-3">
-                        <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full text-sm font-bold ${
+                      <div className="w-14 text-center mr-2">
+                        <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-xs font-bold ${
                           influencer.aiScore >= 90 ? 'bg-green-100 text-green-800' :
                           influencer.aiScore >= 80 ? 'bg-blue-100 text-blue-800' :
                           influencer.aiScore >= 70 ? 'bg-yellow-100 text-yellow-800' :
@@ -329,13 +346,13 @@ const ProjectAIMatchingPage: React.FC = () => {
                       </div>
 
                       {/* アカウント名とプロフィール画像 */}
-                      <div className="flex items-center w-48 mr-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-2 flex-shrink-0">
+                      <div className="flex items-center w-40 mr-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs mr-2 flex-shrink-0">
                           {influencer.displayName.charAt(0)}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="font-bold text-gray-900 truncate">{influencer.displayName}</h4>
-                          <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <h4 className="font-bold text-sm text-gray-900 truncate">{influencer.displayName}</h4>
+                          <div className="flex items-center space-x-1 text-xs text-gray-500">
                             {influencer.socialAccounts.map((account, idx) => (
                               <span key={idx} title={account.platform}>
                                 {getPlatformIcon(account.platform)}
@@ -345,36 +362,89 @@ const ProjectAIMatchingPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* フォロワー数 */}
-                      <div className="w-24 text-center mr-4">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {formatNumber(influencer.socialAccounts.reduce((sum, acc) => sum + acc.followerCount, 0))}
+                      {/* プラットフォーム別データ */}
+                      <div className="flex-1 mr-3">
+                        <div className="grid grid-cols-4 gap-2 text-xs">
+                          {/* Instagram */}
+                          <div className="text-center">
+                            {(() => {
+                              const instagram = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'instagram');
+                              if (instagram) {
+                                return (
+                                  <>
+                                    <div className="font-semibold text-gray-900">{formatNumber(instagram.followerCount)}</div>
+                                    <div className="text-gray-600">{instagram.engagementRate.toFixed(1)}%</div>
+                                    <div className="text-gray-500">{formatNumber(Math.round(instagram.followerCount * instagram.engagementRate / 100))}</div>
+                                  </>
+                                );
+                              }
+                              return <div className="text-gray-400">-</div>;
+                            })()}
+                          </div>
+                          
+                          {/* YouTube */}
+                          <div className="text-center">
+                            {(() => {
+                              const youtube = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'youtube');
+                              if (youtube) {
+                                return (
+                                  <>
+                                    <div className="font-semibold text-gray-900">{formatNumber(youtube.followerCount)}</div>
+                                    <div className="text-gray-600">{youtube.engagementRate.toFixed(1)}%</div>
+                                    <div className="text-gray-500">{formatNumber(Math.round(youtube.followerCount * 0.1))}</div>
+                                  </>
+                                );
+                              }
+                              return <div className="text-gray-400">-</div>;
+                            })()}
+                          </div>
+                          
+                          {/* TikTok */}
+                          <div className="text-center">
+                            {(() => {
+                              const tiktok = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'tiktok');
+                              if (tiktok) {
+                                return (
+                                  <>
+                                    <div className="font-semibold text-gray-900">{formatNumber(tiktok.followerCount)}</div>
+                                    <div className="text-gray-600">{tiktok.engagementRate.toFixed(1)}%</div>
+                                    <div className="text-gray-500">{formatNumber(Math.round(tiktok.followerCount * tiktok.engagementRate / 100))}</div>
+                                  </>
+                                );
+                              }
+                              return <div className="text-gray-400">-</div>;
+                            })()}
+                          </div>
+                          
+                          {/* Twitter */}
+                          <div className="text-center">
+                            {(() => {
+                              const twitter = influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'twitter');
+                              if (twitter) {
+                                return (
+                                  <>
+                                    <div className="font-semibold text-gray-900">{formatNumber(twitter.followerCount)}</div>
+                                    <div className="text-gray-600">{twitter.engagementRate.toFixed(1)}%</div>
+                                    <div className="text-gray-500">{formatNumber(Math.round(twitter.followerCount * twitter.engagementRate / 100))}</div>
+                                  </>
+                                );
+                              }
+                              return <div className="text-gray-400">-</div>;
+                            })()}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">フォロワー</div>
-                      </div>
-
-                      {/* 平均エンゲージメント率 */}
-                      <div className="w-20 text-center mr-4">
-                        <div className="text-sm font-semibold text-gray-900">{avgEngagement}%</div>
-                        <div className="text-xs text-gray-500">平均Eng</div>
-                      </div>
-
-                      {/* 平均再生数 */}
-                      <div className="w-24 text-center mr-4">
-                        <div className="text-sm font-semibold text-gray-900">{formatNumber(avgViews)}</div>
-                        <div className="text-xs text-gray-500">平均再生</div>
                       </div>
 
                       {/* 紹介文 */}
-                      <div className="flex-1 mr-4">
-                        <p className="text-sm text-gray-700 line-clamp-2">{influencer.bio}</p>
+                      <div className="flex-[2] mr-3">
+                        <p className="text-xs text-gray-700 line-clamp-2">{influencer.bio}</p>
                       </div>
 
                       {/* アクションボタン */}
-                      <div className="flex space-x-2 w-36">
+                      <div className="flex space-x-2 w-32">
                         <button
                           onClick={() => router.push(`/influencer/${influencer.id}`)}
-                          className="px-3 py-1.5 bg-blue-500 text-white rounded text-sm font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap"
+                          className="px-2.5 py-1.5 bg-blue-500 text-white rounded text-xs font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap"
                         >
                           詳細
                         </button>
@@ -383,7 +453,7 @@ const ProjectAIMatchingPage: React.FC = () => {
                             // TODO: 問い合わせ機能の実装
                             alert('問い合わせ機能は準備中です');
                           }}
-                          className="px-3 py-1.5 bg-green-500 text-white rounded text-sm font-semibold hover:bg-green-600 transition-colors whitespace-nowrap"
+                          className="px-2.5 py-1.5 bg-green-500 text-white rounded text-xs font-semibold hover:bg-green-600 transition-colors whitespace-nowrap"
                         >
                           問い合わせ
                         </button>
