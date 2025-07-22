@@ -123,86 +123,6 @@ export const deleteServicePricing = async (id: string) => {
   return response.data;
 };
 
-// 一斉問い合わせ
-export const createBulkInquiry = async (data: any) => {
-  // Vercel環境では一時的にモックデータを返す
-  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    console.log('Using mock data for bulk inquiry creation');
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒待機
-    return {
-      message: '問い合わせを送信しました',
-      inquiry: {
-        id: 'mock-inquiry-' + Date.now(),
-        title: data.title,
-        description: data.description,
-        budget: data.budget,
-        requiredServices: data.requiredServices,
-        createdAt: new Date().toISOString(),
-      },
-      responseCount: data.targetInfluencers.length,
-    };
-  }
-  
-  const response = await api.post('/bulk-inquiries', data);
-  return response.data;
-};
-
-export const getMyBulkInquiries = async () => {
-  // Vercel環境では一時的にモックデータを返す
-  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    console.log('Using mock data for bulk inquiries');
-    return {
-      inquiries: [
-        {
-          id: 'mock-inquiry-1',
-          title: 'テスト問い合わせ1',
-          description: 'これはテスト用の問い合わせです',
-          budget: 100000,
-          requiredServices: ['PHOTOGRAPHY', 'POSTING'],
-          createdAt: new Date().toISOString(),
-          responses: [],
-        }
-      ]
-    };
-  }
-  
-  const response = await api.get('/bulk-inquiries/my-inquiries');
-  return response.data;
-};
-
-export const getMyInquiryResponses = async () => {
-  const response = await api.get('/bulk-inquiries/my-responses');
-  return response.data;
-};
-
-export const getInquiryStats = async () => {
-  // Vercel環境では一時的にモックデータを返す
-  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    console.log('Using mock data for inquiry stats');
-    return {
-      totalInquiries: 5,
-      totalResponses: 12,
-      responseStats: [
-        { status: 'PENDING', _count: { status: 8 } },
-        { status: 'ACCEPTED', _count: { status: 3 } },
-        { status: 'DECLINED', _count: { status: 1 } },
-      ]
-    };
-  }
-  
-  const response = await api.get('/bulk-inquiries/stats');
-  return response.data;
-};
-
-export const getBulkInquiryById = async (id: string) => {
-  const response = await api.get(`/bulk-inquiries/${id}`);
-  return response.data;
-};
-
-export const updateInquiryResponse = async (id: string, data: any) => {
-  const response = await api.put(`/bulk-inquiries/response/${id}`, data);
-  return response.data;
-};
 
 // スケジュール管理
 export const createProjectSchedule = async (data: any) => {
@@ -398,35 +318,6 @@ export interface ServicePricing {
   updatedAt: string;
 }
 
-export interface BulkInquiry {
-  id: string;
-  title: string;
-  description: string;
-  budget?: number;
-  deadline?: string;
-  requiredServices: string[];
-  responses: InquiryResponse[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface InquiryResponse {
-  id: string;
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
-  proposedPrice?: number;
-  message?: string;
-  availableFrom?: string;
-  availableTo?: string;
-  influencer: {
-    id: string;
-    displayName: string;
-    user: {
-      email: string;
-    };
-  };
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface ProjectSchedule {
   id: string;

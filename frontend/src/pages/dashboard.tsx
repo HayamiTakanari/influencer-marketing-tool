@@ -306,18 +306,6 @@ const DashboardPage: React.FC = () => {
                 </motion.div>
               </Link>
 
-              <Link href="/bulk-inquiry">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.7 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📢</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">一斉問い合わせ</h3>
-                  <p className="text-gray-600">複数案件への回答管理</p>
-                </motion.div>
-              </Link>
 
               <Link href="/invoices">
                 <motion.div
@@ -435,18 +423,6 @@ const DashboardPage: React.FC = () => {
                 <p className="text-gray-600">キャンペーンの成果を分析</p>
               </motion.div>
 
-              <Link href="/bulk-inquiry">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.7 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📢</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">一斉問い合わせ</h3>
-                  <p className="text-gray-600">複数のインフルエンサーに一斉送信</p>
-                </motion.div>
-              </Link>
 
               <Link href="/project-schedule">
                 <motion.div
