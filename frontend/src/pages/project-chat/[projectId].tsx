@@ -8,7 +8,7 @@ interface Message {
   content: string;
   createdAt: string;
   senderId: string;
-  messageType: 'text' | 'proposal' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video';
+  messageType: 'text' | 'proposal' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request';
   sender: {
     id: string;
     role: 'CLIENT' | 'INFLUENCER';
@@ -58,6 +58,37 @@ interface Message {
     status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'revision_requested';
     revisionNotes?: string;
     submittedAt?: string;
+  };
+  conteRevisionData?: {
+    id: string;
+    originalConteId: string;
+    overallFeedback: string;
+    sceneRevisions: {
+      sceneId: string;
+      sceneNumber: number;
+      revisionType: 'content' | 'duration' | 'camera_angle' | 'notes' | 'overall';
+      currentValue?: string;
+      suggestedValue?: string;
+      comment: string;
+      priority: 'high' | 'medium' | 'low';
+    }[];
+    keyMessageRevisions: {
+      index: number;
+      currentMessage: string;
+      suggestedMessage?: string;
+      comment: string;
+    }[];
+    themeRevision?: {
+      currentTheme: string;
+      suggestedTheme?: string;
+      comment: string;
+    };
+    durationRevision?: {
+      currentDuration: number;
+      suggestedDuration?: number;
+      comment: string;
+    };
+    submittedAt: string;
   };
 }
 
@@ -143,6 +174,17 @@ const ProjectChatPage: React.FC = () => {
   const [videoSubmitType, setVideoSubmitType] = useState<'initial' | 'revised'>('initial');
   const [videoSubmitFiles, setVideoSubmitFiles] = useState<File[]>([]);
   const [videoSubmitDescription, setVideoSubmitDescription] = useState('');
+  
+  // コンテ修正指摘関連
+  const [showConteRevisionForm, setShowConteRevisionForm] = useState(false);
+  const [selectedConteForRevision, setSelectedConteForRevision] = useState<any>(null);
+  const [revisionData, setRevisionData] = useState({
+    overallFeedback: '',
+    sceneRevisions: [] as any[],
+    keyMessageRevisions: [] as any[],
+    themeRevision: null as any,
+    durationRevision: null as any
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { projectId } = router.query;
@@ -665,6 +707,117 @@ const ProjectChatPage: React.FC = () => {
     setShowVideoSubmitForm(false);
     
     // TODO: Send video to server
+  };
+  
+  // コンテ修正指摘機能
+  const handleOpenConteRevision = (conteMessage: any) => {
+    if (!conteMessage.conteData || conteMessage.conteData.format !== 'original') {
+      alert('オリジナルフォーマットのコンテのみ修正指摘できます。');
+      return;
+    }
+    
+    setSelectedConteForRevision(conteMessage);
+    
+    // 修正データを初期化
+    const sceneRevisions = conteMessage.conteData.scenes?.map((scene: any) => ({
+      sceneId: scene.id,
+      sceneNumber: scene.sceneNumber,
+      revisionType: 'content',
+      currentValue: scene.description,
+      suggestedValue: '',
+      comment: '',
+      priority: 'medium'
+    })) || [];
+    
+    const keyMessageRevisions = conteMessage.conteData.keyMessages?.map((message: string, index: number) => ({
+      index,
+      currentMessage: message,
+      suggestedMessage: '',
+      comment: ''
+    })) || [];
+    
+    setRevisionData({
+      overallFeedback: '',
+      sceneRevisions,
+      keyMessageRevisions,
+      themeRevision: {
+        currentTheme: conteMessage.conteData.overallTheme || '',
+        suggestedTheme: '',
+        comment: ''
+      },
+      durationRevision: {
+        currentDuration: conteMessage.conteData.targetDuration || 60,
+        suggestedDuration: null,
+        comment: ''
+      }
+    });
+    
+    setShowConteRevisionForm(true);
+  };
+  
+  const handleSubmitConteRevision = async () => {
+    if (!user || !selectedConteForRevision) return;
+    
+    if (!revisionData.overallFeedback.trim()) {
+      alert('全体的なフィードバックを入力してください。');
+      return;
+    }
+    
+    const revisionMessage = {
+      id: Date.now().toString(),
+      content: 'コンテの詳細な修正指摘をしました',
+      createdAt: new Date().toISOString(),
+      senderId: user.id,
+      messageType: 'conte_revision_request' as const,
+      sender: {
+        id: user.id,
+        role: user.role,
+        displayName: project?.client.displayName || 'クライアント'
+      },
+      conteRevisionData: {
+        id: Date.now().toString(),
+        originalConteId: selectedConteForRevision.conteData.id,
+        overallFeedback: revisionData.overallFeedback,
+        sceneRevisions: revisionData.sceneRevisions.filter((rev: any) => rev.comment.trim()),
+        keyMessageRevisions: revisionData.keyMessageRevisions.filter((rev: any) => rev.comment.trim()),
+        themeRevision: revisionData.themeRevision?.comment.trim() ? revisionData.themeRevision : undefined,
+        durationRevision: revisionData.durationRevision?.comment.trim() ? revisionData.durationRevision : undefined,
+        submittedAt: new Date().toISOString()
+      }
+    };
+    
+    setMessages(prev => [...prev, revisionMessage]);
+    
+    // Reset form
+    setShowConteRevisionForm(false);
+    setSelectedConteForRevision(null);
+    setRevisionData({
+      overallFeedback: '',
+      sceneRevisions: [],
+      keyMessageRevisions: [],
+      themeRevision: null,
+      durationRevision: null
+    });
+    
+    // TODO: Send revision request to server
+  };
+  
+  const updateSceneRevision = (sceneId: string, field: string, value: any) => {
+    setRevisionData(prev => ({
+      ...prev,
+      sceneRevisions: prev.sceneRevisions.map(rev => 
+        rev.sceneId === sceneId ? { ...rev, [field]: value } : rev
+      )
+    }));
+  };
+  
+  const updateKeyMessageRevision = (index: number, field: string, value: string) => {
+    setRevisionData(prev => ({
+      ...prev,
+      keyMessageRevisions: prev.keyMessageRevisions.map(rev =>
+        rev.index === index ? { ...rev, [field]: value } : rev
+      )
+    }));
   };
 
   const formatFileSize = (bytes: number) => {
@@ -1440,6 +1593,18 @@ const ProjectChatPage: React.FC = () => {
                           </div>
                         ))}
                       </div>
+                      
+                      {/* 企業側：修正指摘ボタン（オリジナルフォーマットのみ） */}
+                      {user?.role === 'CLIENT' && message.conteData.format === 'original' && message.senderId !== user.id && (
+                        <div className="mt-3 pt-2 border-t border-purple-200">
+                          <button
+                            onClick={() => handleOpenConteRevision(message)}
+                            className="px-3 py-1.5 bg-orange-500 text-white text-xs rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                          >
+                            🔍 詳細な修正指摘
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                   
@@ -1466,6 +1631,93 @@ const ProjectChatPage: React.FC = () => {
                             </div>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* コンテ修正指摘メッセージ */}
+                  {message.messageType === 'conte_revision_request' && message.conteRevisionData && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-orange-700">
+                        🔍 コンテの詳細な修正指摘
+                      </p>
+                      <div className="text-xs space-y-3 bg-orange-50 rounded p-4 border border-orange-200">
+                        
+                        {/* 全体的なフィードバック */}
+                        <div className="bg-white rounded p-3">
+                          <div className="font-semibold text-orange-800 mb-2">📋 全体的なフィードバック</div>
+                          <div className="text-gray-700">{message.conteRevisionData.overallFeedback}</div>
+                        </div>
+
+                        {/* テーマ修正 */}
+                        {message.conteRevisionData.themeRevision && (
+                          <div className="bg-white rounded p-3">
+                            <div className="font-semibold text-orange-800 mb-2">🎯 テーマについて</div>
+                            <div className="text-xs text-gray-600 mb-1">現在: {message.conteRevisionData.themeRevision.currentTheme}</div>
+                            {message.conteRevisionData.themeRevision.suggestedTheme && (
+                              <div className="text-xs text-green-600 mb-1">提案: {message.conteRevisionData.themeRevision.suggestedTheme}</div>
+                            )}
+                            <div className="text-gray-700">{message.conteRevisionData.themeRevision.comment}</div>
+                          </div>
+                        )}
+
+                        {/* 時間修正 */}
+                        {message.conteRevisionData.durationRevision && (
+                          <div className="bg-white rounded p-3">
+                            <div className="font-semibold text-orange-800 mb-2">⏱️ 時間について</div>
+                            <div className="text-xs text-gray-600 mb-1">現在: {message.conteRevisionData.durationRevision.currentDuration}秒</div>
+                            {message.conteRevisionData.durationRevision.suggestedDuration && (
+                              <div className="text-xs text-green-600 mb-1">提案: {message.conteRevisionData.durationRevision.suggestedDuration}秒</div>
+                            )}
+                            <div className="text-gray-700">{message.conteRevisionData.durationRevision.comment}</div>
+                          </div>
+                        )}
+
+                        {/* シーン別修正 */}
+                        {message.conteRevisionData.sceneRevisions.length > 0 && (
+                          <div className="bg-white rounded p-3">
+                            <div className="font-semibold text-orange-800 mb-3">🎬 シーン別修正点</div>
+                            <div className="space-y-2">
+                              {message.conteRevisionData.sceneRevisions.map((revision: any, index: number) => (
+                                <div key={index} className="border-l-4 border-orange-300 pl-3 py-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="text-xs font-medium text-orange-700">シーン {revision.sceneNumber}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded ${
+                                      revision.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                      revision.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      {revision.priority === 'high' ? '高' : revision.priority === 'medium' ? '中' : '低'}
+                                    </span>
+                                  </div>
+                                  {revision.suggestedValue && (
+                                    <div className="text-xs text-green-600 mb-1">提案: {revision.suggestedValue}</div>
+                                  )}
+                                  <div className="text-xs text-gray-700">{revision.comment}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* キーメッセージ修正 */}
+                        {message.conteRevisionData.keyMessageRevisions.length > 0 && (
+                          <div className="bg-white rounded p-3">
+                            <div className="font-semibold text-orange-800 mb-3">💬 キーメッセージ修正</div>
+                            <div className="space-y-2">
+                              {message.conteRevisionData.keyMessageRevisions.map((revision: any, index: number) => (
+                                <div key={index} className="border-l-4 border-blue-300 pl-3 py-1">
+                                  <div className="text-xs font-medium text-blue-700 mb-1">メッセージ {revision.index + 1}</div>
+                                  <div className="text-xs text-gray-600 mb-1">現在: {revision.currentMessage}</div>
+                                  {revision.suggestedMessage && (
+                                    <div className="text-xs text-green-600 mb-1">提案: {revision.suggestedMessage}</div>
+                                  )}
+                                  <div className="text-xs text-gray-700">{revision.comment}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2344,6 +2596,238 @@ const ProjectChatPage: React.FC = () => {
                   disabled={videoSubmitFiles.length === 0}
                 >
                   提出する
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* コンテ修正指摘モーダル */}
+      <AnimatePresence>
+        {showConteRevisionForm && selectedConteForRevision && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">
+                  コンテの詳細な修正指摘
+                </h3>
+                <button
+                  onClick={() => setShowConteRevisionForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* 全体的なフィードバック */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">全体的なフィードバック *</label>
+                <textarea
+                  value={revisionData.overallFeedback}
+                  onChange={(e) => setRevisionData(prev => ({...prev, overallFeedback: e.target.value}))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  rows={3}
+                  placeholder="コンテ全体に対するフィードバックを記入してください"
+                />
+              </div>
+
+              {/* テーマ修正 */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-3">🎯 テーマについて</h4>
+                <div className="mb-2">
+                  <label className="block text-xs text-gray-600 mb-1">現在のテーマ</label>
+                  <div className="px-3 py-2 bg-white border rounded text-sm">
+                    {selectedConteForRevision.conteData.overallTheme}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">提案テーマ（任意）</label>
+                    <input
+                      type="text"
+                      value={revisionData.themeRevision?.suggestedTheme || ''}
+                      onChange={(e) => setRevisionData(prev => ({
+                        ...prev,
+                        themeRevision: {...prev.themeRevision, suggestedTheme: e.target.value}
+                      }))}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      placeholder="新しいテーマの提案"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">コメント</label>
+                    <textarea
+                      value={revisionData.themeRevision?.comment || ''}
+                      onChange={(e) => setRevisionData(prev => ({
+                        ...prev,
+                        themeRevision: {...prev.themeRevision, comment: e.target.value}
+                      }))}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      rows={2}
+                      placeholder="テーマについてのコメント"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 時間修正 */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-3">⏱️ 時間について</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">現在の目標時間</label>
+                    <div className="px-3 py-2 bg-white border rounded text-sm">
+                      {selectedConteForRevision.conteData.targetDuration}秒
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">提案時間（任意）</label>
+                    <input
+                      type="number"
+                      value={revisionData.durationRevision?.suggestedDuration || ''}
+                      onChange={(e) => setRevisionData(prev => ({
+                        ...prev,
+                        durationRevision: {...prev.durationRevision, suggestedDuration: parseInt(e.target.value) || null}
+                      }))}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      placeholder="秒"
+                      min="15"
+                      max="600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">コメント</label>
+                    <textarea
+                      value={revisionData.durationRevision?.comment || ''}
+                      onChange={(e) => setRevisionData(prev => ({
+                        ...prev,
+                        durationRevision: {...prev.durationRevision, comment: e.target.value}
+                      }))}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      rows={2}
+                      placeholder="時間についてのコメント"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* シーン別修正 */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-3">🎬 シーン別修正点</h4>
+                <div className="space-y-4">
+                  {revisionData.sceneRevisions.map((revision: any, index: number) => (
+                    <div key={revision.sceneId} className="bg-white rounded p-3 border">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium text-sm">シーン {revision.sceneNumber}</h5>
+                        <select
+                          value={revision.priority}
+                          onChange={(e) => updateSceneRevision(revision.sceneId, 'priority', e.target.value)}
+                          className="text-xs border border-gray-300 rounded px-2 py-1"
+                        >
+                          <option value="low">優先度: 低</option>
+                          <option value="medium">優先度: 中</option>
+                          <option value="high">優先度: 高</option>
+                        </select>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">現在の内容</label>
+                          <div className="px-2 py-1 bg-gray-50 border rounded text-xs">
+                            {revision.currentValue}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">提案内容（任意）</label>
+                          <textarea
+                            value={revision.suggestedValue}
+                            onChange={(e) => updateSceneRevision(revision.sceneId, 'suggestedValue', e.target.value)}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                            rows={2}
+                            placeholder="新しい内容の提案"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">修正コメント</label>
+                          <textarea
+                            value={revision.comment}
+                            onChange={(e) => updateSceneRevision(revision.sceneId, 'comment', e.target.value)}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                            rows={2}
+                            placeholder="このシーンの修正点"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* キーメッセージ修正 */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-3">💬 キーメッセージ修正</h4>
+                <div className="space-y-3">
+                  {revisionData.keyMessageRevisions.map((revision: any, index: number) => (
+                    <div key={revision.index} className="bg-white rounded p-3 border">
+                      <div className="font-medium text-sm mb-2">メッセージ {revision.index + 1}</div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">現在のメッセージ</label>
+                          <div className="px-2 py-1 bg-gray-50 border rounded text-xs">
+                            {revision.currentMessage}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">提案メッセージ（任意）</label>
+                          <input
+                            type="text"
+                            value={revision.suggestedMessage}
+                            onChange={(e) => updateKeyMessageRevision(revision.index, 'suggestedMessage', e.target.value)}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                            placeholder="新しいメッセージの提案"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">修正コメント</label>
+                          <textarea
+                            value={revision.comment}
+                            onChange={(e) => updateKeyMessageRevision(revision.index, 'comment', e.target.value)}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                            rows={2}
+                            placeholder="このメッセージの修正点"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setShowConteRevisionForm(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleSubmitConteRevision}
+                  className="px-6 py-2 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                >
+                  修正指摘を送信
                 </button>
               </div>
             </motion.div>
