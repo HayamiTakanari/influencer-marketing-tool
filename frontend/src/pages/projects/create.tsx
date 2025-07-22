@@ -29,7 +29,7 @@ const fieldDescriptions: Record<string, string> = {
   campaignTarget: 'ターゲットとする顧客層（年齢、性別、興味関心など）です。',
   postingPeriod: 'インフルエンサーに投稿してもらいたい期間です。',
   postingMedia: '投稿してもらいたいSNSプラットフォーム（Instagram、TikTok、YouTubeなど）です。',
-  messageToConvey: '投稿を通じてフォロワーに伝えたいメッセージや訴求ポイントです。',
+  messageToConvey: '投稿を通じてフォロワーに伝えたいメッセージや訴求ポイントです。最大3つまで記載できます。',
   shootingAngle: '人物を撮影する際の角度の指定です。商品との組み合わせや見せ方に影響します。',
   packagePhotography: '商品の外装やパッケージを撮影に含めるかどうかの指定です。',
   productOrientationSpecified: '商品の向きや角度について具体的な指定があるかどうかです。',
@@ -115,7 +115,7 @@ const CreateProjectPage: React.FC = () => {
     postingPeriodStart: '',
     postingPeriodEnd: '',
     postingMedia: [] as string[],
-    messageToConvey: '',
+    messageToConvey: ['', '', ''],
     shootingAngle: '',
     packagePhotography: '',
     productOrientationSpecified: '',
@@ -273,7 +273,7 @@ const CreateProjectPage: React.FC = () => {
         productName: formData.productName,
         campaignObjective: formData.campaignObjective,
         campaignTarget: formData.campaignTarget,
-        messageToConvey: formData.messageToConvey
+        messageToConvey: formData.messageToConvey.filter(msg => msg.trim() !== '').join('\n')
       };
       localStorage.setItem('recentProject', JSON.stringify(projectForAI));
       
@@ -840,16 +840,43 @@ const CreateProjectPage: React.FC = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    投稿を通じて伝えたいこと <span className="text-red-500">*</span>
+                    投稿を通じて伝えたいこと（最大3つまで） <span className="text-red-500">*</span>
+                    <HelpButton field="messageToConvey" />
                   </label>
-                  <textarea
-                    required
-                    value={formData.messageToConvey}
-                    onChange={(e) => setFormData({...formData, messageToConvey: e.target.value})}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="商品の魅力、使用感、効果など、フォロワーに伝えたいメッセージ"
-                  />
+                  <div className="space-y-3">
+                    {formData.messageToConvey.map((message, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500 min-w-[20px]">{index + 1}.</span>
+                        <input
+                          type="text"
+                          required={index === 0}
+                          value={message}
+                          onChange={(e) => {
+                            const newMessages = [...formData.messageToConvey];
+                            newMessages[index] = e.target.value;
+                            setFormData({...formData, messageToConvey: newMessages});
+                          }}
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder={index === 0 ? "商品の魅力、使用感、効果など" : `伝えたいこと${index + 1}（任意）`}
+                        />
+                        {index > 0 && message && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newMessages = [...formData.messageToConvey];
+                              newMessages[index] = '';
+                              setFormData({...formData, messageToConvey: newMessages});
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
