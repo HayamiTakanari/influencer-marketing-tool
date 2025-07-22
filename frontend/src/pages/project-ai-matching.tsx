@@ -665,6 +665,12 @@ const ProjectAIMatchingPage: React.FC = () => {
                       {/* 紹介文 */}
                       <div className="flex-[2] mr-3">
                         <p className="text-xs text-gray-700 line-clamp-2">{influencer.bio}</p>
+                        {influencer.matchReasons && influencer.matchReasons.length > 0 && (
+                          <div className="mt-1 px-2 py-1 bg-purple-50 rounded text-xs text-purple-700 font-medium">
+                            <span className="text-purple-500">🤖 </span>
+                            {influencer.matchReasons[0]}
+                          </div>
+                        )}
                       </div>
 
                       {/* アクションボタン */}
