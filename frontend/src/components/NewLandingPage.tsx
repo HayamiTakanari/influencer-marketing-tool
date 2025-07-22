@@ -276,7 +276,7 @@ const NewLandingPage: React.FC = () => {
               className="mt-16 bg-gradient-to-r from-orange-500 to-blue-500 rounded-3xl p-8 text-white"
             >
               <h2 className="text-3xl font-bold mb-4">
-                そのお悩み、すべて解決します！
+                そのお悩み、ツール名がすべて解決します！
               </h2>
               <p className="text-xl text-orange-100">
                 AIを活用した次世代インフルエンサーマーケティングプラットフォーム
