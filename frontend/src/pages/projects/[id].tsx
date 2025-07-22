@@ -586,15 +586,17 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                 </motion.button>
               </Link>
             )}
-            <Link href="/chat">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                💬 チャット
-              </motion.button>
-            </Link>
+            {(project.status === 'IN_PROGRESS' || project.status === 'MATCHED') && (
+              <Link href={`/project-chat/${project.id}`}>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                >
+                  💬 プロジェクトチャット
+                </motion.button>
+              </Link>
+            )}
             <Link href="/payments/history">
               <motion.button
                 whileHover={{ scale: 1.05 }}
