@@ -260,10 +260,10 @@ const NewLandingPage: React.FC = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-gray-800">
-                  効果測定・管理が大変
+                  インフルエンサーマーケティングの進め方がわからない
                 </h3>
                 <p className="text-gray-600">
-                  キャンペーンの効果がわからない。複数のインフルエンサーの管理が困難。
+                  効率化したい。どのように進めればよいか分からない。
                 </p>
               </motion.div>
             </div>
