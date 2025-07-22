@@ -382,7 +382,7 @@ const NewLandingPage: React.FC = () => {
                 </svg>
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                今すぐ始めて、成果を実感
+                今すぐ試してみる
               </h2>
               <p className="text-xl text-orange-100 mb-12 max-w-2xl mx-auto">
                 アカウント作成は30秒で完了。すぐにAIマッチング機能をお試しいただけます。
