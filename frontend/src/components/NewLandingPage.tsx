@@ -137,14 +137,13 @@ const NewLandingPage: React.FC = () => {
                       ツール名
                     </span>
                     <br />
-                    で始める<br />
+                    ではじめる<br />
                     新しい<br />
+                    インフルエンサー<br />
                     マーケティング
                   </h1>
                   <p className="text-xl text-gray-600 mb-8 max-w-lg">
-                    AIが最適なインフルエンサーを見つけ、効果的なキャンペーンを実現。
-                    <span className="font-semibold text-gray-800">ROI向上</span>と
-                    <span className="font-semibold text-gray-800">工数削減</span>を両立します。
+                    AIが最適なインフルエンサーを見つけ、さらにインフルエンサーマーケティングの進行をわかりやすく、そして圧倒的に効率化します。
                   </p>
                 </motion.div>
 
