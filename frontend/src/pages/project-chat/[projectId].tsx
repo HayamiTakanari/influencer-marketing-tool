@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { checkConteAlignment, AIContentCheckResult, ProjectInfo, ConteInfo } from '../../services/ai-content-check';
 
 interface Message {
   id: string;
@@ -81,6 +82,22 @@ interface Message {
     };
     submittedAt: string;
   };
+  aiContentCheck?: {
+    id: string;
+    checkedAt: string;
+    overallAlignment: 'aligned' | 'minor_issues' | 'major_issues';
+    issues: {
+      id: string;
+      category: 'theme' | 'message' | 'scene_content' | 'duration' | 'target_audience' | 'brand_guideline';
+      severity: 'low' | 'medium' | 'high';
+      title: string;
+      description: string;
+      affectedElement: 'overall_theme' | 'key_message' | 'scene' | 'duration' | 'target_content';
+      affectedElementId?: string;
+      suggestion?: string;
+    }[];
+    confidence: number; // 0-100
+  };
 }
 
 interface ProjectProgress {
@@ -110,7 +127,16 @@ interface ProjectProgress {
 interface Project {
   id: string;
   title: string;
+  description: string;
+  category: string;
   status: string;
+  brandName?: string;
+  productName?: string;
+  productFeatures?: string;
+  campaignObjective?: string;
+  campaignTarget?: string;
+  messageToConvey?: string;
+  targetPlatforms?: string[];
   client: {
     id: string;
     displayName: string;
@@ -179,6 +205,10 @@ const ProjectChatPage: React.FC = () => {
   const [showSubmissionPanel, setShowSubmissionPanel] = useState(false);
   const [submissionFilter, setSubmissionFilter] = useState<'all' | 'conte' | 'videos'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  
+  // AIコンテンツチェック関連
+  const [aiCheckResults, setAiCheckResults] = useState<Map<string, AIContentCheckResult>>(new Map());
+  const [isAiChecking, setIsAiChecking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { projectId } = router.query;
@@ -835,6 +865,64 @@ const ProjectChatPage: React.FC = () => {
     const diffTime = deadline.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+  
+  // AIコンテンツチェック関数
+  const handleAIContentCheck = async (conteMessage: Message) => {
+    if (!project || !conteMessage.conteData || !user || user.role !== 'CLIENT') return;
+    
+    setIsAiChecking(true);
+    
+    try {
+      const projectInfo: ProjectInfo = {
+        title: project.title,
+        description: project.description,
+        category: project.category,
+        brandName: project.brandName || '',
+        productName: project.productName || '',
+        productFeatures: project.productFeatures || '',
+        campaignObjective: project.campaignObjective || '',
+        campaignTarget: project.campaignTarget || '',
+        messageToConvey: project.messageToConvey || '',
+        targetPlatforms: project.targetPlatforms || []
+      };
+      
+      const conteInfo: ConteInfo = {
+        overallTheme: conteMessage.conteData.overallTheme,
+        keyMessages: conteMessage.conteData.keyMessages,
+        scenes: conteMessage.conteData.scenes || [],
+        targetDuration: conteMessage.conteData.targetDuration
+      };
+      
+      const checkResult = await checkConteAlignment(projectInfo, conteInfo);
+      
+      // 結果をメッセージに追加
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === conteMessage.id) {
+          return {
+            ...msg,
+            conteData: {
+              ...msg.conteData!,
+              aiContentCheck: checkResult
+            }
+          };
+        }
+        return msg;
+      }));
+      
+      // 結果を状態に保存
+      setAiCheckResults(prev => {
+        const newResults = new Map(prev);
+        newResults.set(conteMessage.id, checkResult);
+        return newResults;
+      });
+      
+    } catch (error) {
+      console.error('AIチェックエラー:', error);
+      alert('AIチェックに失敗しました。');
+    } finally {
+      setIsAiChecking(false);
+    }
   };
 
   // 期日管理の関数
@@ -1563,15 +1651,80 @@ const ProjectChatPage: React.FC = () => {
                         ))}
                       </div>
                       
-                      {/* 企業側：修正指摘ボタン（オリジナルフォーマットのみ） */}
+                      {/* 企業側：修正指摘ボタンとAIチェックボタン（オリジナルフォーマットのみ） */}
                       {user?.role === 'CLIENT' && message.conteData.format === 'original' && message.senderId !== user.id && (
                         <div className="mt-3 pt-2 border-t border-purple-200">
-                          <button
-                            onClick={() => handleOpenConteRevision(message)}
-                            className="px-3 py-1.5 bg-orange-500 text-white text-xs rounded-lg font-medium hover:bg-orange-600 transition-colors"
-                          >
-                            🔍 詳細な修正指摘
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleOpenConteRevision(message)}
+                              className="px-3 py-1.5 bg-orange-500 text-white text-xs rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                            >
+                              🔍 詳細な修正指摘
+                            </button>
+                            <button
+                              onClick={() => handleAIContentCheck(message)}
+                              disabled={isAiChecking}
+                              className="px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isAiChecking ? '🤖 チェック中...' : '🤖 AI内容チェック'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* AIチェック結果表示 */}
+                      {message.conteData.aiContentCheck && (
+                        <div className="mt-3 pt-2 border-t border-gray-200">
+                          <div className={`p-3 rounded-lg ${
+                            message.conteData.aiContentCheck.overallAlignment === 'aligned' 
+                              ? 'bg-green-50 border border-green-200'
+                              : message.conteData.aiContentCheck.overallAlignment === 'minor_issues'
+                              ? 'bg-yellow-50 border border-yellow-200'
+                              : 'bg-red-50 border border-red-200'
+                          }`}>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-sm font-medium">
+                                {message.conteData.aiContentCheck.overallAlignment === 'aligned' && '✅ プロジェクトと一致しています'}
+                                {message.conteData.aiContentCheck.overallAlignment === 'minor_issues' && '⚠️ 軽微な違和があります'}
+                                {message.conteData.aiContentCheck.overallAlignment === 'major_issues' && '😨 重大な違和があります'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                信頼度: {message.conteData.aiContentCheck.confidence}%
+                              </span>
+                            </div>
+                            
+                            {message.conteData.aiContentCheck.issues.length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-xs font-medium text-gray-700">気になるポイント:</p>
+                                {message.conteData.aiContentCheck.issues.map((issue, index) => (
+                                  <div key={issue.id} className={`p-2 rounded text-xs ${
+                                    issue.severity === 'high' 
+                                      ? 'bg-red-100 text-red-800'
+                                      : issue.severity === 'medium'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-blue-100 text-blue-800'
+                                  }`}>
+                                    <div className="font-medium mb-1">
+                                      {issue.severity === 'high' && '🔴'}
+                                      {issue.severity === 'medium' && '🟡'}
+                                      {issue.severity === 'low' && '🔵'}
+                                      {issue.title}
+                                    </div>
+                                    <div className="mb-1">{issue.description}</div>
+                                    {issue.suggestion && (
+                                      <div className="text-xs opacity-80">
+                                        提案: {issue.suggestion}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            <div className="text-xs text-gray-500 mt-2">
+                              チェック日時: {formatDateTime(message.conteData.aiContentCheck.checkedAt)}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
