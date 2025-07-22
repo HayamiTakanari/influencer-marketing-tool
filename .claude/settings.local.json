@@ -79,7 +79,9 @@
       "Bash(gh repo view:*)",
       "Bash(gh api:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:vercel.com)"
+      "WebFetch(domain:vercel.com)",
+      "Bash(git reset:*)",
+      "Bash(gh workflow:*)"
     ],
     "deny": []
   }

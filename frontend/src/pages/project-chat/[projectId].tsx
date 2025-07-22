@@ -8,7 +8,7 @@ interface Message {
   content: string;
   createdAt: string;
   senderId: string;
-  messageType: 'text' | 'proposal' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request';
+  messageType: 'text' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request';
   sender: {
     id: string;
     role: 'CLIENT' | 'INFLUENCER';
@@ -21,15 +21,6 @@ interface Message {
     fileUrl: string;
     fileSize: number;
   }[];
-  proposalData?: {
-    id: string;
-    title: string;
-    concept: string;
-    structure: string;
-    deliverables: string;
-    timeline: string;
-    status: 'draft' | 'submitted' | 'approved' | 'rejected';
-  };
   conteData?: {
     id: string;
     type: 'initial' | 'revised';
@@ -139,8 +130,6 @@ const ProjectChatPage: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showProposalForm, setShowProposalForm] = useState(false);
-  const [proposalType, setProposalType] = useState<'format' | 'upload'>('format');
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [showVideoForm, setShowVideoForm] = useState(false);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
@@ -188,20 +177,12 @@ const ProjectChatPage: React.FC = () => {
   
   // 提出物一覧サイドパネル関連
   const [showSubmissionPanel, setShowSubmissionPanel] = useState(false);
-  const [submissionFilter, setSubmissionFilter] = useState<'all' | 'proposals' | 'conte' | 'videos'>('all');
+  const [submissionFilter, setSubmissionFilter] = useState<'all' | 'conte' | 'videos'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { projectId } = router.query;
 
-  // 構成案フォーマット用のstate
-  const [proposalForm, setProposalForm] = useState({
-    title: '',
-    concept: '',
-    structure: '',
-    deliverables: '',
-    timeline: ''
-  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -382,7 +363,7 @@ const ProjectChatPage: React.FC = () => {
         },
         {
           id: '2',
-          content: 'こちらこそよろしくお願いします！さっそく構成案を作成させていただきます。',
+          content: 'こちらこそよろしくお願いします！さっそくコンテを作成させていただきます。',
           createdAt: '2024-01-15T10:30:00Z',
           senderId: 'influencer-1',
           messageType: 'text',
@@ -436,76 +417,6 @@ const ProjectChatPage: React.FC = () => {
     }
   };
 
-  const handleSubmitProposal = async () => {
-    if (!user || !project) return;
-
-    if (proposalType === 'format') {
-      // オリジナルフォーマットの場合
-      if (!proposalForm.title || !proposalForm.concept || !proposalForm.structure) {
-        alert('必須項目を入力してください。');
-        return;
-      }
-
-      const proposalMessage: Message = {
-        id: Date.now().toString(),
-        content: '構成案を提出しました',
-        createdAt: new Date().toISOString(),
-        senderId: user.id,
-        messageType: 'proposal',
-        sender: {
-          id: user.id,
-          role: user.role,
-          displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
-        },
-        proposalData: {
-          id: Date.now().toString(),
-          ...proposalForm,
-          status: 'submitted'
-        }
-      };
-
-      setMessages(prev => [...prev, proposalMessage]);
-      setProposalForm({
-        title: '',
-        concept: '',
-        structure: '',
-        deliverables: '',
-        timeline: ''
-      });
-    } else {
-      // ファイルアップロードの場合
-      if (uploadFiles.length === 0) {
-        alert('アップロードするファイルを選択してください。');
-        return;
-      }
-
-      const fileMessage: Message = {
-        id: Date.now().toString(),
-        content: 'ファイルを送信しました',
-        createdAt: new Date().toISOString(),
-        senderId: user.id,
-        messageType: 'file',
-        sender: {
-          id: user.id,
-          role: user.role,
-          displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
-        },
-        attachments: uploadFiles.map((file, index) => ({
-          id: `${Date.now()}-${index}`,
-          fileName: file.name,
-          fileType: file.type,
-          fileUrl: URL.createObjectURL(file),
-          fileSize: file.size
-        }))
-      };
-
-      setMessages(prev => [...prev, fileMessage]);
-      setUploadFiles([]);
-    }
-
-    setShowProposalForm(false);
-    // TODO: Send proposal to server
-  };
 
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -830,17 +741,6 @@ const ProjectChatPage: React.FC = () => {
     const submissions: any[] = [];
     
     messages.forEach(message => {
-      if (message.messageType === 'proposal' && message.proposalData) {
-        submissions.push({
-          id: message.id,
-          type: 'proposal',
-          title: message.proposalData.title || '構成案',
-          submittedAt: message.createdAt,
-          data: message.proposalData,
-          message: message
-        });
-      }
-      
       if ((message.messageType === 'conte' || message.messageType === 'revised_conte') && message.conteData) {
         submissions.push({
           id: message.id,
@@ -882,8 +782,6 @@ const ProjectChatPage: React.FC = () => {
     const submissions = getSubmissions();
     
     switch (submissionFilter) {
-      case 'proposals':
-        return submissions.filter(s => s.type === 'proposal');
       case 'conte':
         return submissions.filter(s => s.type === 'conte');
       case 'videos':
@@ -1185,12 +1083,6 @@ const ProjectChatPage: React.FC = () => {
                     <div className="flex items-center">
                       <span className="text-sm font-medium text-gray-700 min-w-[100px]">基本提出:</span>
                       <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => setShowProposalForm(true)}
-                          className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                        >
-                          📝 構成案提出
-                        </button>
                         <button
                           onClick={() => {
                             setConteType('initial');
@@ -1591,16 +1483,6 @@ const ProjectChatPage: React.FC = () => {
                     <p className="text-sm">{message.content}</p>
                   )}
                   
-                  {message.messageType === 'proposal' && message.proposalData && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold">📝 {message.content}</p>
-                      <div className="text-xs space-y-1 bg-black/10 rounded p-2">
-                        <div><strong>タイトル:</strong> {message.proposalData.title}</div>
-                        <div><strong>コンセプト:</strong> {message.proposalData.concept}</div>
-                        <div><strong>構成:</strong> {message.proposalData.structure}</div>
-                      </div>
-                    </div>
-                  )}
                   
                   {message.messageType === 'file' && message.attachments && (
                     <div className="space-y-2">
@@ -2006,173 +1888,6 @@ const ProjectChatPage: React.FC = () => {
         )}
       </div>
 
-      {/* 構成案提出モーダル */}
-      <AnimatePresence>
-        {showProposalForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">構成案提出</h3>
-                <button
-                  onClick={() => setShowProposalForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* 提出方法選択 */}
-              <div className="mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-3">提出方法を選択してください</p>
-                <div className="flex space-x-4">
-                  <button
-                    onClick={() => setProposalType('format')}
-                    className={`px-4 py-2 rounded-xl font-semibold transition-all ${
-                      proposalType === 'format'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    📋 指定フォーマット
-                  </button>
-                  <button
-                    onClick={() => setProposalType('upload')}
-                    className={`px-4 py-2 rounded-xl font-semibold transition-all ${
-                      proposalType === 'upload'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    📎 ファイルアップロード
-                  </button>
-                </div>
-              </div>
-
-              {proposalType === 'format' ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">構成案タイトル *</label>
-                    <input
-                      type="text"
-                      value={proposalForm.title}
-                      onChange={(e) => setProposalForm({...proposalForm, title: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="例: 新商品PR動画構成案"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">コンセプト *</label>
-                    <textarea
-                      value={proposalForm.concept}
-                      onChange={(e) => setProposalForm({...proposalForm, concept: e.target.value})}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="動画のコンセプトや狙いを記載してください"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">構成・シナリオ *</label>
-                    <textarea
-                      value={proposalForm.structure}
-                      onChange={(e) => setProposalForm({...proposalForm, structure: e.target.value})}
-                      rows={5}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="動画の構成やシナリオを時系列で記載してください"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">成果物</label>
-                    <textarea
-                      value={proposalForm.deliverables}
-                      onChange={(e) => setProposalForm({...proposalForm, deliverables: e.target.value})}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="提供する動画の仕様や追加成果物"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">スケジュール</label>
-                    <textarea
-                      value={proposalForm.timeline}
-                      onChange={(e) => setProposalForm({...proposalForm, timeline: e.target.value})}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="制作スケジュールを記載してください"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">ファイルを選択</label>
-                    <input
-                      type="file"
-                      onChange={handleFileUpload}
-                      multiple
-                      accept=".doc,.docx,.pdf,.ppt,.pptx"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      対応ファイル: Word(.doc, .docx), PDF, PowerPoint(.ppt, .pptx)
-                    </p>
-                  </div>
-                  
-                  {uploadFiles.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-700">選択されたファイル:</p>
-                      {uploadFiles.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div>
-                            <div className="text-sm font-medium">{file.name}</div>
-                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
-                          </div>
-                          <button
-                            onClick={() => setUploadFiles(files => files.filter((_, i) => i !== index))}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            削除
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowProposalForm(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  キャンセル
-                </button>
-                <button
-                  onClick={handleSubmitProposal}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                >
-                  提出する
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* コンテ提出モーダル */}
       <AnimatePresence>
@@ -2972,16 +2687,6 @@ const ProjectChatPage: React.FC = () => {
                     すべて
                   </button>
                   <button
-                    onClick={() => setSubmissionFilter('proposals')}
-                    className={`px-3 py-1 text-xs rounded-full font-medium ${
-                      submissionFilter === 'proposals'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    構成案
-                  </button>
-                  <button
                     onClick={() => setSubmissionFilter('conte')}
                     className={`px-3 py-1 text-xs rounded-full font-medium ${
                       submissionFilter === 'conte'
@@ -3024,8 +2729,7 @@ const ProjectChatPage: React.FC = () => {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <span className="text-lg">
-                              {submission.type === 'proposal' ? '📝' :
-                               submission.type === 'conte' ? '📋' : '🎬'}
+                              {submission.type === 'conte' ? '📋' : '🎬'}
                             </span>
                             <div>
                               <h4 className="font-medium text-sm text-gray-900">{submission.title}</h4>
@@ -3034,21 +2738,16 @@ const ProjectChatPage: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <span className={`text-xs px-2 py-1 rounded ${
-                              submission.type === 'proposal' ? 'bg-blue-100 text-blue-700' :
                               submission.type === 'conte' ? 'bg-purple-100 text-purple-700' :
                               'bg-green-100 text-green-700'
                             }`}>
-                              {submission.type === 'proposal' ? '構成案' :
-                               submission.type === 'conte' ? 'コンテ' : '動画'}
+                              {submission.type === 'conte' ? 'コンテ' : '動画'}
                             </span>
                           </div>
                         </div>
                         
                         {/* プレビュー情報 */}
                         <div className="text-xs text-gray-600">
-                          {submission.type === 'proposal' && submission.data.concept && (
-                            <p className="truncate">{submission.data.concept}</p>
-                          )}
                           {submission.type === 'conte' && submission.data.overallTheme && (
                             <p className="truncate">テーマ: {submission.data.overallTheme}</p>
                           )}
@@ -3111,21 +2810,6 @@ const ProjectChatPage: React.FC = () => {
 
               {/* 提出物の詳細内容 */}
               <div className="space-y-4">
-                {/* 構成案詳細 */}
-                {selectedSubmission.type === 'proposal' && selectedSubmission.data && (
-                  <div className="space-y-3">
-                    <div className="bg-blue-50 rounded p-4">
-                      <h4 className="font-semibold text-blue-800 mb-2">📋 構成案詳細</h4>
-                      <div className="space-y-2 text-sm">
-                        <div><strong>タイトル:</strong> {selectedSubmission.data.title}</div>
-                        <div><strong>コンセプト:</strong> {selectedSubmission.data.concept}</div>
-                        <div><strong>構成:</strong> {selectedSubmission.data.structure}</div>
-                        <div><strong>成果物:</strong> {selectedSubmission.data.deliverables}</div>
-                        <div><strong>タイムライン:</strong> {selectedSubmission.data.timeline}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* コンテ詳細 */}
                 {selectedSubmission.type === 'conte' && selectedSubmission.data && (

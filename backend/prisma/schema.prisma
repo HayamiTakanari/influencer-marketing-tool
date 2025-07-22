@@ -55,7 +55,6 @@ enum InquiryStatus {
 }
 
 enum MilestoneType {
-  CONCEPT_APPROVAL    // 構成案承認
   VIDEO_COMPLETION    // 動画完成
   FINAL_APPROVAL      // 最終承認
   PUBLISH_DATE        // 投稿日

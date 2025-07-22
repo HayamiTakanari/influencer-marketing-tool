@@ -168,20 +168,6 @@ export const getUpcomingMilestones = async (days?: number) => {
     return {
       milestones: [
         {
-          id: 'mock-milestone-1',
-          type: 'CONCEPT_APPROVAL',
-          title: '構成案承認',
-          description: '春のキャンペーン動画の構成案を承認いただく',
-          dueDate: tomorrow.toISOString(),
-          isCompleted: false,
-          schedule: {
-            project: {
-              id: 'mock-project-1',
-              title: '春のキャンペーン動画',
-            }
-          }
-        },
-        {
           id: 'mock-milestone-2',
           type: 'VIDEO_COMPLETION',
           title: '動画完成',
@@ -217,16 +203,6 @@ export const getProjectSchedule = async (projectId: string) => {
         projectId: projectId,
         publishDate: publishDate.toISOString(),
         milestones: [
-          {
-            id: 'mock-milestone-1',
-            type: 'CONCEPT_APPROVAL',
-            title: '構成案承認',
-            description: '企画内容の承認を得る',
-            dueDate: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-            isCompleted: false,
-            completedAt: null,
-            notificationSent: false,
-          },
           {
             id: 'mock-milestone-2',
             type: 'VIDEO_COMPLETION',
@@ -330,7 +306,7 @@ export interface ProjectSchedule {
 
 export interface Milestone {
   id: string;
-  type: 'CONCEPT_APPROVAL' | 'VIDEO_COMPLETION' | 'FINAL_APPROVAL' | 'PUBLISH_DATE';
+  type: 'VIDEO_COMPLETION' | 'FINAL_APPROVAL' | 'PUBLISH_DATE';
   title: string;
   description?: string;
   dueDate: string;

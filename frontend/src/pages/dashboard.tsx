@@ -257,7 +257,7 @@ const DashboardPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">ライフスタイルコンテンツ制作</div>
-                    <div className="text-sm text-gray-600">鈴木さやか • 構成案待ち</div>
+                    <div className="text-sm text-gray-600">鈴木さやか • コンテ待ち</div>
                   </div>
                 </div>
                 <Link href="/project-chat/2">
