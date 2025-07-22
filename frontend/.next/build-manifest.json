@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/nSYOSSzFX-T-zzmjTFKhV/_buildManifest.js",
-    "static/nSYOSSzFX-T-zzmjTFKhV/_ssgManifest.js"
+    "static/7OQbjpX33NiY2mBrZPiOP/_buildManifest.js",
+    "static/7OQbjpX33NiY2mBrZPiOP/_ssgManifest.js"
   ],
   "rootMainFiles": [],
   "pages": {
@@ -31,7 +31,7 @@
       "static/chunks/webpack-b1c8d207f531138e.js",
       "static/chunks/framework-840cff9d6bb95703.js",
       "static/chunks/main-854739cfb689f4cd.js",
-      "static/css/d2f7092ac9ffcb7b.css",
+      "static/css/99bde4f58853b2c9.css",
       "static/chunks/pages/_app-39adfd623f7f5ee1.js"
     ],
     "/_error": [
@@ -80,7 +80,7 @@
       "static/chunks/8083-7a6f0d71054a740f.js",
       "static/chunks/1664-5092c49100e558e0.js",
       "static/chunks/3900-9f8f412b32e62ce9.js",
-      "static/chunks/pages/chat-bf9c2e7fd5dc08fe.js"
+      "static/chunks/pages/chat-4ebfdfa225d29158.js"
     ],
     "/company-profile": [
       "static/chunks/webpack-b1c8d207f531138e.js",
@@ -233,7 +233,7 @@
       "static/chunks/main-854739cfb689f4cd.js",
       "static/chunks/8083-7a6f0d71054a740f.js",
       "static/chunks/1664-5092c49100e558e0.js",
-      "static/chunks/pages/project-chat/[projectId]-1500a98af845bf34.js"
+      "static/chunks/pages/project-chat/[projectId]-0a3f7e8fb88b764b.js"
     ],
     "/project-detail": [
       "static/chunks/webpack-b1c8d207f531138e.js",
@@ -241,7 +241,7 @@
       "static/chunks/main-854739cfb689f4cd.js",
       "static/chunks/8083-7a6f0d71054a740f.js",
       "static/chunks/1664-5092c49100e558e0.js",
-      "static/chunks/pages/project-detail-af68e7e948a7a93b.js"
+      "static/chunks/pages/project-detail-900a559489723bd8.js"
     ],
     "/project-schedule": [
       "static/chunks/webpack-b1c8d207f531138e.js",
