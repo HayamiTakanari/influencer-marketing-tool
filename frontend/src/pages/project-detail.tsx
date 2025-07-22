@@ -51,6 +51,33 @@ interface ProjectDetails {
     id: string;
     displayName: string;
   };
+  // 新規作成時の詳細項目
+  advertiserName?: string;
+  brandName?: string;
+  productName?: string;
+  productUrl?: string;
+  productPrice?: number;
+  productFeatures?: string;
+  campaignObjective?: string;
+  campaignTarget?: string;
+  postingPeriodStart?: string;
+  postingPeriodEnd?: string;
+  postingMedia?: string[];
+  messageToConvey?: string;
+  shootingAngle?: string;
+  packagePhotography?: string;
+  productOrientationSpecified?: string;
+  musicUsage?: string;
+  brandContentSettings?: string;
+  advertiserAccount?: string;
+  desiredHashtags?: string[];
+  ngItems?: string;
+  legalRequirements?: string;
+  notes?: string;
+  secondaryUsage?: string;
+  secondaryUsageScope?: string;
+  secondaryUsagePeriod?: string;
+  insightDisclosure?: string;
 }
 
 const ProjectDetailPage: React.FC = () => {
@@ -128,6 +155,33 @@ const ProjectDetailPage: React.FC = () => {
           deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
           requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
           additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
+          // 詳細情報を追加
+          advertiserName: '株式会社ビューティーラボ',
+          brandName: 'NaturalGlow',
+          productName: 'パーフェクトナチュラルファンデーション SPF30',
+          productUrl: 'https://example.com/naturalglow-foundation',
+          productPrice: 3980,
+          productFeatures: '自然な仕上がりと長時間キープが特徴のファンデーション。SPF30でUVカットも可能。20-30代の女性に人気で、薄付きなのにカバー力があり、崩れにくいのが特徴です。',
+          campaignObjective: '新商品の認知拡大とブランドイメージ向上',
+          campaignTarget: '20-35歳の美容に関心の高い女性',
+          postingPeriodStart: '2024-02-01',
+          postingPeriodEnd: '2024-02-28',
+          postingMedia: ['INSTAGRAM', 'TIKTOK'],
+          messageToConvey: 'ナチュラルで美しい肌を演出できることを重視',
+          shootingAngle: '正面・斜め上',
+          packagePhotography: '外装・パッケージ両方',
+          productOrientationSpecified: 'ブランドロゴが見えるように',
+          musicUsage: '商用利用フリー音源のみ',
+          brandContentSettings: '設定必要',
+          advertiserAccount: '@naturalglowjapan',
+          desiredHashtags: ['新商品コスメ', 'ナチュラルメイク', 'ファンデーション', 'UV対策', 'NaturalGlow'],
+          ngItems: '他社化粧品との比較、価格に関する言及',
+          legalRequirements: '薬機法に基づき効果効能の表現に注意',
+          notes: '自然光での撮影を推奨',
+          secondaryUsage: '許可（条件あり）',
+          secondaryUsageScope: '公式サイト・広告での使用',
+          secondaryUsagePeriod: '投稿から1年間',
+          insightDisclosure: '必要',
           createdAt: '2024-01-15',
           applications: [
             {
@@ -172,6 +226,33 @@ const ProjectDetailPage: React.FC = () => {
           deliverables: 'YouTube動画1本、Instagram投稿1回、ストーリー投稿2回',
           requirements: '実際の使用感を重視、#便利グッズ #ライフスタイル のハッシュタグ必須',
           additionalInfo: '商品サンプル提供、返品不要',
+          // 詳細情報を追加
+          advertiserName: 'ライフスタイル株式会社',
+          brandName: 'SmartLife',
+          productName: 'マルチクリーニングツールセット',
+          productUrl: 'https://example.com/smartlife-cleaning',
+          productPrice: 2980,
+          productFeatures: '1つで多用途に使えるクリーニングツールセット。キッチン、バスルーム、リビングなど様々な場所で活用でき、時短と効率的な掃除を実現します。',
+          campaignObjective: '商品の実用性とライフスタイル向上効果をアピール',
+          campaignTarget: '25-45歳の家事効率化に興味のある方',
+          postingPeriodStart: '2024-01-20',
+          postingPeriodEnd: '2024-02-20',
+          postingMedia: ['YOUTUBE', 'INSTAGRAM'],
+          messageToConvey: '日常生活をより便利で快適にすることを伝える',
+          shootingAngle: '使用シーンを重視',
+          packagePhotography: '外装のみ',
+          productOrientationSpecified: '商品名が見えるように',
+          musicUsage: '商用利用フリー音源のみ',
+          brandContentSettings: '設定不要',
+          advertiserAccount: '@smartlife_japan',
+          desiredHashtags: ['便利グッズ', 'ライフスタイル', 'SmartLife', '時短', '掃除'],
+          ngItems: '清掃が困難な場所での使用例',
+          legalRequirements: '特になし',
+          notes: '実際の使用感を重視した自然な紹介を希望',
+          secondaryUsage: '許可（条件なし）',
+          secondaryUsageScope: 'すべてのマーケティング用途',
+          secondaryUsagePeriod: '無期限',
+          insightDisclosure: '不要',
           createdAt: '2024-01-10',
           applications: [
             {
@@ -229,7 +310,16 @@ const ProjectDetailPage: React.FC = () => {
           requirements: 'ブランドガイドラインに従った投稿',
           additionalInfo: 'その他の詳細については別途ご連絡いたします。',
           createdAt: new Date().toISOString(),
-          applications: []
+          applications: [],
+          // デフォルトの詳細情報
+          advertiserName: 'サンプル企業株式会社',
+          brandName: 'サンプルブランド',
+          productName: 'サンプル商品',
+          campaignObjective: 'ブランド認知向上',
+          campaignTarget: '幅広い年齢層',
+          messageToConvey: 'ブランドの魅力を自然に伝える',
+          secondaryUsage: '相談して決定',
+          insightDisclosure: '相談して決定'
         };
         setProject(defaultProject);
       }
@@ -485,10 +575,10 @@ const ProjectDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 要件詳細 */}
+            {/* 基本情報 */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">要件詳細</h3>
-              <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">基本情報</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {project.deliverables && (
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">成果物・納品物</h4>
@@ -502,13 +592,216 @@ const ProjectDetailPage: React.FC = () => {
                   </div>
                 )}
                 {project.additionalInfo && (
-                  <div>
+                  <div className="md:col-span-2">
                     <h4 className="font-semibold text-gray-900 mb-2">その他の情報</h4>
                     <p className="text-gray-700">{project.additionalInfo}</p>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* 広告主・ブランド情報 */}
+            {(project.advertiserName || project.brandName || project.productName) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">広告主・ブランド情報</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {project.advertiserName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">広告主名</h4>
+                      <p className="text-gray-700">{project.advertiserName}</p>
+                    </div>
+                  )}
+                  {project.brandName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">ブランド名</h4>
+                      <p className="text-gray-700">{project.brandName}</p>
+                    </div>
+                  )}
+                  {project.productName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">商品名</h4>
+                      <p className="text-gray-700">{project.productName}</p>
+                    </div>
+                  )}
+                  {project.productUrl && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">商品URL</h4>
+                      <a href={project.productUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                        {project.productUrl}
+                      </a>
+                    </div>
+                  )}
+                  {project.productPrice && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">商品価格</h4>
+                      <p className="text-gray-700">{formatPrice(project.productPrice)}</p>
+                    </div>
+                  )}
+                  {project.advertiserAccount && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">広告主アカウント</h4>
+                      <p className="text-gray-700">{project.advertiserAccount}</p>
+                    </div>
+                  )}
+                </div>
+                {project.productFeatures && (
+                  <div className="mt-6">
+                    <h4 className="font-semibold text-gray-900 mb-2">商品特徴</h4>
+                    <p className="text-gray-700">{project.productFeatures}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* キャンペーン詳細 */}
+            {(project.campaignObjective || project.campaignTarget || project.messageToConvey) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h3>
+                <div className="space-y-6">
+                  {project.campaignObjective && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">キャンペーン目的</h4>
+                      <p className="text-gray-700">{project.campaignObjective}</p>
+                    </div>
+                  )}
+                  {project.campaignTarget && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">ターゲット層</h4>
+                      <p className="text-gray-700">{project.campaignTarget}</p>
+                    </div>
+                  )}
+                  {project.messageToConvey && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">伝えたいメッセージ</h4>
+                      <p className="text-gray-700">{project.messageToConvey}</p>
+                    </div>
+                  )}
+                  {(project.postingPeriodStart && project.postingPeriodEnd) && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">投稿期間</h4>
+                      <p className="text-gray-700">{formatDate(project.postingPeriodStart)} - {formatDate(project.postingPeriodEnd)}</p>
+                    </div>
+                  )}
+                  {project.postingMedia && project.postingMedia.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">投稿媒体</h4>
+                      <div className="flex space-x-2">
+                        {project.postingMedia.map(media => (
+                          <span key={media} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            {getPlatformIcon(media)} {media}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 撮影・制作仕様 */}
+            {(project.shootingAngle || project.packagePhotography || project.productOrientationSpecified || project.musicUsage) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {project.shootingAngle && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">撮影アングル</h4>
+                      <p className="text-gray-700">{project.shootingAngle}</p>
+                    </div>
+                  )}
+                  {project.packagePhotography && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">パッケージ撮影</h4>
+                      <p className="text-gray-700">{project.packagePhotography}</p>
+                    </div>
+                  )}
+                  {project.productOrientationSpecified && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">商品向き指定</h4>
+                      <p className="text-gray-700">{project.productOrientationSpecified}</p>
+                    </div>
+                  )}
+                  {project.musicUsage && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">音楽使用</h4>
+                      <p className="text-gray-700">{project.musicUsage}</p>
+                    </div>
+                  )}
+                  {project.brandContentSettings && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">ブランドコンテンツ設定</h4>
+                      <p className="text-gray-700">{project.brandContentSettings}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ハッシュタグ・注意事項 */}
+            {(project.desiredHashtags?.length || project.ngItems || project.legalRequirements || project.notes) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・注意事項</h3>
+                <div className="space-y-6">
+                  {project.desiredHashtags && project.desiredHashtags.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">希望ハッシュタグ</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {project.desiredHashtags.map((hashtag, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            #{hashtag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.ngItems && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">NG項目</h4>
+                      <p className="text-gray-700">{project.ngItems}</p>
+                    </div>
+                  )}
+                  {project.legalRequirements && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">法的要件</h4>
+                      <p className="text-gray-700">{project.legalRequirements}</p>
+                    </div>
+                  )}
+                  {project.notes && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">特記事項</h4>
+                      <p className="text-gray-700">{project.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 二次利用・インサイト */}
+            {(project.secondaryUsage || project.insightDisclosure) && (
+              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">二次利用・インサイト</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {project.secondaryUsage && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">二次利用</h4>
+                      <p className="text-gray-700">{project.secondaryUsage}</p>
+                      {project.secondaryUsageScope && (
+                        <p className="text-gray-600 text-sm mt-1">範囲: {project.secondaryUsageScope}</p>
+                      )}
+                      {project.secondaryUsagePeriod && (
+                        <p className="text-gray-600 text-sm mt-1">期間: {project.secondaryUsagePeriod}</p>
+                      )}
+                    </div>
+                  )}
+                  {project.insightDisclosure && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">インサイト開示</h4>
+                      <p className="text-gray-700">{project.insightDisclosure}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -520,7 +813,7 @@ const ProjectDetailPage: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
           >
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">応募一覧</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">応募一覧 ({project.applications.length}人)</h3>
             
             {project.applications.length === 0 ? (
               <div className="text-center py-12">
@@ -529,87 +822,173 @@ const ProjectDetailPage: React.FC = () => {
                 <p className="text-gray-600">インフルエンサーからの応募をお待ちください。</p>
               </div>
             ) : (
-              <div className="space-y-6">
-                {project.applications.map((application, index) => (
-                  <motion.div
-                    key={application.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="bg-gray-50 rounded-2xl p-6"
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">
-                            {application.influencer.displayName.charAt(0)}
-                          </span>
-                        </div>
-                        <div>
-                          <h4 className="text-lg font-bold text-gray-900">{application.influencer.displayName}</h4>
-                          <p className="text-gray-600">{application.influencer.prefecture}</p>
-                        </div>
+              <div className="space-y-3">
+                {/* ヘッダー */}
+                <div className="hidden lg:flex items-center px-4 pb-2 text-xs text-gray-500 font-medium border-b border-gray-200 mb-2">
+                  <div className="w-12 text-center mr-3">スコア</div>
+                  <div className="w-32 mr-3">アカウント名</div>
+                  <div className="flex-1 mr-3">
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                      <div className="space-y-1">
+                        <div>Instagram</div>
+                        <div className="text-[10px] text-gray-400">フォロワー/Eng%</div>
                       </div>
-                      <div className="flex items-center space-x-4 mt-4 lg:mt-0">
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-green-600">{formatPrice(application.proposedPrice)}</div>
-                          <div className="text-gray-500 text-sm">提案料金</div>
+                      <div className="space-y-1">
+                        <div>YouTube</div>
+                        <div className="text-[10px] text-gray-400">登録者/Eng%</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div>TikTok</div>
+                        <div className="text-[10px] text-gray-400">フォロワー/Eng%</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div>Twitter</div>
+                        <div className="text-[10px] text-gray-400">フォロワー/Eng%</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-24 text-center mr-3">提案料金</div>
+                  <div className="w-32">アクション</div>
+                </div>
+                
+                {project.applications.map((application, index) => {
+                  // AIスコアを仮想的に計算（実際にはAIが算出）
+                  const aiScore = Math.floor(Math.random() * 30 + 70); // 70-100のスコア
+                  
+                  return (
+                    <motion.div
+                      key={application.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="bg-white border rounded-lg hover:shadow-md transition-all"
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center p-3">
+                        {/* AIスコア */}
+                        <div className="w-12 text-center mr-3">
+                          <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-xs font-bold ${
+                            aiScore >= 90 ? 'bg-green-100 text-green-800' :
+                            aiScore >= 80 ? 'bg-blue-100 text-blue-800' :
+                            aiScore >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {aiScore}%
+                          </div>
                         </div>
-                        <div className="flex space-x-2">
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+
+                        {/* アカウント名とプロフィール画像 */}
+                        <div className="flex items-center w-32 mr-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs mr-2 flex-shrink-0">
+                            {application.influencer.displayName.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-sm text-gray-900 truncate">{application.influencer.displayName}</h4>
+                            <div className="text-xs text-gray-500">{application.influencer.prefecture}</div>
+                          </div>
+                        </div>
+
+                        {/* プラットフォーム別データ */}
+                        <div className="flex-1 mr-3">
+                          <div className="grid grid-cols-4 gap-2 text-xs">
+                            {/* Instagram */}
+                            <div className="text-center">
+                              {(() => {
+                                const instagram = application.influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'instagram');
+                                if (instagram) {
+                                  return (
+                                    <>
+                                      <div className="font-semibold text-gray-900">{formatNumber(instagram.followerCount)}</div>
+                                      <div className="text-gray-600">{instagram.engagementRate.toFixed(1)}%</div>
+                                    </>
+                                  );
+                                }
+                                return <div className="text-gray-400">-</div>;
+                              })()}
+                            </div>
+                            
+                            {/* YouTube */}
+                            <div className="text-center">
+                              {(() => {
+                                const youtube = application.influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'youtube');
+                                if (youtube) {
+                                  return (
+                                    <>
+                                      <div className="font-semibold text-gray-900">{formatNumber(youtube.followerCount)}</div>
+                                      <div className="text-gray-600">{youtube.engagementRate.toFixed(1)}%</div>
+                                    </>
+                                  );
+                                }
+                                return <div className="text-gray-400">-</div>;
+                              })()}
+                            </div>
+                            
+                            {/* TikTok */}
+                            <div className="text-center">
+                              {(() => {
+                                const tiktok = application.influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'tiktok');
+                                if (tiktok) {
+                                  return (
+                                    <>
+                                      <div className="font-semibold text-gray-900">{formatNumber(tiktok.followerCount)}</div>
+                                      <div className="text-gray-600">{tiktok.engagementRate.toFixed(1)}%</div>
+                                    </>
+                                  );
+                                }
+                                return <div className="text-gray-400">-</div>;
+                              })()}
+                            </div>
+                            
+                            {/* Twitter */}
+                            <div className="text-center">
+                              {(() => {
+                                const twitter = application.influencer.socialAccounts.find(acc => acc.platform.toLowerCase() === 'twitter');
+                                if (twitter) {
+                                  return (
+                                    <>
+                                      <div className="font-semibold text-gray-900">{formatNumber(twitter.followerCount)}</div>
+                                      <div className="text-gray-600">{twitter.engagementRate.toFixed(1)}%</div>
+                                    </>
+                                  );
+                                }
+                                return <div className="text-gray-400">-</div>;
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 提案料金 */}
+                        <div className="w-24 text-center mr-3">
+                          <div className="text-sm font-bold text-green-600">{formatPrice(application.proposedPrice)}</div>
+                        </div>
+
+                        {/* アクションボタン */}
+                        <div className="flex space-x-2 w-32">
+                          <button
                             onClick={() => handleAcceptApplication(application.id)}
-                            className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
+                            className="px-2.5 py-1.5 bg-green-500 text-white rounded text-xs font-semibold hover:bg-green-600 transition-colors whitespace-nowrap"
                           >
                             承諾
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                          </button>
+                          <button
                             onClick={() => handleRejectApplication(application.id)}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                            className="px-2.5 py-1.5 bg-red-500 text-white rounded text-xs font-semibold hover:bg-red-600 transition-colors whitespace-nowrap"
                           >
                             却下
-                          </motion.button>
+                          </button>
+                          <button
+                            onClick={() => {
+                              // 詳細情報モーダルを表示（実装予定）
+                              alert('詳細情報表示機能は実装中です');
+                            }}
+                            className="px-2.5 py-1.5 bg-blue-500 text-white rounded text-xs font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap"
+                          >
+                            詳細
+                          </button>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <p className="text-gray-700">{application.influencer.bio}</p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {application.influencer.categories.map(category => (
-                        <span key={category} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="mb-4">
-                      <h5 className="font-semibold text-gray-900 mb-2">メッセージ</h5>
-                      <p className="text-gray-700 bg-white p-3 rounded-lg">{application.message}</p>
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <div className="flex space-x-4">
-                        {application.influencer.socialAccounts.map(account => (
-                          <div key={account.platform} className="text-center">
-                            <div className="text-sm font-medium text-gray-900">
-                              {getPlatformIcon(account.platform)} {formatNumber(account.followerCount)}
-                            </div>
-                            <div className="text-xs text-gray-500">{account.engagementRate}%</div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        応募日: {formatDate(application.appliedAt)}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </motion.div>
