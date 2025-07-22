@@ -24,6 +24,36 @@ interface ProjectOpportunity {
   };
   isApplied: boolean;
   matchesProfile: boolean;
+  // 新規作成時の詳細項目
+  advertiserName?: string;
+  brandName?: string;
+  productName?: string;
+  productUrl?: string;
+  productPrice?: number;
+  productFeatures?: string;
+  campaignObjective?: string;
+  campaignTarget?: string;
+  postingPeriodStart?: string;
+  postingPeriodEnd?: string;
+  postingMedia?: string[];
+  messageToConvey?: string;
+  shootingAngle?: string;
+  packagePhotography?: string;
+  productOrientationSpecified?: string;
+  musicUsage?: string;
+  brandContentSettings?: string;
+  advertiserAccount?: string;
+  desiredHashtags?: string[];
+  ngItems?: string;
+  legalRequirements?: string;
+  notes?: string;
+  secondaryUsage?: string;
+  secondaryUsageScope?: string;
+  secondaryUsagePeriod?: string;
+  insightDisclosure?: string;
+  deliverables?: string;
+  requirements?: string;
+  additionalInfo?: string;
 }
 
 const OpportunitiesPage: React.FC = () => {
@@ -41,6 +71,7 @@ const OpportunitiesPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [showProjectDetail, setShowProjectDetail] = useState(false);
   const router = useRouter();
 
   const categories = [
@@ -416,32 +447,45 @@ const OpportunitiesPage: React.FC = () => {
                       <div className="text-2xl font-bold text-green-600">{formatPrice(opportunity.budget)}</div>
                       <div className="text-gray-500 text-sm">予算</div>
                     </div>
-                    {!opportunity.isApplied && (
-                      <div className="flex flex-col space-y-2">
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => {
-                            setSelectedProject(opportunity);
-                            setShowApplicationForm(true);
-                          }}
-                          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                        >
-                          応募する
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => {
-                            setSelectedProject(opportunity);
-                            setShowRejectForm(true);
-                          }}
-                          className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                        >
-                          却下する
-                        </motion.button>
-                      </div>
-                    )}
+                    <div className="flex flex-col space-y-2">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSelectedProject(opportunity);
+                          setShowProjectDetail(true);
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                      >
+                        詳細を見る
+                      </motion.button>
+                      {!opportunity.isApplied && (
+                        <>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              setSelectedProject(opportunity);
+                              setShowApplicationForm(true);
+                            }}
+                            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                          >
+                            応募する
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              setSelectedProject(opportunity);
+                              setShowRejectForm(true);
+                            }}
+                            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                          >
+                            却下する
+                          </motion.button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -636,6 +680,389 @@ const OpportunitiesPage: React.FC = () => {
                 {submitting ? '送信中...' : '却下する'}
               </motion.button>
             </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* プロジェクト詳細モーダル */}
+      {showProjectDetail && selectedProject && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-8 max-w-4xl w-full relative max-h-[90vh] overflow-y-auto"
+          >
+            <button
+              onClick={() => {
+                setShowProjectDetail(false);
+                setSelectedProject(null);
+              }}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+            >
+              ✕
+            </button>
+            
+            <div className="pr-8">
+              <h2 className="text-3xl font-bold mb-2 text-center">{selectedProject.title}</h2>
+              <p className="text-gray-600 mb-6 text-center">{selectedProject.client.companyName}</p>
+              
+              {/* 基本情報セクション */}
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                  📋 基本情報
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {selectedProject.advertiserName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">広告主名</h4>
+                      <p className="text-gray-700">{selectedProject.advertiserName}</p>
+                    </div>
+                  )}
+                  {selectedProject.brandName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">ブランド名</h4>
+                      <p className="text-gray-700">{selectedProject.brandName}</p>
+                    </div>
+                  )}
+                  {selectedProject.productName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">商品名</h4>
+                      <p className="text-gray-700">{selectedProject.productName}</p>
+                    </div>
+                  )}
+                  {selectedProject.productUrl && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">商品URL</h4>
+                      <a href={selectedProject.productUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                        {selectedProject.productUrl}
+                      </a>
+                    </div>
+                  )}
+                  {selectedProject.productPrice && selectedProject.productPrice > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">商品価格</h4>
+                      <p className="text-gray-700">¥{selectedProject.productPrice.toLocaleString()}</p>
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">予算</h4>
+                    <p className="text-green-600 font-bold">{formatPrice(selectedProject.budget)}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">カテゴリー</h4>
+                    <p className="text-gray-700">{selectedProject.category}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">期間</h4>
+                    <p className="text-gray-700">{formatDate(selectedProject.startDate)} - {formatDate(selectedProject.endDate)}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">対象地域</h4>
+                    <p className="text-gray-700">{selectedProject.targetPrefecture}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">年齢層</h4>
+                    <p className="text-gray-700">
+                      {selectedProject.targetAgeMin > 0 && selectedProject.targetAgeMax > 0 
+                        ? `${selectedProject.targetAgeMin}-${selectedProject.targetAgeMax}歳`
+                        : '指定なし'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">フォロワー数</h4>
+                    <p className="text-gray-700">
+                      {selectedProject.targetFollowerMin > 0 && selectedProject.targetFollowerMax > 0
+                        ? `${selectedProject.targetFollowerMin.toLocaleString()} - ${selectedProject.targetFollowerMax.toLocaleString()}`
+                        : '指定なし'
+                      }
+                    </p>
+                  </div>
+                </div>
+                
+                {selectedProject.targetPlatforms && selectedProject.targetPlatforms.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">対象プラットフォーム</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.targetPlatforms.map(platform => (
+                        <span key={platform} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                          {getPlatformIcon(platform)} {platform}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedProject.productFeatures && (
+                  <div className="mt-4 col-span-full">
+                    <h4 className="font-semibold text-gray-900 mb-2">商品特徴</h4>
+                    <p className="text-gray-700">{selectedProject.productFeatures}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* プロジェクト詳細 */}
+              <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                  📝 プロジェクト詳細
+                </h3>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">概要</h4>
+                  <p className="text-gray-700 mb-4">{selectedProject.description}</p>
+                </div>
+                
+                {selectedProject.deliverables && (
+                  <div className="mb-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">成果物</h4>
+                    <p className="text-gray-700">{selectedProject.deliverables}</p>
+                  </div>
+                )}
+                
+                {selectedProject.requirements && (
+                  <div className="mb-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">要件</h4>
+                    <p className="text-gray-700">{selectedProject.requirements}</p>
+                  </div>
+                )}
+                
+                {selectedProject.additionalInfo && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">追加情報</h4>
+                    <p className="text-gray-700">{selectedProject.additionalInfo}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* キャンペーン詳細 */}
+              {(selectedProject.campaignObjective || selectedProject.campaignTarget || selectedProject.postingPeriodStart || selectedProject.messageToConvey) && (
+                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-6 mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    🎯 キャンペーン詳細
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {selectedProject.campaignObjective && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">施策の目的</h4>
+                        <p className="text-gray-700">{selectedProject.campaignObjective}</p>
+                      </div>
+                    )}
+                    {selectedProject.campaignTarget && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">ターゲット</h4>
+                        <p className="text-gray-700">{selectedProject.campaignTarget}</p>
+                      </div>
+                    )}
+                    {(selectedProject.postingPeriodStart || selectedProject.postingPeriodEnd) && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">投稿期間</h4>
+                        <p className="text-gray-700">
+                          {selectedProject.postingPeriodStart && selectedProject.postingPeriodEnd
+                            ? `${formatDate(selectedProject.postingPeriodStart)} 〜 ${formatDate(selectedProject.postingPeriodEnd)}`
+                            : selectedProject.postingPeriodStart 
+                              ? `開始日: ${formatDate(selectedProject.postingPeriodStart)}`
+                              : `終了日: ${formatDate(selectedProject.postingPeriodEnd)}`
+                          }
+                        </p>
+                      </div>
+                    )}
+                    {selectedProject.advertiserAccount && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">広告主アカウント</h4>
+                        <p className="text-gray-700 font-mono">@{selectedProject.advertiserAccount}</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {selectedProject.postingMedia && selectedProject.postingMedia.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">投稿メディア</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProject.postingMedia.map(media => (
+                          <span key={media} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                            {media === 'INSTAGRAM' ? '📸 Instagram' :
+                             media === 'YOUTUBE' ? '🎥 YouTube' :
+                             media === 'TIKTOK' ? '🎵 TikTok' :
+                             media === 'TWITTER' ? '🐦 Twitter' : media}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedProject.messageToConvey && (
+                    <div className="mt-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">伝えたいメッセージ</h4>
+                      <p className="text-gray-700">{selectedProject.messageToConvey}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 撮影・制作仕様 */}
+              {(selectedProject.shootingAngle || selectedProject.packagePhotography || selectedProject.musicUsage) && (
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    📸 撮影・制作仕様
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {selectedProject.shootingAngle && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">撮影アングル</h4>
+                        <p className="text-gray-700">{selectedProject.shootingAngle}</p>
+                      </div>
+                    )}
+                    {selectedProject.packagePhotography && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">パッケージ撮影</h4>
+                        <p className="text-gray-700">{selectedProject.packagePhotography}</p>
+                      </div>
+                    )}
+                    {selectedProject.productOrientationSpecified && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">商品の向き指定</h4>
+                        <p className="text-gray-700">{selectedProject.productOrientationSpecified}</p>
+                      </div>
+                    )}
+                    {selectedProject.musicUsage && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">音楽使用</h4>
+                        <p className="text-gray-700">{selectedProject.musicUsage}</p>
+                      </div>
+                    )}
+                    {selectedProject.brandContentSettings && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">ブランドコンテンツ設定</h4>
+                        <p className="text-gray-700">{selectedProject.brandContentSettings}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 要件・規則 */}
+              {(selectedProject.desiredHashtags?.length || selectedProject.ngItems || selectedProject.legalRequirements || selectedProject.notes) && (
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-6 mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    ⚠️ 要件・規則
+                  </h3>
+                  <div className="space-y-4">
+                    {selectedProject.desiredHashtags && selectedProject.desiredHashtags.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">希望ハッシュタグ</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedProject.desiredHashtags.filter(tag => tag).map((hashtag, index) => (
+                            <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-mono">
+                              {hashtag.startsWith('#') ? hashtag : `#${hashtag}`}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedProject.ngItems && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">NG項目</h4>
+                        <div className="bg-red-100 border border-red-200 rounded-lg p-3">
+                          <p className="text-red-800">{selectedProject.ngItems}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedProject.legalRequirements && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">法的要件</h4>
+                        <div className="bg-yellow-100 border border-yellow-200 rounded-lg p-3">
+                          <p className="text-yellow-800">{selectedProject.legalRequirements}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedProject.notes && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">注意点</h4>
+                        <div className="bg-blue-100 border border-blue-200 rounded-lg p-3">
+                          <p className="text-blue-800">{selectedProject.notes}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 二次利用・開示設定 */}
+              {(selectedProject.secondaryUsage || selectedProject.insightDisclosure) && (
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    🔒 二次利用・開示設定
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {selectedProject.secondaryUsage && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">二次利用</h4>
+                        <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                          selectedProject.secondaryUsage === '許可（条件なし）' 
+                            ? 'bg-green-100 text-green-800' 
+                            : selectedProject.secondaryUsage === '許可（条件あり）'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {selectedProject.secondaryUsage}
+                        </p>
+                      </div>
+                    )}
+                    {selectedProject.insightDisclosure && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">インサイト開示</h4>
+                        <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                          selectedProject.insightDisclosure === '必要' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {selectedProject.insightDisclosure}
+                        </p>
+                      </div>
+                    )}
+                    {selectedProject.secondaryUsageScope && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">二次利用範囲</h4>
+                        <p className="text-gray-700">{selectedProject.secondaryUsageScope}</p>
+                      </div>
+                    )}
+                    {selectedProject.secondaryUsagePeriod && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">二次利用期間</h4>
+                        <p className="text-gray-700">{selectedProject.secondaryUsagePeriod}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* アクションボタン */}
+              {!selectedProject.isApplied && (
+                <div className="flex justify-center space-x-4 pt-6 border-t">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setShowProjectDetail(false);
+                      setShowApplicationForm(true);
+                    }}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    このプロジェクトに応募する
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setShowProjectDetail(false);
+                      setShowRejectForm(true);
+                    }}
+                    className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    このプロジェクトを却下する
+                  </motion.button>
+                </div>
+              )}
+            </div>
           </motion.div>
         </div>
       )}
