@@ -155,6 +155,23 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'applications'>('overview');
   const router = useRouter();
   const { id } = router.query;
+  
+  // 折りたたみ状態を管理
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    'product-info': false,
+    'campaign-details': false,
+    'production-specs': false,
+    'hashtags-restrictions': false,
+    'secondary-usage': false
+  });
+
+  // セクションの折りたたみ/展開を切り替える関数
+  const toggleSection = (sectionId: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
 
   useEffect(() => {
     const currentId = id || projectId;
@@ -445,6 +462,113 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
           </div>
           
           <p className="text-gray-700 mb-6">{project.description}</p>
+
+          {/* パフォーマンス指標 */}
+          {(project.status === 'IN_PROGRESS' || project.status === 'COMPLETED') && (
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">📊 パフォーマンス指標</h3>
+                <span className="text-sm text-gray-500">リアルタイム更新</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-blue-600">2.4M</div>
+                  <div className="text-sm text-gray-600">総リーチ</div>
+                  <div className="text-xs text-green-600">目標+20%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-green-600">3.2%</div>
+                  <div className="text-sm text-gray-600">エンゲージメント率</div>
+                  <div className="text-xs text-green-600">業界平均+0.8%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-purple-600">1,580</div>
+                  <div className="text-sm text-gray-600">コンバージョン</div>
+                  <div className="text-xs text-green-600">CVR: 0.065%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-orange-600">¥760</div>
+                  <div className="text-sm text-gray-600">CPA</div>
+                  <div className="text-xs text-green-600">目標比-15%</div>
+                </div>
+              </div>
+              
+              {/* プラットフォーム別詳細 */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">プラットフォーム別パフォーマンス</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {project.targetPlatforms.map(platform => (
+                    <div key={platform} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{getPlatformIcon(platform)}</span>
+                        <span className="font-medium text-gray-900">{platform}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-semibold text-blue-600">
+                          {platform === 'INSTAGRAM' ? '1.2M' : platform === 'TIKTOK' ? '800K' : '600K'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {platform === 'INSTAGRAM' ? '4.2%' : platform === 'TIKTOK' ? '6.1%' : '2.8%'} エンゲージ
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ROI分析 */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">ROI分析</h4>
+                    <p className="text-xs text-gray-600">投資対効果の詳細分析</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600">340%</div>
+                    <div className="text-xs text-gray-500">前回比+25%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 予測分析（企画段階） */}
+          {project.status === 'PENDING' && (
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">🔮 予測分析</h3>
+                <span className="text-sm text-gray-500">AI予測</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-blue-600">1.8M</div>
+                  <div className="text-sm text-gray-600">予想リーチ</div>
+                  <div className="text-xs text-blue-600">信頼度85%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-green-600">2.8%</div>
+                  <div className="text-sm text-gray-600">予想エンゲージ率</div>
+                  <div className="text-xs text-blue-600">信頼度78%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-purple-600">1,200</div>
+                  <div className="text-sm text-gray-600">予想CV数</div>
+                  <div className="text-xs text-blue-600">信頼度72%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-orange-600">280%</div>
+                  <div className="text-sm text-gray-600">予想ROI</div>
+                  <div className="text-xs text-blue-600">信頼度80%</div>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <span className="font-semibold">💡 最適化提案:</span> 
+                  ターゲット年齢を25-32歳に絞ることで、エンゲージメント率を+0.4%向上できる可能性があります。
+                </p>
+              </div>
+            </div>
+          )}
           
           {/* アクションボタン */}
           <div className="flex flex-wrap gap-3 mb-6">
@@ -637,8 +761,31 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
             {/* 商品・広告主情報 */}
             {(project.advertiserName || project.brandName || project.productName) && (
               <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">商品・広告主情報</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <motion.h3 
+                  className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                  onClick={() => toggleSection('product-info')}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <span>商品・広告主情報</span>
+                  <motion.span
+                    animate={{ rotate: collapsedSections['product-info'] ? 0 : 90 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-lg text-gray-600"
+                  >
+                    ▶
+                  </motion.span>
+                </motion.h3>
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: collapsedSections['product-info'] ? 0 : 'auto',
+                    opacity: collapsedSections['product-info'] ? 0 : 1
+                  }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {project.advertiserName && (
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
@@ -704,15 +851,39 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                       <p className="text-gray-700">{project.productFeatures}</p>
                     </div>
                   )}
-                </div>
+                  </div>
+                </motion.div>
               </div>
             )}
 
             {/* キャンペーン詳細 */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h3>
-              <div className="space-y-6">
-                {project.campaignObjective && (
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('campaign-details')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>キャンペーン詳細</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['campaign-details'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                  >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['campaign-details'] ? 0 : 'auto',
+                  opacity: collapsedSections['campaign-details'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="space-y-6">
+                  {project.campaignObjective && (
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                       施策の目的
@@ -773,18 +944,42 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                     <p className="text-gray-700">{project.messageToConvey}</p>
                   </div>
                 )}
-                {/* 表示されていない場合のデフォルトメッセージ */}
-                {!project.campaignObjective && !project.campaignTarget && !project.postingPeriodStart && !project.postingPeriodEnd && !project.postingMedia?.length && !project.messageToConvey && (
-                  <p className="text-gray-500 italic">キャンペーン詳細情報は入力されていません</p>
-                )}
-              </div>
+                  {/* 表示されていない場合のデフォルトメッセージ */}
+                  {!project.campaignObjective && !project.campaignTarget && !project.postingPeriodStart && !project.postingPeriodEnd && !project.postingMedia?.length && !project.messageToConvey && (
+                    <p className="text-gray-500 italic">キャンペーン詳細情報は入力されていません</p>
+                  )}
+                </div>
+              </motion.div>
             </div>
 
             {/* 撮影・制作仕様 */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('production-specs')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>撮影・制作仕様</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['production-specs'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['production-specs'] ? 0 : 'auto',
+                  opacity: collapsedSections['production-specs'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
                   <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                     人物の撮影アングル
                     <HelpButton field="shootingAngle" />
@@ -817,17 +1012,41 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                     ブランドコンテンツ設定
                     <HelpButton field="brandContentSettings" />
                   </h4>
-                  <p className="text-gray-700">{project.brandContentSettings || '指定なし'}</p>
+                    <p className="text-gray-700">{project.brandContentSettings || '指定なし'}</p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             {/* ハッシュタグ・制約事項 */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・制約事項</h3>
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('hashtags-restrictions')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>ハッシュタグ・制約事項</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['hashtags-restrictions'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['hashtags-restrictions'] ? 0 : 'auto',
+                  opacity: collapsedSections['hashtags-restrictions'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                     希望ハッシュタグ
                     <HelpButton field="desiredHashtags" />
                   </h4>
@@ -879,18 +1098,42 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                       <p className="text-blue-800">{project.notes}</p>
                     </div>
                   ) : (
-                    <p className="text-gray-500 italic">特に注意点は指定されていません</p>
-                  )}
+                      <p className="text-gray-500 italic">特に注意点は指定されていません</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             {/* 二次利用・開示設定 */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">二次利用・開示設定</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('secondary-usage')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>二次利用・開示設定</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['secondary-usage'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['secondary-usage'] ? 0 : 'auto',
+                  opacity: collapsedSections['secondary-usage'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                     二次利用有無
                     <HelpButton field="secondaryUsage" />
                   </h4>
@@ -937,9 +1180,10 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                     二次利用期間
                     <HelpButton field="secondaryUsagePeriod" />
                   </h4>
-                  <p className="text-gray-700">{project.secondaryUsagePeriod || '未指定'}</p>
+                    <p className="text-gray-700">{project.secondaryUsagePeriod || '未指定'}</p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}

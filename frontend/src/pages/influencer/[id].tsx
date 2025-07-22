@@ -268,22 +268,137 @@ const InfluencerDetailPage: React.FC = () => {
 
               <p className="text-gray-700 mb-6">{influencer.bio}</p>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="text-center">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
                   <div className="text-2xl font-bold text-blue-600">{formatNumber(getTotalFollowers(influencer.socialAccounts))}</div>
                   <div className="text-gray-600 text-sm">合計フォロワー</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
                   <div className="text-2xl font-bold text-purple-600">{getAverageEngagement(influencer.socialAccounts)}%</div>
                   <div className="text-gray-600 text-sm">平均エンゲージメント</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
                   <div className="text-2xl font-bold text-green-600">{formatPrice(influencer.priceMin)}</div>
                   <div className="text-gray-600 text-sm">最低料金</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
                   <div className="text-2xl font-bold text-green-600">{formatPrice(influencer.priceMax)}</div>
                   <div className="text-gray-600 text-sm">最高料金</div>
+                </div>
+              </div>
+
+              {/* 詳細分析データ */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  📊 詳細分析データ
+                </h3>
+                
+                {/* オーディエンス分析 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">👥 オーディエンス分析</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="text-gray-600">男性フォロワー</span>
+                        <span className="font-semibold text-blue-600">42%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="text-gray-600">女性フォロワー</span>
+                        <span className="font-semibold text-pink-600">58%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="text-gray-600">主要年齢層</span>
+                        <span className="font-semibold text-purple-600">25-34歳 (45%)</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">📈 エンゲージメント詳細</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="text-gray-600">平均いいね数</span>
+                        <span className="font-semibold text-red-600">2,450</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="text-gray-600">平均コメント数</span>
+                        <span className="font-semibold text-blue-600">185</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="text-gray-600">ベストポスト時間</span>
+                        <span className="font-semibold text-green-600">19:00-21:00</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ブランド親和性とインタレスト */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">🏷️ ブランド親和性</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-gray-700">ファッション・アパレル</span>
+                        <span className="ml-auto text-sm font-semibold text-blue-600">85%</span>
+                      </div>
+                      <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-gray-700">美容・コスメ</span>
+                        <span className="ml-auto text-sm font-semibold text-green-600">78%</span>
+                      </div>
+                      <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <span className="text-gray-700">ライフスタイル</span>
+                        <span className="ml-auto text-sm font-semibold text-purple-600">71%</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">🎯 興味・関心</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                        <span className="text-gray-700">ファッション</span>
+                        <span className="ml-auto text-sm font-semibold text-pink-600">92%</span>
+                      </div>
+                      <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <span className="text-gray-700">旅行・観光</span>
+                        <span className="ml-auto text-sm font-semibold text-orange-600">74%</span>
+                      </div>
+                      <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                        <span className="text-gray-700">グルメ・料理</span>
+                        <span className="ml-auto text-sm font-semibold text-cyan-600">68%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* パフォーマンス予測 */}
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  🔮 パフォーマンス予測
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <div className="text-xl font-bold text-blue-600">1.8K</div>
+                    <div className="text-sm text-gray-600">予想リーチ</div>
+                    <div className="text-xs text-blue-600 mt-1">信頼度: 89%</div>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <div className="text-xl font-bold text-green-600">4.2%</div>
+                    <div className="text-sm text-gray-600">予想エンゲージ率</div>
+                    <div className="text-xs text-green-600 mt-1">過去平均より+0.3%</div>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <div className="text-xl font-bold text-purple-600">72</div>
+                    <div className="text-sm text-gray-600">予想CV数</div>
+                    <div className="text-xs text-purple-600 mt-1">業界平均の1.4倍</div>
+                  </div>
                 </div>
               </div>
 

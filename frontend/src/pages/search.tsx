@@ -13,16 +13,58 @@ const SearchPage: React.FC = () => {
   const router = useRouter();
 
   // 検索フィルター
-  const [filters, setFilters] = useState({
-    query: '',
-    category: '',
-    prefecture: '',
-    platform: '', // SNSプラットフォーム選択
-    minFollowers: '',
-    maxFollowers: '',
-    page: 1,
-    limit: 20,
-    testLargeData: false, // パフォーマンステスト用
+  const [filters, setFilters] = useState(() => {
+    // ローカルストレージから復元
+    const savedFilters = localStorage.getItem('searchFilters');
+    if (savedFilters) {
+      try {
+        const parsed = JSON.parse(savedFilters);
+        return {
+          query: parsed.query || '',
+          category: parsed.category || '',
+          prefecture: parsed.prefecture || '',
+          platform: parsed.platform || '',
+          minFollowers: parsed.minFollowers || '',
+          maxFollowers: parsed.maxFollowers || '',
+          minEngagement: parsed.minEngagement || '',
+          maxEngagement: parsed.maxEngagement || '',
+          ageMin: parsed.ageMin || '',
+          ageMax: parsed.ageMax || '',
+          gender: parsed.gender || '',
+          priceMin: parsed.priceMin || '',
+          priceMax: parsed.priceMax || '',
+          sortBy: parsed.sortBy || 'relevance',
+          verifiedOnly: parsed.verifiedOnly || false,
+          hasMediaKit: parsed.hasMediaKit || false,
+          page: 1, // ページは常に1から開始
+          limit: parsed.limit || 20,
+          testLargeData: false,
+        };
+      } catch (e) {
+        console.error('Failed to parse saved filters:', e);
+      }
+    }
+    return {
+      query: '',
+      category: '',
+      prefecture: '',
+      platform: '',
+      minFollowers: '',
+      maxFollowers: '',
+      minEngagement: '',
+      maxEngagement: '',
+      ageMin: '',
+      ageMax: '',
+      gender: '',
+      priceMin: '',
+      priceMax: '',
+      sortBy: 'relevance',
+      verifiedOnly: false,
+      hasMediaKit: false,
+      page: 1,
+      limit: 20,
+      testLargeData: false,
+    };
   });
 
   // パフォーマンス測定
@@ -118,7 +160,29 @@ const SearchPage: React.FC = () => {
   };
 
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+    const newFilters = { ...filters, [key]: value, page: 1 };
+    setFilters(newFilters);
+    // ローカルストレージに保存
+    const filtersToSave = {
+      query: newFilters.query,
+      category: newFilters.category,
+      prefecture: newFilters.prefecture,
+      platform: newFilters.platform,
+      minFollowers: newFilters.minFollowers,
+      maxFollowers: newFilters.maxFollowers,
+      minEngagement: newFilters.minEngagement,
+      maxEngagement: newFilters.maxEngagement,
+      ageMin: newFilters.ageMin,
+      ageMax: newFilters.ageMax,
+      gender: newFilters.gender,
+      priceMin: newFilters.priceMin,
+      priceMax: newFilters.priceMax,
+      sortBy: newFilters.sortBy,
+      verifiedOnly: newFilters.verifiedOnly,
+      hasMediaKit: newFilters.hasMediaKit,
+      limit: newFilters.limit,
+    };
+    localStorage.setItem('searchFilters', JSON.stringify(filtersToSave));
   };
 
   // CSV抽出機能（現在のページのみ）
@@ -418,102 +482,241 @@ const SearchPage: React.FC = () => {
 
         {/* 検索フィルター */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">キーワード</label>
-              <input
-                type="text"
-                value={filters.query}
-                onChange={(e) => handleFilterChange('query', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="インフルエンサー名..."
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
+          {/* 基本フィルター */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              🔍 基本検索
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">キーワード</label>
+                <input
+                  type="text"
+                  value={filters.query}
+                  onChange={(e) => handleFilterChange('query', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="インフルエンサー名..."
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
+                <select
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">全て</option>
+                  <option value="美容">美容</option>
+                  <option value="ライフスタイル">ライフスタイル</option>
+                  <option value="ファッション">ファッション</option>
+                  <option value="グルメ">グルメ</option>
+                  <option value="旅行">旅行</option>
+                  <option value="テック">テック</option>
+                  <option value="フィットネス">フィットネス</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">都道府県</label>
+                <select
+                  value={filters.prefecture}
+                  onChange={(e) => handleFilterChange('prefecture', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">全て</option>
+                  <option value="東京都">東京都</option>
+                  <option value="大阪府">大阪府</option>
+                  <option value="神奈川県">神奈川県</option>
+                  <option value="愛知県">愛知県</option>
+                  <option value="福岡県">福岡県</option>
+                  <option value="北海道">北海道</option>
+                  <option value="京都府">京都府</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">SNSプラットフォーム</label>
+                <select
+                  value={filters.platform}
+                  onChange={(e) => handleFilterChange('platform', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">全て</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="X">X (Twitter)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">並び順</label>
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="relevance">関連度</option>
+                  <option value="followers_desc">フォロワー数(多い順)</option>
+                  <option value="followers_asc">フォロワー数(少ない順)</option>
+                  <option value="engagement_desc">エンゲージメント率(高い順)</option>
+                  <option value="price_asc">料金(安い順)</option>
+                  <option value="price_desc">料金(高い順)</option>
+                  <option value="newest">登録日(新しい順)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">表示件数</label>
+                <select
+                  value={filters.limit}
+                  onChange={(e) => handleFilterChange('limit', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={10}>10件</option>
+                  <option value={20}>20件</option>
+                  <option value={50}>50件</option>
+                  <option value={100}>100件</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* 高度なフィルター */}
+          <div className="border-t border-gray-200 pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              ⚙️ 高度なフィルター
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* フォロワー数範囲 */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">フォロワー数範囲</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={filters.minFollowers}
+                    onChange={(e) => handleFilterChange('minFollowers', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小 (例: 1000)"
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                  <input
+                    type="number"
+                    value={filters.maxFollowers}
+                    onChange={(e) => handleFilterChange('maxFollowers', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大 (例: 100000)"
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                </div>
+              </div>
+
+              {/* エンゲージメント率範囲 */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">エンゲージメント率(%)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={filters.minEngagement}
+                    onChange={(e) => handleFilterChange('minEngagement', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小 (例: 2.0)"
+                  />
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={filters.maxEngagement}
+                    onChange={(e) => handleFilterChange('maxEngagement', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大 (例: 10.0)"
+                  />
+                </div>
+              </div>
+
+              {/* 年齢範囲 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">年齢範囲</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={filters.ageMin}
+                    onChange={(e) => handleFilterChange('ageMin', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小"
+                  />
+                  <input
+                    type="number"
+                    value={filters.ageMax}
+                    onChange={(e) => handleFilterChange('ageMax', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大"
+                  />
+                </div>
+              </div>
+
+              {/* 性別 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">性別</label>
+                <select
+                  value={filters.gender}
+                  onChange={(e) => handleFilterChange('gender', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">指定しない</option>
+                  <option value="MALE">男性</option>
+                  <option value="FEMALE">女性</option>
+                  <option value="OTHER">その他</option>
+                </select>
+              </div>
+
+              {/* 料金範囲 */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">料金範囲 (円)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={filters.priceMin}
+                    onChange={(e) => handleFilterChange('priceMin', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小 (例: 50000)"
+                  />
+                  <input
+                    type="number"
+                    value={filters.priceMax}
+                    onChange={(e) => handleFilterChange('priceMax', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大 (例: 500000)"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
-              <select
-                value={filters.category}
-                onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">全て</option>
-                <option value="美容">美容</option>
-                <option value="ライフスタイル">ライフスタイル</option>
-                <option value="ファッション">ファッション</option>
-                <option value="グルメ">グルメ</option>
-                <option value="旅行">旅行</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">都道府県</label>
-              <select
-                value={filters.prefecture}
-                onChange={(e) => handleFilterChange('prefecture', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">全て</option>
-                <option value="東京都">東京都</option>
-                <option value="大阪府">大阪府</option>
-                <option value="神奈川県">神奈川県</option>
-                <option value="愛知県">愛知県</option>
-                <option value="福岡県">福岡県</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">SNSプラットフォーム</label>
-              <select
-                value={filters.platform}
-                onChange={(e) => handleFilterChange('platform', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">全て</option>
-                <option value="Instagram">Instagram</option>
-                <option value="TikTok">TikTok</option>
-                <option value="YouTube">YouTube</option>
-                <option value="X">X (Twitter)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">最小フォロワー数</label>
-              <input
-                type="number"
-                value={filters.minFollowers}
-                onChange={(e) => handleFilterChange('minFollowers', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="1000"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">最大フォロワー数</label>
-              <input
-                type="number"
-                value={filters.maxFollowers}
-                onChange={(e) => handleFilterChange('maxFollowers', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="100000"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">表示件数</label>
-              <select
-                value={filters.limit}
-                onChange={(e) => handleFilterChange('limit', parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={10}>10件</option>
-                <option value={20}>20件</option>
-                <option value={50}>50件</option>
-                <option value={100}>100件</option>
-              </select>
+            {/* 特別フィルター */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-3">特別条件</label>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={filters.verifiedOnly}
+                    onChange={(e) => handleFilterChange('verifiedOnly', e.target.checked)}
+                    className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">認証済みアカウントのみ</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={filters.hasMediaKit}
+                    onChange={(e) => handleFilterChange('hasMediaKit', e.target.checked)}
+                    className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">メディアキット保有者のみ</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -543,22 +746,34 @@ const SearchPage: React.FC = () => {
             
             <button
               onClick={() => {
-                setFilters({
+                const resetFilters = {
                   query: '',
                   category: '',
                   prefecture: '',
                   platform: '',
                   minFollowers: '',
                   maxFollowers: '',
+                  minEngagement: '',
+                  maxEngagement: '',
+                  ageMin: '',
+                  ageMax: '',
+                  gender: '',
+                  priceMin: '',
+                  priceMax: '',
+                  sortBy: 'relevance',
+                  verifiedOnly: false,
+                  hasMediaKit: false,
                   page: 1,
                   limit: 20,
                   testLargeData: filters.testLargeData,
-                });
+                };
+                setFilters(resetFilters);
+                localStorage.removeItem('searchFilters');
                 handleSearch();
               }}
               className="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
             >
-              リセット
+              🔄 リセット
             </button>
           </div>
         </div>
@@ -579,23 +794,28 @@ const SearchPage: React.FC = () => {
         )}
 
         {/* アクティブフィルター表示 */}
-        {(filters.query || filters.category || filters.prefecture || filters.platform || filters.minFollowers || filters.maxFollowers) && (
+        {(filters.query || filters.category || filters.prefecture || filters.platform || filters.minFollowers || filters.maxFollowers || filters.minEngagement || filters.maxEngagement || filters.ageMin || filters.ageMax || filters.gender || filters.priceMin || filters.priceMax || filters.verifiedOnly || filters.hasMediaKit) && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-            <h3 className="font-semibold text-blue-900 mb-2">現在の検索条件</h3>
+            <h3 className="font-semibold text-blue-900 mb-3 flex items-center">
+              🎯 現在の検索条件
+              <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                {[filters.query, filters.category, filters.prefecture, filters.platform, filters.minFollowers, filters.maxFollowers, filters.minEngagement, filters.maxEngagement, filters.ageMin, filters.ageMax, filters.gender, filters.priceMin, filters.priceMax, filters.verifiedOnly, filters.hasMediaKit].filter(Boolean).length}個の条件
+              </span>
+            </h3>
             <div className="flex flex-wrap gap-2">
               {filters.query && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  キーワード: {filters.query}
+                  🔍 キーワード: {filters.query}
                 </span>
               )}
               {filters.category && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  カテゴリ: {filters.category}
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                  📂 カテゴリ: {filters.category}
                 </span>
               )}
               {filters.prefecture && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  都道府県: {filters.prefecture}
+                <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
+                  📍 都道府県: {filters.prefecture}
                 </span>
               )}
               {filters.platform && (
@@ -603,14 +823,51 @@ const SearchPage: React.FC = () => {
                   📱 {filters.platform}専門
                 </span>
               )}
-              {filters.minFollowers && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  最小フォロワー: {parseInt(filters.minFollowers).toLocaleString()}
+              {(filters.minFollowers || filters.maxFollowers) && (
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
+                  👥 フォロワー: {filters.minFollowers ? parseInt(filters.minFollowers).toLocaleString() : '0'}〜{filters.maxFollowers ? parseInt(filters.maxFollowers).toLocaleString() : '∞'}
                 </span>
               )}
-              {filters.maxFollowers && (
+              {(filters.minEngagement || filters.maxEngagement) && (
+                <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">
+                  📈 エンゲージ: {filters.minEngagement || '0'}%〜{filters.maxEngagement || '∞'}%
+                </span>
+              )}
+              {(filters.ageMin || filters.ageMax) && (
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                  🎂 年齢: {filters.ageMin || '0'}〜{filters.ageMax || '∞'}歳
+                </span>
+              )}
+              {filters.gender && (
+                <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm">
+                  👤 性別: {filters.gender === 'MALE' ? '男性' : filters.gender === 'FEMALE' ? '女性' : 'その他'}
+                </span>
+              )}
+              {(filters.priceMin || filters.priceMax) && (
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm">
+                  💰 料金: ¥{filters.priceMin ? parseInt(filters.priceMin).toLocaleString() : '0'}〜¥{filters.priceMax ? parseInt(filters.priceMax).toLocaleString() : '∞'}
+                </span>
+              )}
+              {filters.verifiedOnly && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  最大フォロワー: {parseInt(filters.maxFollowers).toLocaleString()}
+                  ✅ 認証済みのみ
+                </span>
+              )}
+              {filters.hasMediaKit && (
+                <span className="px-3 py-1 bg-violet-100 text-violet-800 rounded-full text-sm">
+                  📋 メディアキット保有
+                </span>
+              )}
+              {filters.sortBy !== 'relevance' && (
+                <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                  🔄 並び順: {
+                    filters.sortBy === 'followers_desc' ? 'フォロワー数(多い順)' :
+                    filters.sortBy === 'followers_asc' ? 'フォロワー数(少ない順)' :
+                    filters.sortBy === 'engagement_desc' ? 'エンゲージメント率(高い順)' :
+                    filters.sortBy === 'price_asc' ? '料金(安い順)' :
+                    filters.sortBy === 'price_desc' ? '料金(高い順)' :
+                    filters.sortBy === 'newest' ? '登録日(新しい順)' : '関連度'
+                  }
                 </span>
               )}
             </div>
