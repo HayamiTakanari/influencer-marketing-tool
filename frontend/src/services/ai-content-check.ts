@@ -2,30 +2,36 @@
 // プロジェクト情報とコンテ内容の整合性をAIで判定
 
 interface ProjectInfo {
+  id: string;
   title: string;
   description: string;
   category: string;
-  brandName: string;
-  productName: string;
-  productFeatures: string;
+  brandName?: string;
+  productName?: string;
+  productFeatures?: string;
   campaignObjective: string;
   campaignTarget: string;
-  messageToConvey: string;
+  messageToConvey: string | string[]; // 配列形式にも対応
   targetPlatforms: string[];
+  budget?: number;
+  deadline?: string;
 }
 
 interface ConteInfo {
+  messageContent: string; // メッセージの全文
   overallTheme?: string;
   keyMessages?: string[];
-  scenes: Array<{
+  scenes?: Array<{
     id: string;
     sceneNumber: number;
     description: string;
-    duration: number;
-    cameraAngle: string;
+    duration?: number;
+    cameraAngle?: string;
     notes?: string;
   }>;
   targetDuration?: number;
+  estimatedBudget?: number;
+  deliverables?: string[]; // 成果物（動画、写真など）
 }
 
 interface AIContentCheckIssue {
@@ -47,135 +53,253 @@ interface AIContentCheckResult {
   confidence: number;
 }
 
-// モックAI判定機能（実際はOpenAI APIなどを使用）
+// メッセージからコンテ情報を抽出するヘルパー関数
+const extractConteFromMessage = (messageContent: string): ConteInfo => {
+  const conte: ConteInfo = { messageContent };
+  
+  // テーマの抽出
+  const themeMatch = messageContent.match(/テーマ[:\s]*([^\n\r]+)/i);
+  if (themeMatch) conte.overallTheme = themeMatch[1].trim();
+  
+  // キーメッセージの抽出
+  const messageMatches = messageContent.match(/キーメッセージ[:\s]*([^シーン]+)/is);
+  if (messageMatches) {
+    conte.keyMessages = messageMatches[1]
+      .split(/[-・\n]/)
+      .map(msg => msg.trim())
+      .filter(msg => msg && !msg.match(/^[:\s]*$/));
+  }
+  
+  // シーンの抽出
+  const sceneMatches = messageContent.match(/シーン\d+[:\s]*([^\n\r]+)/gi);
+  if (sceneMatches) {
+    conte.scenes = sceneMatches.map((match, index) => {
+      const durationMatch = match.match(/\((\d+)\s*秒\)/);
+      return {
+        id: `scene-${index + 1}`,
+        sceneNumber: index + 1,
+        description: match.replace(/シーン\d+[:\s]*/, '').replace(/\(\d+\s*秒\)/, '').trim(),
+        duration: durationMatch ? parseInt(durationMatch[1]) : undefined
+      };
+    });
+  }
+  
+  return conte;
+};
+
+// 改良されたAI判定機能
 export const checkConteAlignment = async (
   projectInfo: ProjectInfo, 
-  conteInfo: ConteInfo
+  conteInfo: ConteInfo | string // 文字列の場合は自動抽出
 ): Promise<AIContentCheckResult> => {
-  // 実際の実装では、プロジェクト情報とコンテ内容をAIに送信して判定
+  // 文字列の場合はコンテ情報を自動抽出
+  const conte = typeof conteInfo === 'string' ? extractConteFromMessage(conteInfo) : conteInfo;
   
-  // モック実装 - 実際はAIモデルを使用
+  console.log('🤖 AIチェック開始:', { project: projectInfo.title, conte: conte.overallTheme });
+  
   const issues: AIContentCheckIssue[] = [];
   
-  // テーマの整合性チェック（シミュレーション）
-  if (conteInfo.overallTheme) {
+  // プロジェクトの「伝えたいこと」を配列に正規化
+  const projectMessages = Array.isArray(projectInfo.messageToConvey) 
+    ? projectInfo.messageToConvey.filter(msg => msg.trim())
+    : [projectInfo.messageToConvey].filter(msg => msg.trim());
+  
+  // 1. テーマの整合性チェック
+  if (conte.overallTheme) {
     const projectKeywords = [
       ...projectInfo.campaignObjective.toLowerCase().split(/\s+/),
-      ...projectInfo.messageToConvey.toLowerCase().split(/\s+/),
-      ...projectInfo.productFeatures.toLowerCase().split(/\s+/)
-    ].filter(word => word.length > 2); // 2文字以下の単語は除外
+      ...projectMessages.join(' ').toLowerCase().split(/\s+/),
+      ...(projectInfo.productFeatures || '').toLowerCase().split(/\s+/)
+    ].filter(word => word.length > 2);
     
-    const conteThemeWords = conteInfo.overallTheme.toLowerCase().split(/\s+/);
+    const conteThemeWords = conte.overallTheme.toLowerCase();
     
-    // より柔軟な類似度チェック（関連キーワードも含める）
-    const beautyKeywords = ['スキンケア', '化粧', '美容', '保湿', 'ケア', '肌'];
-    const hasCommonKeywords = projectKeywords.some(keyword => 
-      conteThemeWords.some(word => word.includes(keyword) || keyword.includes(word))
-    ) || (projectInfo.category === '美容・化粧品' && 
-         beautyKeywords.some(keyword => conteInfo.overallTheme.includes(keyword)));
+    // カテゴリー別関連キーワード
+    const categoryKeywords: { [key: string]: string[] } = {
+      '美容・化粧品': ['スキンケア', '化粧', '美容', '保湿', 'ケア', '肌', 'メイク'],
+      'ファッション': ['コーディネート', 'スタイリング', 'ファッション', '着こなし'],
+      'グルメ・食品': ['レシピ', '料理', '食べ物', 'グルメ', 'レストラン', '美味'],
+      'ライフスタイル': ['日常', 'ライフスタイル', '暮らし', '生活'],
+      'フィットネス・健康': ['トレーニング', 'ダイエット', '健康', 'フィットネス', '運動']
+    };
     
-    if (!hasCommonKeywords) {
+    const relevantKeywords = categoryKeywords[projectInfo.category] || [];
+    
+    const hasThemeAlignment = projectKeywords.some(keyword => 
+      conteThemeWords.includes(keyword)
+    ) || relevantKeywords.some(keyword => 
+      conteThemeWords.includes(keyword)
+    );
+    
+    if (!hasThemeAlignment) {
       issues.push({
         id: 'theme-mismatch-1',
         category: 'theme',
         severity: 'high',
-        title: 'テーマの齟齬の可能性',
-        description: 'コンテのテーマがプロジェクトの目的と異なる可能性があります',
+        title: '❗ テーマとプロジェクト内容の不一致',
+        description: `コンテのテーマ「${conte.overallTheme}」がプロジェクトの趣旨と合致していません。`,
         affectedElement: 'overall_theme',
-        suggestion: `プロジェクトの目的「${projectInfo.campaignObjective}」により合致したテーマを検討してください`
+        suggestion: `プロジェクト「${projectInfo.title}」の目的「${projectInfo.campaignObjective}」に沿ったテーマに変更することをお勧めします。`
       });
     }
   }
   
-  // キーメッセージの整合性チェック
-  if (conteInfo.keyMessages && conteInfo.keyMessages.length > 0) {
-    const projectMessages = projectInfo.messageToConvey.toLowerCase();
-    const projectMessageWords = projectMessages.split(/\s+/).filter(word => word.length > 1);
+  // 2. キーメッセージの整合性チェック
+  if (conte.keyMessages && conte.keyMessages.length > 0) {
+    const projectMessageText = projectMessages.join(' ').toLowerCase();
     
-    const hasAlignedMessages = conteInfo.keyMessages.some(message => {
+    let alignedMessagesCount = 0;
+    
+    conte.keyMessages.forEach((message, index) => {
       const messageWords = message.toLowerCase().split(/\s+/);
-      // より緩い条件：関連キーワードも考慮
-      return messageWords.some(word => 
-        projectMessageWords.some(pWord => 
-          word.includes(pWord) || pWord.includes(word) || 
-          (word.length > 2 && pWord.length > 2 && 
-           (word.includes('効果') || word.includes('実感') || word.includes('潤い')) &&
-           (pWord.includes('効果') || pWord.includes('保湿') || pWord.includes('乾燥')))
+      const hasAlignment = messageWords.some(word => 
+        projectMessages.some(pMessage => 
+          pMessage.toLowerCase().includes(word) || 
+          word.includes(pMessage.toLowerCase().split(' ')[0])
         )
       );
+      
+      if (hasAlignment) alignedMessagesCount++;
     });
     
-    if (!hasAlignedMessages) {
+    const alignmentRatio = alignedMessagesCount / conte.keyMessages.length;
+    
+    if (alignmentRatio < 0.3) { // 30%未満の場合は警告
       issues.push({
         id: 'message-mismatch-1',
         category: 'message',
         severity: 'medium',
-        title: 'キーメッセージの齟齬',
-        description: 'コンテのキーメッセージがプロジェクトで伝えたい内容と異なる可能性があります',
+        title: '⚠️ キーメッセージの内容不足',
+        description: `コンテのキーメッセージがプロジェクトで伝えたい内容と十分に合致していません。一致率: ${Math.round(alignmentRatio * 100)}%`,
         affectedElement: 'key_message',
-        suggestion: `プロジェクトで伝えたいこと「${projectInfo.messageToConvey}」を含める必要があります`
+        suggestion: `プロジェクトで重視している「${projectMessages.join('」「')}」の要素をキーメッセージに含めることをお勧めします。`
       });
     }
   }
   
-  // シーン内容の妥当性チェック（簡易版）
-  if (conteInfo.scenes.length > 0) {
-    // 美容・化粧品プロジェクトで食べ物が中心のシーンが多い場合など
-    if (projectInfo.category === '美容・化粧品') {
-      const foodRelatedScenes = conteInfo.scenes.filter(scene => 
-        scene.description.toLowerCase().includes('食べ') ||
-        scene.description.toLowerCase().includes('料理') ||
-        scene.description.toLowerCase().includes('グルメ')
+  // 3. シーン内容の妥当性チェック
+  if (conte.scenes && conte.scenes.length > 0) {
+    const categoryMismatchScenes: any[] = [];
+    
+    // カテゴリー別の不適切なキーワード
+    const inappropriateKeywords: { [key: string]: string[] } = {
+      '美容・化粧品': ['食べ', '料理', 'グルメ', 'ラーメン', '居酒屋'],
+      'グルメ・食品': ['化粧', 'スキンケア', 'メイク'],
+      'ファッション': ['料理', '食事', 'スキンケア'],
+      'フィットネス・健康': ['食べ放題', 'お酒', '甘いもの']
+    };
+    
+    const badKeywords = inappropriateKeywords[projectInfo.category] || [];
+    
+    conte.scenes.forEach(scene => {
+      const hasInappropriateContent = badKeywords.some(keyword => 
+        scene.description.toLowerCase().includes(keyword)
       );
       
-      if (foodRelatedScenes.length > conteInfo.scenes.length / 2) {
-        issues.push({
-          id: 'scene-category-mismatch-1',
-          category: 'scene_content',
-          severity: 'medium',
-          title: 'カテゴリーとシーン内容の齟齬',
-          description: '美容・化粧品のプロジェクトですが、食べ物中心のシーンが多く含まれています',
-          affectedElement: 'scene',
-          suggestion: '商品の使用シーンや効果を示すシーンに変更を検討してください'
-        });
+      if (hasInappropriateContent) {
+        categoryMismatchScenes.push(scene);
       }
+    });
+    
+    if (categoryMismatchScenes.length > 0) {
+      issues.push({
+        id: 'scene-category-mismatch-1',
+        category: 'scene_content',
+        severity: 'medium',
+        title: '🎬 シーン内容とカテゴリーの不一致',
+        description: `「${projectInfo.category}」のプロジェクトですが、カテゴリーに合わない内容のシーンが${categoryMismatchScenes.length}個含まれています。`,
+        affectedElement: 'scene',
+        suggestion: `プロジェクトカテゴリー「${projectInfo.category}」に適したシーン内容に変更することをお勧めします。商品やサービスの実際の使用場面を中心に構成してください。`
+      });
     }
   }
   
-  // 尺の妥当性チェック
-  const totalDuration = conteInfo.scenes.reduce((sum, scene) => sum + scene.duration, 0);
-  if (projectInfo.targetPlatforms.includes('TIKTOK') && totalDuration > 60) {
-    issues.push({
-      id: 'duration-platform-mismatch-1',
-      category: 'duration',
-      severity: 'medium',
-      title: 'プラットフォームと動画尺の齟齬',
-      description: 'TikTok投稿予定ですが、動画が60秒を超えています',
-      affectedElement: 'duration',
-      suggestion: 'TikTokでは短尺動画（15-60秒）がより効果的です'
+  // 4. 動画尺とプラットフォームの適合性チェック
+  const scenesWithDuration = conte.scenes?.filter(scene => scene.duration) || [];
+  if (scenesWithDuration.length > 0) {
+    const totalDuration = scenesWithDuration.reduce((sum, scene) => sum + (scene.duration || 0), 0);
+    
+    // プラットフォーム別推奨尺
+    const platformDurationLimits: { [key: string]: { max: number; optimal: string } } = {
+      'TIKTOK': { max: 60, optimal: '15-60秒' },
+      'INSTAGRAM_REEL': { max: 90, optimal: '15-90秒' },
+      'INSTAGRAM_STORY': { max: 15, optimal: '15秒以内' },
+      'YOUTUBE_SHORTS': { max: 60, optimal: '30-60秒' },
+      'TWITTER': { max: 140, optimal: '30-140秒' }
+    };
+    
+    projectInfo.targetPlatforms.forEach(platform => {
+      const limit = platformDurationLimits[platform];
+      if (limit && totalDuration > limit.max) {
+        issues.push({
+          id: `duration-${platform.toLowerCase()}-1`,
+          category: 'duration',
+          severity: 'medium',
+          title: `⏱️ ${platform}の動画尺オーバー`,
+          description: `${platform}向けですが、動画尺が${totalDuration}秒で推奨時間を超えています。`,
+          affectedElement: 'duration',
+          suggestion: `${platform}では${limit.optimal}の動画がより効果的です。シーンを短縮するか、重要な部分に絞ることをお勧めします。`
+        });
+      }
     });
   }
   
-  // 全体的な評価を決定
+  // 5. ターゲットオーディエンスの適合性チェック
+  if (conte.messageContent) {
+    const targetAge = projectInfo.campaignTarget.toLowerCase();
+    const isYoungTarget = targetAge.includes('10代') || targetAge.includes('20代');
+    const isBusinessTarget = targetAge.includes('ビジネス') || targetAge.includes('会社員');
+    
+    if (isYoungTarget && conte.messageContent.includes('敬語') && conte.messageContent.length > 100) {
+      issues.push({
+        id: 'target-mismatch-1',
+        category: 'target_audience',
+        severity: 'low',
+        title: '📱 ターゲットと表現スタイルのミスマッチ',
+        description: '若年層向けですが、少し堅い表現が含まれている可能性があります。',
+        affectedElement: 'target_content',
+        suggestion: 'より親しみやすく、カジュアルな表現にすることで若年層により響きやすくなります。'
+      });
+    }
+  }
+  
+  // 6. 全体的な評価を決定
   const highIssues = issues.filter(issue => issue.severity === 'high').length;
   const mediumIssues = issues.filter(issue => issue.severity === 'medium').length;
+  const lowIssues = issues.filter(issue => issue.severity === 'low').length;
   
   let overallAlignment: 'aligned' | 'minor_issues' | 'major_issues';
-  if (highIssues > 0 || mediumIssues > 2) {
+  let confidenceScore = 95; // 基本信頼度
+  
+  if (highIssues > 0) {
     overallAlignment = 'major_issues';
-  } else if (mediumIssues > 0 || issues.length > 0) {
+    confidenceScore -= (highIssues * 20);
+  } else if (mediumIssues > 1) {
+    overallAlignment = 'major_issues';
+    confidenceScore -= (mediumIssues * 15);
+  } else if (mediumIssues > 0 || lowIssues > 2) {
     overallAlignment = 'minor_issues';
+    confidenceScore -= (mediumIssues * 10 + lowIssues * 5);
   } else {
     overallAlignment = 'aligned';
   }
   
-  return {
+  const result = {
     id: `ai-check-${Date.now()}`,
     checkedAt: new Date().toISOString(),
     overallAlignment,
     issues,
-    confidence: Math.max(60, 100 - (issues.length * 10)) // 簡易的な信頼度計算
+    confidence: Math.max(60, confidenceScore)
   };
+  
+  console.log('🤖 AIチェック完了:', {
+    project: projectInfo.title,
+    result: overallAlignment,
+    issueCount: issues.length,
+    confidence: result.confidence
+  });
+  
+  return result;
 };
 
 // APIエンドポイント呼び出し（実際の実装）

@@ -868,52 +868,44 @@ const ProjectChatPage: React.FC = () => {
   };
   
   // AIコンテンツチェック関数
-  const handleAIContentCheck = async (conteMessage: Message) => {
-    if (!project || !conteMessage.conteData || !user || user.role !== 'CLIENT') return;
+  const handleAIContentCheck = async (message: Message) => {
+    if (!project || !user || user.role !== 'CLIENT') return;
+    
+    // コンテメッセージかどうかをチェック
+    const isConteMessage = message.messageType === 'conte' || 
+                          (message.content && (message.content.includes('テーマ') || 
+                                               message.content.includes('シーン') || 
+                                               message.content.includes('キーメッセージ')));
+    
+    if (!isConteMessage) {
+      alert('このメッセージはコンテンツではないため、AIチェックできません。');
+      return;
+    }
     
     setIsAiChecking(true);
     
     try {
       const projectInfo: ProjectInfo = {
+        id: project.id,
         title: project.title,
         description: project.description,
         category: project.category,
-        brandName: project.brandName || '',
+        brandName: project.brandName || project.title,
         productName: project.productName || '',
         productFeatures: project.productFeatures || '',
-        campaignObjective: project.campaignObjective || '',
-        campaignTarget: project.campaignTarget || '',
-        messageToConvey: project.messageToConvey || '',
-        targetPlatforms: project.targetPlatforms || []
+        campaignObjective: project.campaignObjective || project.description,
+        campaignTarget: project.campaignTarget || '一般消費者',
+        messageToConvey: project.messageToConvey || project.description,
+        targetPlatforms: project.targetPlatforms || ['INSTAGRAM']
       };
       
-      const conteInfo: ConteInfo = {
-        overallTheme: conteMessage.conteData.overallTheme,
-        keyMessages: conteMessage.conteData.keyMessages,
-        scenes: conteMessage.conteData.scenes || [],
-        targetDuration: conteMessage.conteData.targetDuration
-      };
-      
-      const checkResult = await checkConteAlignment(projectInfo, conteInfo);
-      
-      // 結果をメッセージに追加
-      setMessages(prev => prev.map(msg => {
-        if (msg.id === conteMessage.id) {
-          return {
-            ...msg,
-            conteData: {
-              ...msg.conteData!,
-              aiContentCheck: checkResult
-            }
-          };
-        }
-        return msg;
-      }));
+      // メッセージ内容から直接コンテ情報を抽出
+      const checkResult = await checkConteAlignment(projectInfo, message.content);
       
       // 結果を状態に保存
       setAiCheckResults(prev => {
         const newResults = new Map(prev);
-        newResults.set(conteMessage.id, checkResult);
+        newResults.set(message.id, checkResult);
         return newResults;
       });
       
