@@ -1019,6 +1019,11 @@ export const applyToProject = async (data: { projectId: string; message: string;
   return response.data;
 };
 
+export const rejectProject = async (data: { projectId: string; reason: string }) => {
+  const response = await api.post('/projects/reject', data);
+  return response.data;
+};
+
 // プロジェクトスケジュール関連API
 export const getProjectSchedule = async (projectId: string) => {
   // Mock response for now, API implementation needed

@@ -8,6 +8,9 @@ interface Application {
   message: string;
   proposedPrice: number;
   isAccepted: boolean;
+  isRejected?: boolean;
+  rejectReason?: string;
+  rejectedAt?: string;
   appliedAt: string;
   influencer: {
     id: string;
@@ -131,8 +134,9 @@ const ApplicationsPage: React.FC = () => {
     let matchesProject = true;
 
     // Status filter
-    if (statusFilter === 'pending') matchesStatus = !application.isAccepted && application.project.status === 'PENDING';
+    if (statusFilter === 'pending') matchesStatus = !application.isAccepted && !application.isRejected && application.project.status === 'PENDING';
     else if (statusFilter === 'accepted') matchesStatus = application.isAccepted;
+    else if (statusFilter === 'rejected') matchesStatus = application.isRejected === true;
 
     // Project filter
     if (projectFilter !== 'all') matchesProject = application.project.id === projectFilter;
@@ -241,7 +245,8 @@ const ApplicationsPage: React.FC = () => {
                 {[
                   { value: 'all', label: 'すべて' },
                   { value: 'pending', label: '審査中' },
-                  { value: 'accepted', label: '承認済み' }
+                  { value: 'accepted', label: '承認済み' },
+                  { value: 'rejected', label: '却下済み' }
                 ].map(filter => (
                   <motion.button
                     key={filter.value}
@@ -317,6 +322,11 @@ const ApplicationsPage: React.FC = () => {
                       {application.isAccepted && (
                         <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                           ✓ 承認済み
+                        </span>
+                      )}
+                      {application.isRejected && (
+                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                          ✕ 却下済み
                         </span>
                       )}
                       {application.project.status === 'MATCHED' && (
@@ -399,8 +409,24 @@ const ApplicationsPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* 却下理由 */}
+                {application.isRejected && application.rejectReason && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <h4 className="font-bold text-red-800 mb-2 flex items-center">
+                      <span className="mr-2">⚠️</span>
+                      却下理由
+                    </h4>
+                    <p className="text-red-700">{application.rejectReason}</p>
+                    {application.rejectedAt && (
+                      <p className="text-sm text-red-600 mt-2">
+                        却下日時: {formatDate(application.rejectedAt)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* 操作ボタン */}
-                {!application.isAccepted && application.project.status === 'PENDING' && (
+                {!application.isAccepted && !application.isRejected && application.project.status === 'PENDING' && (
                   <div className="flex justify-end space-x-3 mt-4 pt-4 border-t">
                     <motion.button
                       whileHover={{ scale: 1.05 }}

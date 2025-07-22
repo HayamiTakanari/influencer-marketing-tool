@@ -23,6 +23,9 @@ interface Application {
   proposedPrice: number;
   appliedAt: string;
   isAccepted: boolean;
+  isRejected?: boolean;
+  rejectReason?: string;
+  rejectedAt?: string;
 }
 
 interface ProjectDetails {

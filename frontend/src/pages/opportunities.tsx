@@ -39,6 +39,8 @@ const OpportunitiesPage: React.FC = () => {
   const [applicationMessage, setApplicationMessage] = useState('');
   const [proposedPrice, setProposedPrice] = useState<number>(0);
   const [submitting, setSubmitting] = useState(false);
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
   const router = useRouter();
 
   const categories = [
@@ -190,6 +192,33 @@ const OpportunitiesPage: React.FC = () => {
     } catch (err: any) {
       console.error('Error applying to project:', err);
       alert('応募に失敗しました。');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRejectProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject) return;
+    
+    setSubmitting(true);
+    
+    try {
+      const { rejectProject } = await import('../services/api');
+      
+      await rejectProject({
+        projectId: selectedProject.id,
+        reason: rejectReason
+      });
+      
+      alert('プロジェクトを却下しました。');
+      setShowRejectForm(false);
+      setSelectedProject(null);
+      setRejectReason('');
+      await fetchOpportunities();
+    } catch (err: any) {
+      console.error('Error rejecting project:', err);
+      alert('却下処理に失敗しました。');
     } finally {
       setSubmitting(false);
     }
@@ -388,17 +417,30 @@ const OpportunitiesPage: React.FC = () => {
                       <div className="text-gray-500 text-sm">予算</div>
                     </div>
                     {!opportunity.isApplied && (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          setSelectedProject(opportunity);
-                          setShowApplicationForm(true);
-                        }}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                      >
-                        応募する
-                      </motion.button>
+                      <div className="flex flex-col space-y-2">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            setSelectedProject(opportunity);
+                            setShowApplicationForm(true);
+                          }}
+                          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                        >
+                          応募する
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            setSelectedProject(opportunity);
+                            setShowRejectForm(true);
+                          }}
+                          className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                        >
+                          却下する
+                        </motion.button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -531,6 +573,67 @@ const OpportunitiesPage: React.FC = () => {
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? '応募中...' : '応募する'}
+              </motion.button>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* 却下フォーム */}
+      {showRejectForm && selectedProject && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto"
+          >
+            <button
+              onClick={() => {
+                setShowRejectForm(false);
+                setSelectedProject(null);
+                setRejectReason('');
+              }}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+            
+            <h2 className="text-2xl font-bold mb-4 text-center">プロジェクトを却下</h2>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{selectedProject.title}</h3>
+            <p className="text-gray-600 mb-6">{selectedProject.client.companyName}</p>
+            
+            <form onSubmit={handleRejectProject} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  却下理由 <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  required
+                  rows={6}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="却下する理由を具体的に記載してください。この内容は企業側に送信されます。"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  ※ 却下理由は企業側に通知されます。丁寧な説明をお願いします。
+                </p>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm text-red-800">
+                  <strong>注意：</strong>一度却下すると、このプロジェクトには再度応募できません。
+                </p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={submitting || !rejectReason.trim()}
+                className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? '送信中...' : '却下する'}
               </motion.button>
             </form>
           </motion.div>
