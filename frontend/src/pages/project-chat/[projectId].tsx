@@ -32,6 +32,26 @@ interface Message {
   };
 }
 
+interface ProjectProgress {
+  currentPhase: string;
+  overallProgress: number; // 0-100
+  milestones: {
+    id: string;
+    title: string;
+    status: 'completed' | 'in_progress' | 'pending';
+    completedAt?: string;
+  }[];
+  nextAction: {
+    id: string;
+    title: string;
+    description: string;
+    dueDate: string;
+    assignee: 'client' | 'influencer';
+    priority: 'high' | 'medium' | 'low';
+    status: 'pending' | 'in_progress' | 'completed' | 'overdue';
+  };
+}
+
 interface Project {
   id: string;
   title: string;
@@ -45,6 +65,7 @@ interface Project {
     id: string;
     displayName: string;
   };
+  progress?: ProjectProgress;
 }
 
 const ProjectChatPage: React.FC = () => {
@@ -109,6 +130,54 @@ const ProjectChatPage: React.FC = () => {
         matchedInfluencer: {
           id: 'influencer-1',
           displayName: '美容系インフルエンサー 田中美咲'
+        },
+        progress: {
+          currentPhase: '構成案レビュー',
+          overallProgress: 65,
+          milestones: [
+            {
+              id: '1',
+              title: 'プロジェクト開始',
+              status: 'completed',
+              completedAt: '2024-01-15T09:00:00Z'
+            },
+            {
+              id: '2',
+              title: '初回打ち合わせ',
+              status: 'completed',
+              completedAt: '2024-01-16T14:00:00Z'
+            },
+            {
+              id: '3',
+              title: '構成案提出',
+              status: 'completed',
+              completedAt: '2024-01-18T16:30:00Z'
+            },
+            {
+              id: '4',
+              title: '構成案レビュー',
+              status: 'in_progress'
+            },
+            {
+              id: '5',
+              title: '動画制作',
+              status: 'pending'
+            },
+            {
+              id: '6',
+              title: '最終確認・納品',
+              status: 'pending'
+            }
+          ],
+          nextAction: {
+            id: 'action-1',
+            title: '構成案の修正対応',
+            description: 'フィードバックを受けて構成案を修正し、再提出してください',
+            dueDate: '2024-01-25T23:59:59Z',
+            assignee: 'influencer',
+            priority: 'high',
+            status: 'in_progress'
+          }
         }
       };
       setProject(mockProject);
@@ -324,6 +393,53 @@ const ProjectChatPage: React.FC = () => {
     });
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getDaysUntilDeadline = (dateString: string) => {
+    const deadline = new Date(dateString);
+    const now = new Date();
+    const diffTime = deadline.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-gray-100 text-gray-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -409,6 +525,165 @@ const ProjectChatPage: React.FC = () => {
               </div>
             </div>
           </motion.div>
+        )}
+
+        {/* プロジェクト進捗とネクストアクション */}
+        {project?.progress && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* プロジェクト進捗 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                  <span className="mr-2">📊</span>
+                  プロジェクト進捗
+                </h3>
+                <div className="text-sm text-gray-600">
+                  {project.progress.overallProgress}% 完了
+                </div>
+              </div>
+              
+              {/* 進捗バー */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    現在のフェーズ: {project.progress.currentPhase}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${project.progress.overallProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* マイルストーン */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">マイルストーン</h4>
+                {project.progress.milestones.map((milestone, index) => (
+                  <div key={milestone.id} className="flex items-center space-x-3">
+                    <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
+                      milestone.status === 'completed' ? 'bg-green-500' :
+                      milestone.status === 'in_progress' ? 'bg-blue-500' :
+                      'bg-gray-300'
+                    }`}>
+                      {milestone.status === 'completed' && (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className={`text-sm ${
+                        milestone.status === 'completed' ? 'text-green-700 font-medium' :
+                        milestone.status === 'in_progress' ? 'text-blue-700 font-medium' :
+                        'text-gray-600'
+                      }`}>
+                        {milestone.title}
+                      </div>
+                      {milestone.completedAt && (
+                        <div className="text-xs text-gray-500">
+                          完了: {formatDateTime(milestone.completedAt)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* ネクストアクション */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                  <span className="mr-2">🎯</span>
+                  ネクストアクション
+                </h3>
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getPriorityColor(project.progress.nextAction.priority)}`}>
+                  {project.progress.nextAction.priority === 'high' ? '高優先度' :
+                   project.progress.nextAction.priority === 'medium' ? '中優先度' : '低優先度'}
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-2">
+                    {project.progress.nextAction.title}
+                  </h4>
+                  <p className="text-sm text-gray-700 mb-3">
+                    {project.progress.nextAction.description}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">期日</div>
+                    <div className={`text-sm font-medium ${
+                      getDaysUntilDeadline(project.progress.nextAction.dueDate) < 0 ? 'text-red-600' :
+                      getDaysUntilDeadline(project.progress.nextAction.dueDate) <= 2 ? 'text-orange-600' :
+                      'text-gray-900'
+                    }`}>
+                      {formatDate(project.progress.nextAction.dueDate)}
+                      <div className="text-xs text-gray-500">
+                        {getDaysUntilDeadline(project.progress.nextAction.dueDate) < 0 ? 
+                          `${Math.abs(getDaysUntilDeadline(project.progress.nextAction.dueDate))}日遅延` :
+                          getDaysUntilDeadline(project.progress.nextAction.dueDate) === 0 ?
+                          '今日が期日' :
+                          `あと${getDaysUntilDeadline(project.progress.nextAction.dueDate)}日`
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">担当者</div>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                        project.progress.nextAction.assignee === 'client' ? 'bg-blue-500' : 'bg-purple-500'
+                      }`}>
+                        {project.progress.nextAction.assignee === 'client' ? 
+                          project.client.displayName.charAt(0) : 
+                          project.matchedInfluencer.displayName.charAt(0)
+                        }
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">
+                        {project.progress.nextAction.assignee === 'client' ? 
+                          project.client.displayName : 
+                          project.matchedInfluencer.displayName
+                        }
+                      </span>
+                      {project.progress.nextAction.assignee === user?.role?.toLowerCase() && (
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-medium">
+                          あなた
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.progress.nextAction.status)}`}>
+                    {project.progress.nextAction.status === 'pending' ? '未着手' :
+                     project.progress.nextAction.status === 'in_progress' ? '進行中' :
+                     project.progress.nextAction.status === 'completed' ? '完了' :
+                     project.progress.nextAction.status === 'overdue' ? '期限超過' : project.progress.nextAction.status}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
 
         {/* チャットエリア */}
