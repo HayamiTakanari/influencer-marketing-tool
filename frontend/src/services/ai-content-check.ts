@@ -1,5 +1,7 @@
 // AI コンテンツチェック機能
-// プロジェクト情報とコンテ内容の整合性をAIで判定
+// プロジェクト情報とコンテ内容の整合性、薬機法違反をAIで判定
+
+import { checkYakujihoViolations, YakujihoCheckResult, detectProductCategory } from './yakujiho-checker';
 
 interface ProjectInfo {
   id: string;
@@ -36,13 +38,18 @@ interface ConteInfo {
 
 interface AIContentCheckIssue {
   id: string;
-  category: 'theme' | 'message' | 'scene_content' | 'duration' | 'target_audience' | 'brand_guideline';
+  category: 'theme' | 'message' | 'scene_content' | 'duration' | 'target_audience' | 'brand_guideline' | 'yakujiho_violation';
   severity: 'low' | 'medium' | 'high';
   title: string;
   description: string;
-  affectedElement: 'overall_theme' | 'key_message' | 'scene' | 'duration' | 'target_content';
+  affectedElement: 'overall_theme' | 'key_message' | 'scene' | 'duration' | 'target_content' | 'yakujiho_content';
   affectedElementId?: string;
   suggestion?: string;
+  yakujihoInfo?: {
+    violatedText: string;
+    lawReference: string;
+    riskLevel: number;
+  };
 }
 
 interface AIContentCheckResult {
@@ -51,6 +58,7 @@ interface AIContentCheckResult {
   overallAlignment: 'aligned' | 'minor_issues' | 'major_issues';
   issues: AIContentCheckIssue[];
   confidence: number;
+  yakujihoResult?: YakujihoCheckResult;
 }
 
 // メッセージからコンテ情報を抽出するヘルパー関数
@@ -98,6 +106,33 @@ export const checkConteAlignment = async (
   console.log('🤖 AIチェック開始:', { project: projectInfo.title, conte: conte.overallTheme });
   
   const issues: AIContentCheckIssue[] = [];
+  
+  // 薬機法チェックを実行
+  console.log('⚖️ 薬機法チェック開始...');
+  const yakujihoResult = checkYakujihoViolations(conte.messageContent);
+  
+  // 薬機法違反があれば issues に追加
+  if (yakujihoResult.hasViolations) {
+    yakujihoResult.violations.forEach((violation, index) => {
+      issues.push({
+        id: `yakujiho-${violation.violation.id}-${index}`,
+        category: 'yakujiho_violation',
+        severity: violation.violation.severity,
+        title: `⚖️ 薬機法違反の可能性`,
+        description: `「${violation.matchedText}」が${violation.violation.description}に該当する可能性があります。`,
+        affectedElement: 'yakujiho_content',
+        suggestion: violation.violation.example ? `適切な表現例: ${violation.violation.example}` : '表現の見直しをお勧めします。',
+        yakujihoInfo: {
+          violatedText: violation.matchedText,
+          lawReference: violation.violation.law_reference,
+          riskLevel: violation.violation.risk_level
+        }
+      });
+    });
+    console.log(`⚖️ 薬機法違反 ${yakujihoResult.violations.length} 件検出`);
+  } else {
+    console.log('✅ 薬機法違反なし');
+  }
   
   // プロジェクトの「伝えたいこと」を配列に正規化
   const projectMessages = Array.isArray(projectInfo.messageToConvey) 
@@ -289,7 +324,8 @@ export const checkConteAlignment = async (
     checkedAt: new Date().toISOString(),
     overallAlignment,
     issues,
-    confidence: Math.max(60, confidenceScore)
+    confidence: Math.max(60, confidenceScore),
+    yakujihoResult
   };
   
   console.log('🤖 AIチェック完了:', {

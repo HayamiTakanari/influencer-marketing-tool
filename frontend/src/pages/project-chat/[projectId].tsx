@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { checkConteAlignment, AIContentCheckResult, ProjectInfo, ConteInfo } from '../../services/ai-content-check';
+import { checkYakujihoViolations, YakujihoCheckResult } from '../../services/yakujiho-checker';
+import { YakujihoHighlightedText, YakujihoCheckSummary } from '../../components/YakujihoHighlightedText';
 
 interface Message {
   id: string;
@@ -401,6 +403,69 @@ const ProjectChatPage: React.FC = () => {
             id: 'influencer-1',
             role: 'INFLUENCER',
             displayName: '田中美咲'
+          }
+        },
+        {
+          id: '3',
+          content: `テーマ: 新商品化粧品の効果実証
+キーメッセージ:
+- このクリームを使うだけでシワが完全に消えます
+- アトピーにも効果があり、必ず改善します
+- 医師も推奨する100%安全な化粧品
+- 厚生労働省認可済みの確実な効果
+
+シーン1: 朝のスキンケアルーティン（30秒）
+商品を使って「これで肌トラブルが治る！」とコメント
+
+シーン2: 使用前後の比較写真（20秒）
+「1週間でシワがなくなりました！」
+
+シーン3: エンディング（10秒）
+「副作用もなく、絶対におすすめです！」`,
+          createdAt: '2024-01-15T11:00:00Z',
+          senderId: 'influencer-1',
+          messageType: 'conte',
+          sender: {
+            id: 'influencer-1',
+            role: 'INFLUENCER',
+            displayName: '田中美咲'
+          },
+          conteData: {
+            id: 'conte-3',
+            overallTheme: '新商品化粧品の効果実証',
+            keyMessages: [
+              'このクリームを使うだけでシワが完全に消えます',
+              'アトピーにも効果があり、必ず改善します', 
+              '医師も推奨する100%安全な化粧品',
+              '厚生労働省認可済みの確実な効果'
+            ],
+            scenes: [
+              {
+                id: 'scene-1',
+                sceneNumber: 1,
+                description: '朝のスキンケアルーティン',
+                duration: 30,
+                notes: 'これで肌トラブルが治る！'
+              },
+              {
+                id: 'scene-2', 
+                sceneNumber: 2,
+                description: '使用前後の比較写真',
+                duration: 20,
+                notes: '1週間でシワがなくなりました！'
+              },
+              {
+                id: 'scene-3',
+                sceneNumber: 3,
+                description: 'エンディング',
+                duration: 10,
+                notes: '副作用もなく、絶対におすすめです！'
+              }
+            ],
+            totalDuration: 60,
+            format: 'original',
+            createdAt: '2024-01-15T11:00:00Z',
+            status: 'submitted'
           }
         }
       ];
@@ -1615,17 +1680,35 @@ const ProjectChatPage: React.FC = () => {
                       <div className="text-xs space-y-2 bg-purple-50 rounded p-3">
                         {message.conteData.format === 'original' ? (
                           <>
-                            <div><strong>テーマ:</strong> {message.conteData.overallTheme}</div>
-                            <div><strong>目標時間:</strong> {message.conteData.targetDuration}秒</div>
-                            <div><strong>シーン数:</strong> {message.conteData.scenes.length}シーン</div>
-                            <div>
-                              <strong>キーメッセージ:</strong>
-                              <ul className="list-disc list-inside ml-2 mt-1">
-                                {message.conteData.keyMessages.map((msg, index) => (
-                                  <li key={index}>{msg}</li>
-                                ))}
-                              </ul>
-                            </div>
+                            {/* 薬機法チェック機能統合版 */}
+                            {(() => {
+                              const yakujihoResult = checkYakujihoViolations(message.content);
+                              return (
+                                <>
+                                  {/* 薬機法チェック結果サマリー */}
+                                  <YakujihoCheckSummary 
+                                    violations={yakujihoResult.violations}
+                                    riskScore={yakujihoResult.riskScore}
+                                    className="mb-3"
+                                  />
+                                  
+                                  {/* ハイライト付きコンテンツ表示 */}
+                                  <div className="bg-white rounded p-3 border">
+                                    <YakujihoHighlightedText 
+                                      text={message.content}
+                                      violations={yakujihoResult.violations}
+                                      className="text-sm leading-relaxed"
+                                    />
+                                  </div>
+                                  
+                                  {/* 基本情報 */}
+                                  <div className="mt-3 pt-2 border-t border-purple-200 space-y-1">
+                                    <div><strong>目標時間:</strong> {message.conteData.targetDuration}秒</div>
+                                    <div><strong>シーン数:</strong> {message.conteData.scenes.length}シーン</div>
+                                  </div>
+                                </>
+                              );
+                            })()}
                           </>
                         ) : (
                           <div><strong>ドキュメント形式で提出</strong></div>
@@ -1690,19 +1773,36 @@ const ProjectChatPage: React.FC = () => {
                                 <p className="text-xs font-medium text-gray-700">気になるポイント:</p>
                                 {message.conteData.aiContentCheck.issues.map((issue, index) => (
                                   <div key={issue.id} className={`p-2 rounded text-xs ${
-                                    issue.severity === 'high' 
+                                    issue.category === 'yakujiho_violation'
+                                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                                      : issue.severity === 'high' 
                                       ? 'bg-red-100 text-red-800'
                                       : issue.severity === 'medium'
                                       ? 'bg-yellow-100 text-yellow-800'
                                       : 'bg-blue-100 text-blue-800'
                                   }`}>
                                     <div className="font-medium mb-1">
-                                      {issue.severity === 'high' && '🔴'}
-                                      {issue.severity === 'medium' && '🟡'}
-                                      {issue.severity === 'low' && '🔵'}
+                                      {issue.category === 'yakujiho_violation' && '⚖️'}
+                                      {issue.category !== 'yakujiho_violation' && issue.severity === 'high' && '🔴'}
+                                      {issue.category !== 'yakujiho_violation' && issue.severity === 'medium' && '🟡'}
+                                      {issue.category !== 'yakujiho_violation' && issue.severity === 'low' && '🔵'}
                                       {issue.title}
+                                      {issue.category === 'yakujiho_violation' && (
+                                        <span className="ml-2 px-2 py-1 bg-purple-200 text-purple-900 text-xs rounded font-bold">
+                                          薬機法注意
+                                        </span>
+                                      )}
                                     </div>
                                     <div className="mb-1">{issue.description}</div>
+                                    {issue.yakujihoInfo && (
+                                      <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded">
+                                        <div className="text-xs text-purple-800">
+                                          <div><strong>該当箇所:</strong> 「{issue.yakujihoInfo.violatedText}」</div>
+                                          <div><strong>法的根拠:</strong> {issue.yakujihoInfo.lawReference}</div>
+                                          <div><strong>リスクレベル:</strong> {issue.yakujihoInfo.riskLevel}/10</div>
+                                        </div>
+                                      </div>
+                                    )}
                                     {issue.suggestion && (
                                       <div className="text-xs opacity-80">
                                         提案: {issue.suggestion}
@@ -1710,6 +1810,31 @@ const ProjectChatPage: React.FC = () => {
                                     )}
                                   </div>
                                 ))}
+                              </div>
+                            )}
+                            
+                            {/* 薬機法チェック結果サマリー */}
+                            {message.conteData.aiContentCheck.yakujihoResult?.hasViolations && (
+                              <div className="mt-3 p-3 bg-purple-50 border-l-4 border-purple-400">
+                                <div className="flex items-center mb-2">
+                                  <span className="text-purple-800 font-medium text-sm">⚖️ 薬機法チェック結果</span>
+                                  <span className="ml-2 px-2 py-1 bg-purple-200 text-purple-900 text-xs rounded">
+                                    リスクスコア: {message.conteData.aiContentCheck.yakujihoResult.riskScore.toFixed(1)}/10
+                                  </span>
+                                </div>
+                                <div className="text-sm text-purple-800 mb-2">
+                                  {message.conteData.aiContentCheck.yakujihoResult.summary}
+                                </div>
+                                {message.conteData.aiContentCheck.yakujihoResult.recommendations.length > 0 && (
+                                  <div className="text-xs text-purple-700">
+                                    <div className="font-medium mb-1">改善提案:</div>
+                                    <ul className="list-disc list-inside space-y-1">
+                                      {message.conteData.aiContentCheck.yakujihoResult.recommendations.slice(0, 3).map((rec, idx) => (
+                                        <li key={idx}>{rec}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
                               </div>
                             )}
                             
