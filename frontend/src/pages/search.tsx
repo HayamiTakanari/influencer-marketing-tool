@@ -14,34 +14,36 @@ const SearchPage: React.FC = () => {
 
   // 検索フィルター
   const [filters, setFilters] = useState(() => {
-    // ローカルストレージから復元
-    const savedFilters = localStorage.getItem('searchFilters');
-    if (savedFilters) {
-      try {
-        const parsed = JSON.parse(savedFilters);
-        return {
-          query: parsed.query || '',
-          category: parsed.category || '',
-          prefecture: parsed.prefecture || '',
-          platform: parsed.platform || '',
-          minFollowers: parsed.minFollowers || '',
-          maxFollowers: parsed.maxFollowers || '',
-          minEngagement: parsed.minEngagement || '',
-          maxEngagement: parsed.maxEngagement || '',
-          ageMin: parsed.ageMin || '',
-          ageMax: parsed.ageMax || '',
-          gender: parsed.gender || '',
-          priceMin: parsed.priceMin || '',
-          priceMax: parsed.priceMax || '',
-          sortBy: parsed.sortBy || 'relevance',
-          verifiedOnly: parsed.verifiedOnly || false,
-          hasMediaKit: parsed.hasMediaKit || false,
-          page: 1, // ページは常に1から開始
-          limit: parsed.limit || 20,
-          testLargeData: false,
-        };
-      } catch (e) {
-        console.error('Failed to parse saved filters:', e);
+    // SSR対応のため、クライアントサイドでのみローカルストレージから復元
+    if (typeof window !== 'undefined') {
+      const savedFilters = localStorage.getItem('searchFilters');
+      if (savedFilters) {
+        try {
+          const parsed = JSON.parse(savedFilters);
+          return {
+            query: parsed.query || '',
+            category: parsed.category || '',
+            prefecture: parsed.prefecture || '',
+            platform: parsed.platform || '',
+            minFollowers: parsed.minFollowers || '',
+            maxFollowers: parsed.maxFollowers || '',
+            minEngagement: parsed.minEngagement || '',
+            maxEngagement: parsed.maxEngagement || '',
+            ageMin: parsed.ageMin || '',
+            ageMax: parsed.ageMax || '',
+            gender: parsed.gender || '',
+            priceMin: parsed.priceMin || '',
+            priceMax: parsed.priceMax || '',
+            sortBy: parsed.sortBy || 'relevance',
+            verifiedOnly: parsed.verifiedOnly || false,
+            hasMediaKit: parsed.hasMediaKit || false,
+            page: 1, // ページは常に1から開始
+            limit: parsed.limit || 20,
+            testLargeData: false,
+          };
+        } catch (e) {
+          console.error('Failed to parse saved filters:', e);
+        }
       }
     }
     return {
@@ -162,27 +164,29 @@ const SearchPage: React.FC = () => {
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value, page: 1 };
     setFilters(newFilters);
-    // ローカルストレージに保存
-    const filtersToSave = {
-      query: newFilters.query,
-      category: newFilters.category,
-      prefecture: newFilters.prefecture,
-      platform: newFilters.platform,
-      minFollowers: newFilters.minFollowers,
-      maxFollowers: newFilters.maxFollowers,
-      minEngagement: newFilters.minEngagement,
-      maxEngagement: newFilters.maxEngagement,
-      ageMin: newFilters.ageMin,
-      ageMax: newFilters.ageMax,
-      gender: newFilters.gender,
-      priceMin: newFilters.priceMin,
-      priceMax: newFilters.priceMax,
-      sortBy: newFilters.sortBy,
-      verifiedOnly: newFilters.verifiedOnly,
-      hasMediaKit: newFilters.hasMediaKit,
-      limit: newFilters.limit,
-    };
-    localStorage.setItem('searchFilters', JSON.stringify(filtersToSave));
+    // SSR対応のため、クライアントサイドでのみローカルストレージに保存
+    if (typeof window !== 'undefined') {
+      const filtersToSave = {
+        query: newFilters.query,
+        category: newFilters.category,
+        prefecture: newFilters.prefecture,
+        platform: newFilters.platform,
+        minFollowers: newFilters.minFollowers,
+        maxFollowers: newFilters.maxFollowers,
+        minEngagement: newFilters.minEngagement,
+        maxEngagement: newFilters.maxEngagement,
+        ageMin: newFilters.ageMin,
+        ageMax: newFilters.ageMax,
+        gender: newFilters.gender,
+        priceMin: newFilters.priceMin,
+        priceMax: newFilters.priceMax,
+        sortBy: newFilters.sortBy,
+        verifiedOnly: newFilters.verifiedOnly,
+        hasMediaKit: newFilters.hasMediaKit,
+        limit: newFilters.limit,
+      };
+      localStorage.setItem('searchFilters', JSON.stringify(filtersToSave));
+    }
   };
 
   // CSV抽出機能（現在のページのみ）
@@ -768,7 +772,9 @@ const SearchPage: React.FC = () => {
                   testLargeData: filters.testLargeData,
                 };
                 setFilters(resetFilters);
-                localStorage.removeItem('searchFilters');
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('searchFilters');
+                }
                 handleSearch();
               }}
               className="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
