@@ -122,7 +122,7 @@ const ProjectChatPage: React.FC = () => {
   const [conteType, setConteType] = useState<'initial' | 'revised'>('initial');
   const [conteFormat, setConteFormat] = useState<'original' | 'document'>('original');
   const [conteFiles, setConteFiles] = useState<File[]>([]);
-  const [conteForm, setConteForm] = useState({
+  const [conteData, setConteData] = useState({
     title: '',
     scenes: [{
       id: '1',
@@ -136,6 +136,7 @@ const ProjectChatPage: React.FC = () => {
     overallTheme: '',
     keyMessages: [''],
   });
+  const [conteDescription, setConteDescription] = useState('');
   
   // 動画提出関連
   const [showVideoSubmitForm, setShowVideoSubmitForm] = useState(false);
@@ -511,8 +512,8 @@ const ProjectChatPage: React.FC = () => {
   };
   
   const addConteScene = () => {
-    const newSceneNumber = conteForm.scenes.length + 1;
-    setConteForm(prev => ({
+    const newSceneNumber = conteData.scenes.length + 1;
+    setConteData(prev => ({
       ...prev,
       scenes: [...prev.scenes, {
         id: Date.now().toString(),
@@ -526,7 +527,7 @@ const ProjectChatPage: React.FC = () => {
   };
   
   const removeConteScene = (sceneId: string) => {
-    setConteForm(prev => ({
+    setConteData(prev => ({
       ...prev,
       scenes: prev.scenes.filter(scene => scene.id !== sceneId).map((scene, index) => ({
         ...scene,
@@ -536,7 +537,7 @@ const ProjectChatPage: React.FC = () => {
   };
   
   const updateConteScene = (sceneId: string, field: string, value: any) => {
-    setConteForm(prev => ({
+    setConteData(prev => ({
       ...prev,
       scenes: prev.scenes.map(scene => 
         scene.id === sceneId ? { ...scene, [field]: value } : scene
@@ -552,8 +553,8 @@ const ProjectChatPage: React.FC = () => {
       return;
     }
     
-    if (conteFormat === 'original' && (!conteForm.title || conteForm.scenes.length === 0)) {
-      alert('タイトルとシーン情報を入力してください。');
+    if (conteFormat === 'original' && (!conteData.overallTheme || conteData.scenes.length === 0)) {
+      alert('全体テーマとシーン情報を入力してください。');
       return;
     }
     
@@ -572,11 +573,11 @@ const ProjectChatPage: React.FC = () => {
         id: Date.now().toString(),
         type: conteType,
         format: conteFormat,
-        title: conteFormat === 'original' ? conteForm.title : conteFiles[0]?.name,
-        scenes: conteFormat === 'original' ? conteForm.scenes : undefined,
-        targetDuration: conteFormat === 'original' ? conteForm.targetDuration : undefined,
-        overallTheme: conteFormat === 'original' ? conteForm.overallTheme : undefined,
-        keyMessages: conteFormat === 'original' ? conteForm.keyMessages : undefined,
+        title: conteFormat === 'original' ? conteData.overallTheme : conteFiles[0]?.name,
+        scenes: conteFormat === 'original' ? conteData.scenes : undefined,
+        targetDuration: conteFormat === 'original' ? conteData.targetDuration : undefined,
+        overallTheme: conteFormat === 'original' ? conteData.overallTheme : undefined,
+        keyMessages: conteFormat === 'original' ? conteData.keyMessages : undefined,
         status: 'submitted',
         submittedAt: new Date().toISOString()
       },
@@ -593,7 +594,7 @@ const ProjectChatPage: React.FC = () => {
     
     // Reset form
     setConteFiles([]);
-    setConteForm({
+    setConteData({
       title: '',
       scenes: [{
         id: '1',
@@ -607,6 +608,7 @@ const ProjectChatPage: React.FC = () => {
       overallTheme: '',
       keyMessages: [''],
     });
+    setConteDescription('');
     setShowConteForm(false);
     
     // TODO: Send conte to server
