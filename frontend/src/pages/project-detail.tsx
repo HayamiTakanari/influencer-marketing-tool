@@ -556,7 +556,34 @@ const ProjectDetailPage: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl font-bold text-gray-900">{project.title}</h2>
-            <div className="text-2xl font-bold text-green-600">{formatPrice(project.budget)}</div>
+            <div className="flex items-center space-x-4">
+              {/* マッチング成立時のメッセージボタン */}
+              {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS' || project.status === 'COMPLETED') && project.matchedInfluencer && (
+                <div className="flex space-x-2">
+                  <Link href={`/chat?project=${project.id}`}>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors shadow-lg flex items-center space-x-2"
+                    >
+                      <span>💬</span>
+                      <span>メッセージ</span>
+                    </motion.button>
+                  </Link>
+                  <Link href={`/project-chat/${project.id}`}>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors shadow-lg flex items-center space-x-2"
+                    >
+                      <span>📅</span>
+                      <span>プロジェクト管理</span>
+                    </motion.button>
+                  </Link>
+                </div>
+              )}
+              <div className="text-2xl font-bold text-green-600">{formatPrice(project.budget)}</div>
+            </div>
           </div>
           
           <p className="text-gray-700 mb-6">{project.description}</p>
@@ -575,18 +602,63 @@ const ProjectDetailPage: React.FC = () => {
               <div className="text-gray-600 text-sm">終了日</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-gray-900">{project.applications.length}件</div>
-              <div className="text-gray-600 text-sm">応募数</div>
+              <div className="text-lg font-bold text-gray-900">
+                {project.matchedInfluencer ? 'マッチング成立' : `${project.applications.length}件`}
+              </div>
+              <div className="text-gray-600 text-sm">
+                {project.matchedInfluencer ? 'ステータス' : '応募数'}
+              </div>
             </div>
           </div>
 
-          <div className="flex space-x-2 mb-4">
+          <div className="flex space-x-2 mb-6">
             {project.targetPlatforms.map(platform => (
               <span key={platform} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                 {getPlatformIcon(platform)} {platform}
               </span>
             ))}
           </div>
+          
+          {/* マッチング情報 */}
+          {project.matchedInfluencer && (
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">{project.matchedInfluencer.displayName.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      ✅ {project.matchedInfluencer.displayName} とマッチング成立
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      ステータス: <span className={`font-medium ${
+                        project.status === 'MATCHED' ? 'text-blue-600' :
+                        project.status === 'IN_PROGRESS' ? 'text-green-600' :
+                        project.status === 'COMPLETED' ? 'text-purple-600' : 'text-gray-600'
+                      }`}>
+                        {project.status === 'MATCHED' ? 'マッチング済み' :
+                         project.status === 'IN_PROGRESS' ? '進行中' :
+                         project.status === 'COMPLETED' ? '完了' : project.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Link href={`/chat?project=${project.id}`}>
+                    <button className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors">
+                      💬 メッセージ
+                    </button>
+                  </Link>
+                  <Link href={`/project-chat/${project.id}`}>
+                    <button className="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors">
+                      📅 管理
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* タブナビゲーション */}

@@ -162,6 +162,18 @@ const ChatPage: React.FC = () => {
       }
     };
   }, [router]);
+  
+  // プロジェクトチャットが読み込まれた後、URLパラメーターで指定されたプロジェクトを選択
+  useEffect(() => {
+    const projectId = router.query.project as string;
+    if (projectId && projectChats.length > 0 && !selectedChat) {
+      const targetProject = projectChats.find(project => project.id === projectId);
+      if (targetProject) {
+        setActiveTab('project');
+        handleChatSelect(targetProject);
+      }
+    }
+  }, [projectChats, router.query.project, selectedChat]);
 
   useEffect(() => {
     scrollToBottom();
