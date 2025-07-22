@@ -8,7 +8,7 @@ interface Message {
   content: string;
   createdAt: string;
   senderId: string;
-  messageType: 'text' | 'proposal' | 'video' | 'file';
+  messageType: 'text' | 'proposal' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video';
   sender: {
     id: string;
     role: 'CLIENT' | 'INFLUENCER';
@@ -29,6 +29,35 @@ interface Message {
     deliverables: string;
     timeline: string;
     status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  };
+  conteData?: {
+    id: string;
+    type: 'initial' | 'revised';
+    format: 'original' | 'document'; // オリジナルフォーマット or ドキュメント
+    title?: string;
+    scenes?: {
+      id: string;
+      sceneNumber: number;
+      description: string;
+      duration: number; // 秒
+      cameraAngle: string;
+      notes?: string;
+    }[];
+    targetDuration?: number; // 秒
+    overallTheme?: string;
+    keyMessages?: string[];
+    status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'revision_requested';
+    revisionNotes?: string;
+    submittedAt?: string;
+  };
+  videoData?: {
+    id: string;
+    type: 'initial' | 'revised';
+    description?: string;
+    duration?: number; // 秒
+    status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'revision_requested';
+    revisionNotes?: string;
+    submittedAt?: string;
   };
 }
 
@@ -87,6 +116,32 @@ const ProjectChatPage: React.FC = () => {
   const [videoDescription, setVideoDescription] = useState('');
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
   const [proposedDate, setProposedDate] = useState('');
+  
+  // コンテ提出関連
+  const [showConteForm, setShowConteForm] = useState(false);
+  const [conteType, setConteType] = useState<'initial' | 'revised'>('initial');
+  const [conteFormat, setConteFormat] = useState<'original' | 'document'>('original');
+  const [conteFiles, setConteFiles] = useState<File[]>([]);
+  const [conteForm, setConteForm] = useState({
+    title: '',
+    scenes: [{
+      id: '1',
+      sceneNumber: 1,
+      description: '',
+      duration: 30,
+      cameraAngle: 'フロント',
+      notes: ''
+    }],
+    targetDuration: 60,
+    overallTheme: '',
+    keyMessages: [''],
+  });
+  
+  // 動画提出関連
+  const [showVideoSubmitForm, setShowVideoSubmitForm] = useState(false);
+  const [videoSubmitType, setVideoSubmitType] = useState<'initial' | 'revised'>('initial');
+  const [videoSubmitFiles, setVideoSubmitFiles] = useState<File[]>([]);
+  const [videoSubmitDescription, setVideoSubmitDescription] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { projectId } = router.query;
@@ -446,6 +501,169 @@ const ProjectChatPage: React.FC = () => {
     
     // TODO: Send video to server
   };
+  
+  // コンテ提出機能
+  const handleConteFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      setConteFiles(Array.from(files));
+    }
+  };
+  
+  const addConteScene = () => {
+    const newSceneNumber = conteForm.scenes.length + 1;
+    setConteForm(prev => ({
+      ...prev,
+      scenes: [...prev.scenes, {
+        id: Date.now().toString(),
+        sceneNumber: newSceneNumber,
+        description: '',
+        duration: 30,
+        cameraAngle: 'フロント',
+        notes: ''
+      }]
+    }));
+  };
+  
+  const removeConteScene = (sceneId: string) => {
+    setConteForm(prev => ({
+      ...prev,
+      scenes: prev.scenes.filter(scene => scene.id !== sceneId).map((scene, index) => ({
+        ...scene,
+        sceneNumber: index + 1
+      }))
+    }));
+  };
+  
+  const updateConteScene = (sceneId: string, field: string, value: any) => {
+    setConteForm(prev => ({
+      ...prev,
+      scenes: prev.scenes.map(scene => 
+        scene.id === sceneId ? { ...scene, [field]: value } : scene
+      )
+    }));
+  };
+  
+  const handleSubmitConte = async () => {
+    if (!user || !project) return;
+    
+    if (conteFormat === 'document' && conteFiles.length === 0) {
+      alert('ドキュメントファイルを選択してください。');
+      return;
+    }
+    
+    if (conteFormat === 'original' && (!conteForm.title || conteForm.scenes.length === 0)) {
+      alert('タイトルとシーン情報を入力してください。');
+      return;
+    }
+    
+    const conteMessage: Message = {
+      id: Date.now().toString(),
+      content: `${conteType === 'initial' ? '初稿' : '修正稿'}コンテを提出しました`,
+      createdAt: new Date().toISOString(),
+      senderId: user.id,
+      messageType: conteType === 'initial' ? 'conte' : 'revised_conte',
+      sender: {
+        id: user.id,
+        role: user.role,
+        displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
+      },
+      conteData: {
+        id: Date.now().toString(),
+        type: conteType,
+        format: conteFormat,
+        title: conteFormat === 'original' ? conteForm.title : conteFiles[0]?.name,
+        scenes: conteFormat === 'original' ? conteForm.scenes : undefined,
+        targetDuration: conteFormat === 'original' ? conteForm.targetDuration : undefined,
+        overallTheme: conteFormat === 'original' ? conteForm.overallTheme : undefined,
+        keyMessages: conteFormat === 'original' ? conteForm.keyMessages : undefined,
+        status: 'submitted',
+        submittedAt: new Date().toISOString()
+      },
+      attachments: conteFormat === 'document' ? conteFiles.map((file, index) => ({
+        id: `${Date.now()}-${index}`,
+        fileName: file.name,
+        fileType: file.type,
+        fileUrl: URL.createObjectURL(file),
+        fileSize: file.size
+      })) : undefined
+    };
+    
+    setMessages(prev => [...prev, conteMessage]);
+    
+    // Reset form
+    setConteFiles([]);
+    setConteForm({
+      title: '',
+      scenes: [{
+        id: '1',
+        sceneNumber: 1,
+        description: '',
+        duration: 30,
+        cameraAngle: 'フロント',
+        notes: ''
+      }],
+      targetDuration: 60,
+      overallTheme: '',
+      keyMessages: [''],
+    });
+    setShowConteForm(false);
+    
+    // TODO: Send conte to server
+  };
+  
+  // 動画提出機能
+  const handleVideoSubmitFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      setVideoSubmitFiles(Array.from(files));
+    }
+  };
+  
+  const handleSubmitVideoDeliverable = async () => {
+    if (!user || !project) return;
+    
+    if (videoSubmitFiles.length === 0) {
+      alert('動画ファイルを選択してください。');
+      return;
+    }
+    
+    const videoMessage: Message = {
+      id: Date.now().toString(),
+      content: `${videoSubmitType === 'initial' ? '初稿動画' : '修正動画'}を提出しました`,
+      createdAt: new Date().toISOString(),
+      senderId: user.id,
+      messageType: videoSubmitType === 'initial' ? 'initial_video' : 'revised_video',
+      sender: {
+        id: user.id,
+        role: user.role,
+        displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
+      },
+      videoData: {
+        id: Date.now().toString(),
+        type: videoSubmitType,
+        description: videoSubmitDescription,
+        status: 'submitted',
+        submittedAt: new Date().toISOString()
+      },
+      attachments: videoSubmitFiles.map((file, index) => ({
+        id: `${Date.now()}-${index}`,
+        fileName: file.name,
+        fileType: file.type,
+        fileUrl: URL.createObjectURL(file),
+        fileSize: file.size
+      }))
+    };
+    
+    setMessages(prev => [...prev, videoMessage]);
+    
+    // Reset form
+    setVideoSubmitFiles([]);
+    setVideoSubmitDescription('');
+    setShowVideoSubmitForm(false);
+    
+    // TODO: Send video to server
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -725,12 +943,102 @@ const ProjectChatPage: React.FC = () => {
                       📝 構成案提出
                     </button>
                     <button
-                      onClick={() => setShowVideoForm(true)}
+                      onClick={() => {
+                        setConteType('initial');
+                        setShowConteForm(true);
+                      }}
+                      className="px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors"
+                    >
+                      📋 コンテ提出
+                    </button>
+                    <button
+                      onClick={() => {
+                        setVideoSubmitType('initial');
+                        setShowVideoSubmitForm(true);
+                      }}
                       className="px-4 py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
                     >
                       🎬 動画提出
                     </button>
+                    <button
+                      onClick={() => setShowVideoForm(true)}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
+                    >
+                      🎥 参考動画
+                    </button>
                   </>
+                )}
+                
+                {/* 企業向け修正依頼ボタン */}
+                {user?.role === 'CLIENT' && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setConteType('revised');
+                        // Open revision request modal or send message
+                        const revisionMessage = {
+                          id: Date.now().toString(),
+                          content: 'コンテの修正をお願いします。',
+                          createdAt: new Date().toISOString(),
+                          senderId: user.id,
+                          messageType: 'text' as const,
+                          sender: {
+                            id: user.id,
+                            role: user.role,
+                            displayName: project?.client.displayName || 'クライアント'
+                          }
+                        };
+                        setMessages(prev => [...prev, revisionMessage]);
+                      }}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                    >
+                      📝 コンテ修正依頼
+                    </button>
+                    <button
+                      onClick={() => {
+                        const revisionMessage = {
+                          id: Date.now().toString(),
+                          content: '動画の修正をお願いします。',
+                          createdAt: new Date().toISOString(),
+                          senderId: user.id,
+                          messageType: 'text' as const,
+                          sender: {
+                            id: user.id,
+                            role: user.role,
+                            displayName: project?.client.displayName || 'クライアント'
+                          }
+                        };
+                        setMessages(prev => [...prev, revisionMessage]);
+                      }}
+                      className="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
+                    >
+                      🎬 動画修正依頼
+                    </button>
+                  </>
+                )}
+                
+                {/* インフルエンサー向け修正版提出ボタン */}
+                {user?.role === 'INFLUENCER' && (
+                  <div className="flex space-x-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setConteType('revised');
+                        setShowConteForm(true);
+                      }}
+                      className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-lg font-medium hover:bg-purple-200 transition-colors"
+                    >
+                      📋 修正稿コンテ
+                    </button>
+                    <button
+                      onClick={() => {
+                        setVideoSubmitType('revised');
+                        setShowVideoSubmitForm(true);
+                      }}
+                      className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-lg font-medium hover:bg-green-200 transition-colors"
+                    >
+                      🎬 修正版動画
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -1080,6 +1388,72 @@ const ProjectChatPage: React.FC = () => {
                           )}
                         </div>
                       ))}
+                    </div>
+                  )}
+                  
+                  {/* コンテ提出メッセージ */}
+                  {(message.messageType === 'conte' || message.messageType === 'revised_conte') && message.conteData && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold">
+                        📋 {message.messageType === 'conte' ? '初稿' : '修正稿'}コンテを提出しました
+                      </p>
+                      <div className="text-xs space-y-2 bg-purple-50 rounded p-3">
+                        {message.conteData.format === 'original' ? (
+                          <>
+                            <div><strong>テーマ:</strong> {message.conteData.overallTheme}</div>
+                            <div><strong>目標時間:</strong> {message.conteData.targetDuration}秒</div>
+                            <div><strong>シーン数:</strong> {message.conteData.scenes.length}シーン</div>
+                            <div>
+                              <strong>キーメッセージ:</strong>
+                              <ul className="list-disc list-inside ml-2 mt-1">
+                                {message.conteData.keyMessages.map((msg, index) => (
+                                  <li key={index}>{msg}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </>
+                        ) : (
+                          <div><strong>ドキュメント形式で提出</strong></div>
+                        )}
+                        {message.attachments && message.attachments.map((attachment) => (
+                          <div key={attachment.id} className="flex items-center space-x-2 bg-white rounded p-2">
+                            <div className="w-8 h-8 bg-purple-100 rounded flex items-center justify-center">
+                              📄
+                            </div>
+                            <div>
+                              <div className="font-medium text-xs">{attachment.fileName}</div>
+                              <div className="opacity-75 text-xs">{formatFileSize(attachment.fileSize)}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 動画提出メッセージ */}
+                  {(message.messageType === 'initial_video' || message.messageType === 'revised_video') && message.videoData && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold">
+                        🎬 {message.messageType === 'initial_video' ? '初稿動画' : '修正版動画'}を提出しました
+                      </p>
+                      <div className="text-xs space-y-2 bg-green-50 rounded p-3">
+                        <div><strong>タイプ:</strong> {message.videoData.type === 'initial' ? '初稿' : '修正版'}</div>
+                        <div><strong>提出日:</strong> {formatDateTime(message.videoData.submittedAt)}</div>
+                        {message.videoData.description && (
+                          <div><strong>説明:</strong> {message.videoData.description}</div>
+                        )}
+                        {message.attachments && message.attachments.map((attachment) => (
+                          <div key={attachment.id} className="flex items-center space-x-2 bg-white rounded p-2">
+                            <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center">
+                              🎬
+                            </div>
+                            <div>
+                              <div className="font-medium text-xs">{attachment.fileName}</div>
+                              <div className="opacity-75 text-xs">{formatFileSize(attachment.fileSize)}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   
@@ -1448,6 +1822,293 @@ const ProjectChatPage: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* コンテ提出モーダル */}
+      <AnimatePresence>
+        {showConteForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {conteType === 'initial' ? '初稿' : '修正稿'}コンテ提出
+                </h3>
+                <button
+                  onClick={() => setShowConteForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* フォーマット選択 */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">コンテフォーマット</label>
+                <div className="flex space-x-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="original"
+                      checked={conteFormat === 'original'}
+                      onChange={(e) => setConteFormat(e.target.value as 'original' | 'document')}
+                      className="mr-2"
+                    />
+                    <span>ツール独自フォーマット</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="document"
+                      checked={conteFormat === 'document'}
+                      onChange={(e) => setConteFormat(e.target.value as 'original' | 'document')}
+                      className="mr-2"
+                    />
+                    <span>ドキュメントアップロード</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* ツール独自フォーマット */}
+              {conteFormat === 'original' && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">全体テーマ</label>
+                    <input
+                      type="text"
+                      value={conteData.overallTheme}
+                      onChange={(e) => setConteData(prev => ({...prev, overallTheme: e.target.value}))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="動画の全体的なテーマを入力"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">目標時間（秒）</label>
+                    <input
+                      type="number"
+                      value={conteData.targetDuration}
+                      onChange={(e) => setConteData(prev => ({...prev, targetDuration: parseInt(e.target.value) || 60}))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="15"
+                      max="300"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">キーメッセージ</label>
+                    {conteData.keyMessages.map((message, index) => (
+                      <div key={index} className="flex items-center space-x-2 mb-2">
+                        <input
+                          type="text"
+                          value={message}
+                          onChange={(e) => {
+                            const newMessages = [...conteData.keyMessages];
+                            newMessages[index] = e.target.value;
+                            setConteData(prev => ({...prev, keyMessages: newMessages}));
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder={`キーメッセージ ${index + 1}`}
+                        />
+                        {conteData.keyMessages.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newMessages = conteData.keyMessages.filter((_, i) => i !== index);
+                              setConteData(prev => ({...prev, keyMessages: newMessages}));
+                            }}
+                            className="px-2 py-1 text-red-500 hover:bg-red-50 rounded"
+                          >
+                            削除
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setConteData(prev => ({
+                        ...prev, 
+                        keyMessages: [...prev.keyMessages, '']
+                      }))}
+                      className="px-3 py-1 text-blue-500 hover:bg-blue-50 rounded"
+                    >
+                      + メッセージ追加
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">シーン構成</label>
+                    {conteData.scenes.map((scene, index) => (
+                      <div key={scene.id} className="border border-gray-200 rounded-lg p-4 mb-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium">シーン {scene.sceneNumber}</h4>
+                          {conteData.scenes.length > 1 && (
+                            <button
+                              onClick={() => {
+                                const newScenes = conteData.scenes.filter(s => s.id !== scene.id);
+                                setConteData(prev => ({...prev, scenes: newScenes}));
+                              }}
+                              className="text-red-500 hover:bg-red-50 px-2 py-1 rounded"
+                            >
+                              削除
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">内容説明</label>
+                            <textarea
+                              value={scene.description}
+                              onChange={(e) => {
+                                const newScenes = conteData.scenes.map(s => 
+                                  s.id === scene.id ? {...s, description: e.target.value} : s
+                                );
+                                setConteData(prev => ({...prev, scenes: newScenes}));
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              rows={2}
+                              placeholder="シーンの内容を説明"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">時間（秒）</label>
+                            <input
+                              type="number"
+                              value={scene.duration}
+                              onChange={(e) => {
+                                const newScenes = conteData.scenes.map(s => 
+                                  s.id === scene.id ? {...s, duration: parseInt(e.target.value) || 0} : s
+                                );
+                                setConteData(prev => ({...prev, scenes: newScenes}));
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              min="1"
+                              max="60"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">カメラアングル</label>
+                            <select
+                              value={scene.cameraAngle}
+                              onChange={(e) => {
+                                const newScenes = conteData.scenes.map(s => 
+                                  s.id === scene.id ? {...s, cameraAngle: e.target.value} : s
+                                );
+                                setConteData(prev => ({...prev, scenes: newScenes}));
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                              <option value="フロント">フロント</option>
+                              <option value="サイド">サイド</option>
+                              <option value="アップ">アップ</option>
+                              <option value="引き">引き</option>
+                              <option value="俯瞰">俯瞰</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">備考</label>
+                            <input
+                              type="text"
+                              value={scene.notes}
+                              onChange={(e) => {
+                                const newScenes = conteData.scenes.map(s => 
+                                  s.id === scene.id ? {...s, notes: e.target.value} : s
+                                );
+                                setConteData(prev => ({...prev, scenes: newScenes}));
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              placeholder="特記事項など"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      onClick={addConteScene}
+                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-300 hover:text-blue-500 transition-colors"
+                    >
+                      + シーン追加
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ドキュメントアップロード */}
+              {conteFormat === 'document' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">コンテファイル</label>
+                    <input
+                      type="file"
+                      onChange={handleConteFileUpload}
+                      multiple
+                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xlsx,.xls,.png,.jpg,.jpeg"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      PDF, Word, PowerPoint, Excel, 画像ファイルに対応
+                    </p>
+                  </div>
+                  
+                  {conteFiles.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">選択されたファイル:</p>
+                      {conteFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-900">{file.name}</span>
+                            <span className="text-xs text-gray-500">({formatFileSize(file.size)})</span>
+                          </div>
+                          <button
+                            onClick={() => setConteFiles(files => files.filter((_, i) => i !== index))}
+                            className="text-red-500 hover:bg-red-50 px-2 py-1 rounded"
+                          >
+                            削除
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">説明・補足</label>
+                    <textarea
+                      value={conteDescription}
+                      onChange={(e) => setConteDescription(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
+                      placeholder="コンテの説明や補足事項を入力してください"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowConteForm(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleSubmitConte}
+                  className="px-6 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors"
+                >
+                  提出する
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 動画提出モーダル */}
       <AnimatePresence>
         {showVideoForm && (
@@ -1537,6 +2198,137 @@ const ProjectChatPage: React.FC = () => {
                 <button
                   onClick={handleSubmitVideo}
                   className="px-6 py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                >
+                  提出する
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 動画提出モーダル（初稿・修正版） */}
+      <AnimatePresence>
+        {showVideoSubmitForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 max-w-xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {videoSubmitType === 'initial' ? '初稿' : '修正'}動画提出
+                </h3>
+                <button
+                  onClick={() => setShowVideoSubmitForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* 動画タイプ選択 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">動画タイプ</label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="initial"
+                        checked={videoSubmitType === 'initial'}
+                        onChange={(e) => setVideoSubmitType(e.target.value as 'initial' | 'revised')}
+                        className="mr-2"
+                      />
+                      <span>初稿動画</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="revised"
+                        checked={videoSubmitType === 'revised'}
+                        onChange={(e) => setVideoSubmitType(e.target.value as 'initial' | 'revised')}
+                        className="mr-2"
+                      />
+                      <span>修正版動画</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 動画ファイルアップロード */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">動画ファイル *</label>
+                  <input
+                    type="file"
+                    onChange={handleVideoSubmitFileUpload}
+                    multiple
+                    accept="video/*"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    対応形式: MP4, MOV, AVI, WMV, MKV など
+                  </p>
+                </div>
+
+                {/* 選択されたファイル一覧 */}
+                {videoSubmitFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">選択された動画:</p>
+                    {videoSubmitFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            🎬
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setVideoSubmitFiles(files => files.filter((_, i) => i !== index))}
+                          className="text-red-500 hover:bg-red-50 px-2 py-1 rounded"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 説明・補足 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">説明・補足</label>
+                  <textarea
+                    value={videoSubmitDescription}
+                    onChange={(e) => setVideoSubmitDescription(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    rows={3}
+                    placeholder={`${videoSubmitType === 'initial' ? '初稿' : '修正版'}動画の説明や補足事項を入力してください`}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowVideoSubmitForm(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleSubmitVideoDeliverable}
+                  className="px-6 py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                  disabled={videoSubmitFiles.length === 0}
                 >
                   提出する
                 </button>
