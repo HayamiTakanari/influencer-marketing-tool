@@ -118,7 +118,7 @@ const NewLandingPage: React.FC = () => {
 
       <main className="relative z-10">
         {/* ヒーローセクション */}
-        <section className="px-6 py-16 md:py-24">
+        <section className="px-6 py-12 md:py-16">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* 左側：テキストコンテンツ */}
@@ -165,26 +165,6 @@ const NewLandingPage: React.FC = () => {
                   </Link>
                 </motion.div>
 
-                {/* 実績数値 */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 30 }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                  className="mt-12 grid grid-cols-3 gap-8"
-                >
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600">10,000+</div>
-                    <div className="text-sm text-gray-600">登録インフルエンサー</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600">500+</div>
-                    <div className="text-sm text-gray-600">導入企業</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600">98%</div>
-                    <div className="text-sm text-gray-600">満足度</div>
-                  </div>
-                </motion.div>
               </div>
 
               {/* 右側：イラスト */}
@@ -194,7 +174,7 @@ const NewLandingPage: React.FC = () => {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="relative"
               >
-                <div className="relative bg-gradient-to-br from-orange-100 to-blue-100 rounded-3xl p-8 h-96 flex items-center justify-center">
+                <div className="relative bg-gradient-to-br from-orange-100 to-blue-100 rounded-3xl p-8 h-80 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                       <svg className="w-16 h-16 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,15 +195,15 @@ const NewLandingPage: React.FC = () => {
         </section>
 
         {/* お悩みセクション */}
-        <section className="px-6 py-16 bg-gray-50">
+        <section className="px-6 py-12 bg-gray-50">
           <div className="max-w-6xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 30 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="mb-12"
+              className="mb-8"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">こんなお悩みありませんか？</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">こんなお悩みありませんか？</h2>
               <p className="text-lg text-gray-600">多くの企業が抱えるインフルエンサーマーケティングの課題</p>
             </motion.div>
 
@@ -272,7 +252,7 @@ const NewLandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 30 }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="mt-16 bg-gradient-to-r from-orange-500 to-blue-500 rounded-3xl p-8 text-white"
+              className="mt-12 bg-gradient-to-r from-orange-500 to-blue-500 rounded-3xl p-6 text-white"
             >
               <h2 className="text-3xl font-bold mb-4">
                 そのお悩み、ツール名がすべて解決します！
@@ -286,15 +266,15 @@ const NewLandingPage: React.FC = () => {
 
 
         {/* 料金プラン */}
-        <section className="px-6 py-20 bg-gray-50">
+        <section className="px-6 py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 30 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-center mb-16"
+              className="text-center mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">料金プラン</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-3 text-gray-900">料金プラン</h2>
               <p className="text-lg text-gray-600">シンプルで分かりやすい料金体系</p>
             </motion.div>
 
@@ -369,7 +349,7 @@ const NewLandingPage: React.FC = () => {
         </section>
 
         {/* CTA */}
-        <section className="px-6 py-20 bg-gradient-to-r from-orange-500 to-blue-500">
+        <section className="px-6 py-16 bg-gradient-to-r from-orange-500 to-blue-500">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -423,7 +403,7 @@ const NewLandingPage: React.FC = () => {
       </main>
 
       {/* フッター */}
-      <footer className="relative z-10 bg-gray-900 text-white px-6 py-16">
+      <footer className="relative z-10 bg-gray-900 text-white px-6 py-12">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div className="md:col-span-2">
