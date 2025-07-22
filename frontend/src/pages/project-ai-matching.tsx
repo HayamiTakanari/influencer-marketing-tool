@@ -666,9 +666,14 @@ const ProjectAIMatchingPage: React.FC = () => {
                       <div className="flex-[2] mr-3">
                         <p className="text-xs text-gray-700 line-clamp-2">{influencer.bio}</p>
                         {influencer.matchReasons && influencer.matchReasons.length > 0 && (
-                          <div className="mt-1 px-2 py-1 bg-purple-50 rounded text-xs text-purple-700 font-medium">
-                            <span className="text-purple-500">🤖 </span>
-                            {influencer.matchReasons[0]}
+                          <div className="mt-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+                            <div className="text-xs text-purple-600 font-semibold mb-1 flex items-center">
+                              <span className="text-purple-500 mr-1">🤖</span>
+                              AIマッチング理由
+                            </div>
+                            <p className="text-xs text-gray-700 leading-relaxed">
+                              {influencer.matchReasons[0]}
+                            </p>
                           </div>
                         )}
                       </div>

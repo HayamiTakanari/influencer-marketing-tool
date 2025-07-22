@@ -615,10 +615,13 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
         aiScore: (primaryCategory === '美容・化粧品' || primaryCategory === 'ファッション') ? 95 : 
                  (categoryScores['美容・化粧品'] > 0 || categoryScores['ファッション'] > 0) ? 78 : 55,
         matchReasons: (primaryCategory === '美容・化粧品' || primaryCategory === 'ファッション') 
-          ? ['美容・ファッション分野の専門知識', '20-30代女性への高い影響力', '商品レビュー経験豊富', 'Instagram・YouTubeでの動画制作スキル']
+          ? [`プロジェクトカテゴリ「${projectData.category}」と専門分野「美容・化粧品、ファッション」が完全一致`, 
+             `Instagramフォロワー12.5万人が${projectData.targetPlatforms.includes('instagram') ? 'ターゲットプラットフォーム' : '関連プラットフォーム'}で活動中`,
+             `エンゲージメント率4.2%が業界平均を上回り、プロジェクト予算¥${projectData.budget.toLocaleString()}に見合う影響力を保有`]
           : categoryScores['美容・化粧品'] > 0 || categoryScores['ファッション'] > 0
-            ? ['関連分野での発信経験', '女性ターゲットへの訴求力', '動画制作スキル']
-            : ['多様なコンテンツ制作経験', '安定したフォロワー数'],
+            ? [`プロジェクト内容に含まれる美容・ファッション関連キーワードと発信分野が部分的に一致`,
+               `複数プラットフォーム（Instagram・YouTube）での活動がプロジェクトの多角的展開に適合`]
+            : [`フォロワー数12.5万人がプロジェクト規模に適合`, `多様なカテゴリでの発信経験がプロジェクトの柔軟な対応に有効`],
         isRecommended: (primaryCategory === '美容・化粧品' || primaryCategory === 'ファッション') || 
                       (categoryScores['美容・化粧品'] > 2 || categoryScores['ファッション'] > 2)
       },
@@ -635,8 +638,11 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
         aiScore: (primaryCategory === 'ライフスタイル' || primaryCategory === 'フード・飲料' || primaryCategory === '旅行・観光') ? 92 : 
                  (categoryScores['ライフスタイル'] > 0 || categoryScores['フード・飲料'] > 0) ? 81 : 67,
         matchReasons: (primaryCategory === 'ライフスタイル' || primaryCategory === 'フード・飲料' || primaryCategory === '旅行・観光')
-          ? ['ライフスタイル分野での豊富な実績', '複数プラットフォームでの影響力', '関西圏での影響力', 'TikTokでのバイラル経験']
-          : ['幅広いカテゴリでの発信経験', '高いエンゲージメント率', 'インスタントコンテンツ制作スキル'],
+          ? [`プロジェクトカテゴリ「${projectData.category}」と専門分野「ライフスタイル、フード・飲料、旅行・観光」が一致`,
+             `TikTokフォロワー15.6万人での高エンゲージメント率6.3%がプロジェクトのリーチ拡大に最適`,
+             `大阪府拠点による関西圏での影響力が地域性のあるプロジェクトに適合`]
+          : [`エンゲージメント率5.1%（Instagram）・6.3%（TikTok）が業界標準を大幅に上回る高い訴求力`,
+             `複数プラットフォーム運用経験がプロジェクトの幅広い展開戦略に適合`],
         isRecommended: (primaryCategory === 'ライフスタイル' || primaryCategory === 'フード・飲料' || primaryCategory === '旅行・観光')
       },
       {
@@ -652,8 +658,11 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
         aiScore: (primaryCategory === 'スポーツ・フィットネス' || primaryCategory === 'ヘルスケア') ? 98 : 
                  (categoryScores['スポーツ・フィットネス'] > 0 || categoryScores['ヘルスケア'] > 0) ? 72 : 42,
         matchReasons: (primaryCategory === 'スポーツ・フィットネス' || primaryCategory === 'ヘルスケア')
-          ? ['フィットネス分野の専門資格保有', 'YouTubeでの高い影響力', '男性ターゲットへの訴求力', '科学的アプローチでの信頼性']
-          : ['特定分野での専門性', 'YouTube動画制作スキル', '健康意識の高いフォロワー層'],
+          ? [`プロジェクトカテゴリ「${projectData.category}」と専門分野「フィットネス・ヘルスケア」が完全一致`,
+             `YouTube登録者23.4万人・エンゲージメント率7.2%がプロジェクト予算¥${projectData.budget.toLocaleString()}規模に最適`,
+             `科学的根拠に基づくアプローチが${projectData.brandName || 'ブランド'}の信頼性向上に貢献`]
+          : [`YouTube動画制作の高い技術力がプロジェクトのコンテンツ品質向上に寄与`,
+             `健康意識の高いフォロワー層が関連プロダクトへの関心度が高く効果的`],
         isRecommended: (primaryCategory === 'スポーツ・フィットネス' || primaryCategory === 'ヘルスケア')
       },
       {
@@ -669,10 +678,13 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
         aiScore: primaryCategory === 'テクノロジー' ? 94 : 
                  categoryScores['テクノロジー'] > 0 ? 69 : 35,
         matchReasons: primaryCategory === 'テクノロジー'
-          ? ['最新テクノロジーへの深い知識', '詳細なレビュー動画制作スキル', 'IT業界での認知度', '技術系ターゲットへの影響力']
+          ? [`プロジェクトカテゴリ「${projectData.category}」とテクノロジー専門分野が完全一致`,
+             `YouTube登録者18.7万人での詳細レビュー動画制作実績がプロジェクトの技術的信頼性を確保`,
+             `IT業界認知度とTwitterフォロワー7.8万人が${projectData.targetPlatforms.includes('twitter') ? 'ターゲットプラットフォーム' : 'リーチ拡大'}に貢献`]
           : categoryScores['テクノロジー'] > 0
-            ? ['動画制作の技術スキル', 'デジタル機器への理解', '論理的な解説スキル']
-            : ['動画制作経験', 'SNS運用スキル'],
+            ? [`プロジェクト内容に含まれるテック系要素と専門知識の親和性`,
+               `論理的な解説スキルがプロダクトの複雑な機能説明に適合`]
+            : [`YouTube動画制作の技術的スキルがプロジェクトのコンテンツ品質向上に寄与`],
         isRecommended: primaryCategory === 'テクノロジー'
       },
       {
@@ -688,8 +700,11 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
         aiScore: (primaryCategory === '旅行・観光' || primaryCategory === 'フード・飲料') ? 89 : 
                  (categoryScores['旅行・観光'] > 0 || categoryScores['フード・飲料'] > 0) ? 74 : 48,
         matchReasons: (primaryCategory === '旅行・観光' || primaryCategory === 'フード・飲料')
-          ? ['全国の観光地での撮影経験', '地域密着型のコンテンツ制作', '高いエンゲージメント率', 'グルメ系コンテンツの豊富な経験']
-          : ['地域性を活かしたコンテンツ', '写真撮影スキル', 'ローカル情報への強み'],
+          ? [`プロジェクトカテゴリ「${projectData.category}」と専門分野「旅行・観光、フード・飲料」が完全一致`,
+             `京都府拠点による関西圏・日本全国の観光地ネットワークがプロジェクトの地域展開に最適`,
+             `TikTokエンゲージメント率8.2%・Instagramエンゲージメント率6.1%の高い拡散力で予算効果を最大化`]
+          : [`地域密着型コンテンツ制作経験がプロジェクトのローカライゼーションに適合`,
+             `高品質な写真・動画撮影スキルがプロダクトの視覚的訴求力向上に貢献`],
         isRecommended: (primaryCategory === '旅行・観光' || primaryCategory === 'フード・飲料')
       },
       {
@@ -705,32 +720,56 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
         aiScore: primaryCategory === 'エンターテイメント' ? 96 : 
                  categoryScores['エンターテイメント'] > 0 ? 71 : 54,
         matchReasons: primaryCategory === 'エンターテイメント'
-          ? ['エンタメ分野での高い影響力', 'TikTokでのバイラル経験', 'Z世代への強い訴求力', 'トレンドの早期キャッチ能力']
-          : ['若者向けコンテンツ制作経験', 'バイラル性の高いコンテンツ制作', '流行への敏感さ'],
+          ? [`プロジェクトカテゴリ「${projectData.category}」とエンターテイメント専門分野が完全一致`,
+             `TikTokフォロワー29.8万人・エンゲージメント率9.1%の圧倒的なバイラル力で予算¥${projectData.budget.toLocaleString()}の投資効果を最大化`,
+             `Z世代・若年層への強い影響力が${projectData.campaignTarget || 'ターゲット層'}への直接的訴求に最適`]
+          : [`トレンド感度とバイラル性の高いコンテンツ制作力がプロジェクトの話題性向上に貢献`,
+             `若年層向けコンテンツ経験がプロダクトの認知拡大に効果的`],
         isRecommended: primaryCategory === 'エンターテイメント'
       }
     ];
 
     // プラットフォーム一致による追加スコア
     mockInfluencers.forEach(influencer => {
-      const hasMatchingPlatforms = influencer.socialAccounts.some(account => 
+      const matchingPlatforms = influencer.socialAccounts.filter(account => 
         projectData.targetPlatforms.some(platform => 
           platform.toLowerCase() === account.platform.toLowerCase()
         )
       );
-      if (hasMatchingPlatforms) {
+      
+      if (matchingPlatforms.length > 0) {
         influencer.aiScore += 10;
-        influencer.matchReasons.push('ターゲットプラットフォームでの活動');
+        const platformNames = matchingPlatforms.map(p => p.platform).join('・');
+        const totalFollowers = matchingPlatforms.reduce((sum, p) => sum + p.followerCount, 0);
+        influencer.matchReasons.push(
+          `指定プラットフォーム「${projectData.targetPlatforms.join('・')}」で${platformNames}アカウント(${totalFollowers.toLocaleString()}フォロワー)を運用中`
+        );
       }
     });
 
-    // 予算による調整
+    // 予算による調整とマッチング理由
     mockInfluencers.forEach(influencer => {
+      const totalFollowers = influencer.socialAccounts.reduce((sum, acc) => sum + acc.followerCount, 0);
+      const avgEngagement = influencer.socialAccounts.length > 0 
+        ? influencer.socialAccounts.reduce((sum, acc) => sum + acc.engagementRate, 0) / influencer.socialAccounts.length
+        : 0;
+      
       if (projectData.budget >= 200000) {
-        influencer.aiScore += 5; // 高予算案件は全体的にスコア上昇
-        influencer.matchReasons.push('予算規模に適したコンテンツ制作が可能');
+        influencer.aiScore += 5;
+        influencer.matchReasons.push(
+          `予算¥${projectData.budget.toLocaleString()}の規模に対し、フォロワー${totalFollowers.toLocaleString()}人・平均エンゲージメント率${avgEngagement.toFixed(1)}%が適正な投資効果を提供`
+        );
+      } else if (projectData.budget >= 100000) {
+        influencer.matchReasons.push(
+          `中規模予算¥${projectData.budget.toLocaleString()}に対してコストパフォーマンスの高い影響力を提供`
+        );
       } else if (projectData.budget < 100000) {
-        influencer.aiScore -= 10; // 低予算案件はスコア調整
+        influencer.aiScore -= 5;
+        if (totalFollowers < 100000) {
+          influencer.matchReasons.push(
+            `予算¥${projectData.budget.toLocaleString()}の小規模案件に適したフォロワー規模でコスト効率を重視`
+          );
+        }
       }
     });
 
