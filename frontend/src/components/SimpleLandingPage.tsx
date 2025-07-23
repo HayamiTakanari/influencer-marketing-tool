@@ -51,35 +51,62 @@ const SimpleLandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
-      {/* エレガントな背景 */}
+      {/* デザイン性の高い背景 */}
       <div className="fixed inset-0 z-0">
-        {/* グラデーションレイヤー */}
+        {/* ベースグラデーション */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
         
-        {/* 細かいグラデーションメッシュ */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-transparent rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-purple-100/20 to-transparent rounded-full blur-3xl" />
+        {/* メッシュグラデーション */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute -inset-[100%] opacity-50">
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-gray-200 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gray-300 rounded-full blur-3xl" />
+          </div>
         </div>
         
-        {/* 微細なパターン */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
+        {/* 幾何学的パターン */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: `
-            radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 1px)
+            linear-gradient(90deg, #000000 1px, transparent 1px),
+            linear-gradient(180deg, #000000 1px, transparent 1px)
           `,
-          backgroundSize: '40px 40px'
+          backgroundSize: '50px 50px'
         }} />
+        
+        {/* 斜線パターン */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 35px,
+            rgba(0, 0, 0, 0.05) 35px,
+            rgba(0, 0, 0, 0.05) 70px
+          )`
+        }} />
+        
+        {/* サークルパターン */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.02]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="circles" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#000000" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#circles)" />
+        </svg>
       </div>
       {/* ナビゲーション */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/70 backdrop-blur-xl border-b border-gray-100 z-50 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-b border-gray-200 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <motion.div
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
-              className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
+              className="text-2xl font-bold text-gray-900 relative"
             >
-              ツール名
+              <span className="relative z-10">
+                ツール名
+              </span>
+              <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gray-900 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
             </motion.div>
             <div className="flex items-center space-x-4">
               <Link href="/login">
@@ -91,9 +118,16 @@ const SimpleLandingPage: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-black text-white px-6 py-2.5 rounded-md font-medium hover:bg-gray-900 transition-colors"
+                  className="relative bg-black text-white px-6 py-2.5 font-medium overflow-hidden group"
+                  style={{ clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)' }}
                 >
-                  まずは無料で始める
+                  <span className="relative z-10">まずは無料で始める</span>
+                  <motion.div 
+                    className="absolute inset-0 bg-gray-800"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
                 </motion.button>
               </Link>
             </div>
@@ -108,10 +142,14 @@ const SimpleLandingPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-6xl md:text-7xl font-bold mb-12"
+            className="text-6xl md:text-7xl font-bold mb-12 relative"
           >
-            <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-              ツール名
+            <span className="relative">
+              <span className="text-gray-900">ツール名</span>
+              {/* アクセントライン */}
+              <svg className="absolute -bottom-2 left-0 w-full" height="20" viewBox="0 0 300 20" preserveAspectRatio="none">
+                <path d="M0,10 Q150,0 300,10" stroke="#000" strokeWidth="2" fill="none" opacity="0.3"/>
+              </svg>
             </span>
           </motion.h1>
 
@@ -130,21 +168,59 @@ const SimpleLandingPage: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                  className="bg-white border border-gray-100 rounded-lg p-8 shadow-sm hover:shadow-lg transition-all group"
+                  className="relative bg-white border border-gray-200 p-8 shadow-sm hover:shadow-xl transition-all group overflow-hidden"
+                  style={{ 
+                    background: `
+                      linear-gradient(135deg, transparent 10px, white 10px),
+                      linear-gradient(-135deg, transparent 10px, white 10px),
+                      linear-gradient(45deg, transparent 10px, white 10px),
+                      linear-gradient(-45deg, transparent 10px, white 10px)
+                    `,
+                    backgroundPosition: 'top left, top right, bottom right, bottom left',
+                    backgroundSize: '50% 50%',
+                    backgroundRepeat: 'no-repeat'
+                  }}
                 >
-                  <div className="text-4xl mb-4">
+                  {/* パターンオーバーレイ */}
+                  <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{
+                    backgroundImage: `repeating-linear-gradient(
+                      -45deg,
+                      transparent,
+                      transparent 25px,
+                      rgba(0,0,0,0.05) 25px,
+                      rgba(0,0,0,0.05) 50px
+                    )`
+                  }} />
+                  <div className="text-4xl mb-4 relative z-10">
                     {concern.icon}
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2 relative z-10">
                     {concern.title}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 relative z-10">
                     {concern.subtitle}
                   </p>
+                  {/* ホバー時のアクセント */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-gray-300 to-gray-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </motion.div>
               ))}
             </div>
           </motion.div>
+
+          {/* 装飾的な区切り線 */}
+          <div className="flex items-center justify-center my-8">
+            <div className="w-16 h-px bg-gray-300" />
+            <div className="mx-4">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="8" y="8" width="4" height="4" fill="#374151" />
+                <rect x="0" y="8" width="4" height="4" fill="#9CA3AF" />
+                <rect x="16" y="8" width="4" height="4" fill="#9CA3AF" />
+                <rect x="8" y="0" width="4" height="4" fill="#9CA3AF" />
+                <rect x="8" y="16" width="4" height="4" fill="#9CA3AF" />
+              </svg>
+            </div>
+            <div className="w-16 h-px bg-gray-300" />
+          </div>
 
           {/* そのお悩みを解決します */}
           <motion.div
@@ -171,9 +247,19 @@ const SimpleLandingPage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-black text-white px-10 py-4 rounded-md text-lg font-semibold hover:bg-gray-900 transition-colors"
+                className="relative bg-black text-white px-12 py-4 text-lg font-semibold overflow-hidden group"
+                style={{ 
+                  clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
+                  boxShadow: '4px 4px 0 rgba(0,0,0,0.2)'
+                }}
               >
-                無料プランで今すぐ始める
+                <span className="relative z-10">無料プランで今すぐ始める</span>
+                <motion.div 
+                  className="absolute inset-0 bg-gray-800"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
               </motion.button>
             </Link>
             <p className="text-sm text-gray-600 mt-3">
@@ -186,7 +272,13 @@ const SimpleLandingPage: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="bg-gray-50 rounded-lg p-10 mb-20 max-w-3xl mx-auto border border-gray-100"
+            className="relative bg-white p-10 mb-20 max-w-3xl mx-auto border-2 border-gray-900 shadow-lg"
+            style={{ 
+              boxShadow: '8px 8px 0 rgba(0,0,0,0.1)',
+              background: 'linear-gradient(45deg, #f9fafb 25%, transparent 25%), linear-gradient(-45deg, #f9fafb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f9fafb 75%), linear-gradient(-45deg, transparent 75%, #f9fafb 75%)',
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+            }}
           >
             <h3 className="text-2xl font-bold mb-4 text-gray-900">
               ツールの特徴
@@ -200,6 +292,13 @@ const SimpleLandingPage: React.FC = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* 装飾的なセクション区切り */}
+      <div className="relative h-20 bg-white">
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 1200 120">
+          <path d="M0,0 L0,60 Q300,90 600,60 T1200,60 L1200,0 Z" fill="#f9fafb" />
+        </svg>
+      </div>
 
       {/* 料金プラン */}
       <section className="py-20 px-4 bg-gray-50 relative z-10">
@@ -222,16 +321,28 @@ const SimpleLandingPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -4 }}
-                className={`bg-white rounded-lg ${
-                  plan.highlighted ? 'border-2 border-black shadow-lg' : 'border border-gray-200 shadow-sm'
-                } p-8 relative group transition-all`}
+                whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                className={`relative bg-white p-8 group transition-all ${
+                  plan.highlighted 
+                    ? 'border-2 border-gray-900 shadow-xl' 
+                    : 'border border-gray-300 shadow-md'
+                }`}
+                style={{
+                  boxShadow: plan.highlighted 
+                    ? '6px 6px 0 rgba(0,0,0,0.2)' 
+                    : '3px 3px 0 rgba(0,0,0,0.1)',
+                  borderRadius: '0'
+                }}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-black text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute -top-3 -right-3">
+                    <div className="bg-black text-white px-4 py-2 text-sm font-bold" 
+                      style={{ 
+                        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)' 
+                      }}
+                    >
                       おすすめ
-                    </span>
+                    </div>
                   </div>
                 )}
 
@@ -259,13 +370,31 @@ const SimpleLandingPage: React.FC = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full py-3 rounded-md font-medium transition-all ${
+                    className={`relative w-full py-3 font-medium transition-all overflow-hidden group ${
                       plan.highlighted
-                        ? 'bg-black text-white hover:bg-gray-900'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-900 border-2 border-gray-900'
                     }`}
+                    style={{ 
+                      boxShadow: '2px 2px 0 rgba(0,0,0,0.2)' 
+                    }}
                   >
-                    {plan.buttonText}
+                    <span className="relative z-10">{plan.buttonText}</span>
+                    {!plan.highlighted && (
+                      <motion.div 
+                        className="absolute inset-0 bg-gray-900"
+                        initial={{ x: "-100%" }}
+                        whileHover={{ x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
+                    {!plan.highlighted && (
+                      <motion.span 
+                        className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                      >
+                        {plan.buttonText}
+                      </motion.span>
+                    )}
                   </motion.button>
                 </Link>
               </motion.div>
@@ -284,6 +413,13 @@ const SimpleLandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* 最終セクションの装飾 */}
+      <div className="relative h-20 bg-gray-50">
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 1200 120">
+          <path d="M0,60 Q300,30 600,60 T1200,60 L1200,120 L0,120 Z" fill="white" />
+        </svg>
+      </div>
+
       {/* CTA */}
       <section className="py-20 px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
@@ -295,11 +431,24 @@ const SimpleLandingPage: React.FC = () => {
           >
             <Link href="/register">
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-black text-white px-12 py-5 rounded-md text-xl font-semibold hover:bg-gray-900 transition-colors"
+                whileHover={{ scale: 1.05, rotate: -1 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative bg-black text-white px-16 py-6 text-xl font-bold overflow-hidden group"
+                style={{ 
+                  clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)',
+                  boxShadow: '8px 8px 0 rgba(0,0,0,0.2)',
+                  transform: 'perspective(1000px) rotateX(2deg)'
+                }}
               >
-                まずは無料で始める
+                <span className="relative z-10">まずは無料で始める</span>
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-700"
+                  initial={{ y: "100%" }}
+                  whileHover={{ y: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
+                {/* アクセントライン */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
               </motion.button>
             </Link>
           </motion.div>
