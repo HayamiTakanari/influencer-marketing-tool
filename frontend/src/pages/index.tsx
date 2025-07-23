@@ -1,5 +1,5 @@
-import NewLandingPage from '../components/NewLandingPage';
+import ModernLandingPage from '../components/ModernLandingPage';
 
 export default function Home() {
-  return <NewLandingPage />;
+  return <ModernLandingPage />;
 }
