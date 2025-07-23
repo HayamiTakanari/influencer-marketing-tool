@@ -81,7 +81,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:vercel.com)",
       "Bash(git reset:*)",
-      "Bash(gh workflow:*)"
+      "Bash(gh workflow:*)",
+      "Bash(npx next:*)",
+      "Bash(/dev/null)",
+      "WebFetch(domain:bitstar.tokyo)"
     ],
     "deny": []
   }
