@@ -59,9 +59,9 @@ const SimpleLandingPage: React.FC = () => {
         {/* メッシュグラデーション */}
         <div className="absolute inset-0 opacity-40">
           <div className="absolute -inset-[100%] opacity-60">
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-100 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gray-200 rounded-full blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-emerald-200 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
           </div>
         </div>
         
@@ -120,12 +120,16 @@ const SimpleLandingPage: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="relative bg-emerald-600 text-white px-6 py-2.5 font-medium overflow-hidden group"
-                  style={{ clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)' }}
+                  className="relative text-white px-6 py-2.5 font-medium overflow-hidden group"
+                  style={{ 
+                    clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)',
+                    background: 'linear-gradient(135deg, #10b981, #059669, #047857)'
+                  }}
                 >
                   <span className="relative z-10">まずは無料で始める</span>
                   <motion.div 
-                    className="absolute inset-0 bg-emerald-700"
+                    className="absolute inset-0"
+                    style={{ background: 'linear-gradient(135deg, #047857, #065f46, #064e3b)' }}
                     initial={{ x: "-100%" }}
                     whileHover={{ x: 0 }}
                     transition={{ duration: 0.3 }}
@@ -152,8 +156,19 @@ const SimpleLandingPage: React.FC = () => {
               </span>
               {/* アクセントライン */}
               <svg className="absolute -bottom-2 left-0 w-full" height="20" viewBox="0 0 300 20" preserveAspectRatio="none">
-                <path d="M0,10 Q150,0 300,10" stroke="#10b981" strokeWidth="2" fill="none" opacity="0.6"/>
-                <path d="M0,12 Q150,2 300,12" stroke="#34d399" strokeWidth="1" fill="none" opacity="0.4"/>
+                <defs>
+                  <linearGradient id="accent-gradient-1" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="#34d399" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#6ee7b7" stopOpacity="0.6" />
+                  </linearGradient>
+                  <linearGradient id="accent-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#34d399" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.7" />
+                  </linearGradient>
+                </defs>
+                <path d="M0,10 Q150,0 300,10" stroke="url(#accent-gradient-1)" strokeWidth="2" fill="none"/>
+                <path d="M0,12 Q150,2 300,12" stroke="url(#accent-gradient-2)" strokeWidth="1" fill="none"/>
               </svg>
             </span>
           </motion.h1>
@@ -209,7 +224,7 @@ const SimpleLandingPage: React.FC = () => {
                     {concern.subtitle}
                   </p>
                   {/* ホバー時のアクセント */}
-                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" style={{ background: 'linear-gradient(90deg, #34d399, #14b8a6, #10b981, #059669)' }} />
                 </motion.div>
               ))}
             </div>
@@ -220,11 +235,21 @@ const SimpleLandingPage: React.FC = () => {
             <div className="w-16 h-px bg-gray-300" />
             <div className="mx-4">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="8" y="8" width="4" height="4" fill="#10b981" />
+                <defs>
+                  <linearGradient id="center-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#059669" />
+                  </linearGradient>
+                  <linearGradient id="side-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#6ee7b7" />
+                    <stop offset="100%" stopColor="#34d399" />
+                  </linearGradient>
+                </defs>
+                <rect x="8" y="8" width="4" height="4" fill="url(#center-gradient)" />
                 <rect x="0" y="8" width="4" height="4" fill="#9CA3AF" />
                 <rect x="16" y="8" width="4" height="4" fill="#9CA3AF" />
-                <rect x="8" y="0" width="4" height="4" fill="#6ee7b7" />
-                <rect x="8" y="16" width="4" height="4" fill="#6ee7b7" />
+                <rect x="8" y="0" width="4" height="4" fill="url(#side-gradient)" />
+                <rect x="8" y="16" width="4" height="4" fill="url(#side-gradient)" />
               </svg>
             </div>
             <div className="w-16 h-px bg-gray-300" />
@@ -255,16 +280,18 @@ const SimpleLandingPage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="relative bg-emerald-600 text-white px-12 py-4 text-lg font-semibold overflow-hidden group"
+                className="relative text-white px-12 py-4 text-lg font-semibold overflow-hidden group"
                 style={{ 
                   clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
+                  background: 'linear-gradient(135deg, #10b981, #059669, #047857)',
                   boxShadow: '5px 5px 0 rgba(16, 185, 129, 0.4), 3px 3px 15px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
                   textShadow: 'none'
                 }}
               >
                 <span className="relative z-10">無料プランで今すぐ始める</span>
                 <motion.div 
-                  className="absolute inset-0 bg-emerald-700"
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(135deg, #047857, #065f46, #064e3b)' }}
                   initial={{ x: "-100%" }}
                   whileHover={{ x: 0 }}
                   transition={{ duration: 0.3 }}
@@ -294,7 +321,7 @@ const SimpleLandingPage: React.FC = () => {
                 ツールの特徴
               </span>
               {/* サブトルなアンダーライン */}
-              <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-emerald-500 opacity-80" />
+              <div className="absolute -bottom-1 left-0 w-8 h-0.5 opacity-80" style={{ background: 'linear-gradient(90deg, #10b981, #34d399)' }} />
             </h3>
             <p className="text-xl text-gray-700">
               ご予算や条件に合ったインフルエンサーを<br />
@@ -387,9 +414,12 @@ const SimpleLandingPage: React.FC = () => {
                     whileTap={{ scale: 0.98 }}
                     className={`relative w-full py-3 font-medium transition-all overflow-hidden group ${
                       plan.highlighted
-                        ? 'bg-emerald-600 text-white'
+                        ? 'text-white'
                         : 'bg-white text-gray-900 border-2 border-emerald-600'
                     }`}
+                    style={plan.highlighted ? {
+                      background: 'linear-gradient(135deg, #10b981, #059669)'
+                    } : {}}
                     style={{ 
                       boxShadow: plan.highlighted 
                         ? '3px 3px 0 rgba(0,0,0,0.25), 2px 2px 8px rgba(0,0,0,0.12)'
@@ -400,7 +430,8 @@ const SimpleLandingPage: React.FC = () => {
                     <span className="relative z-10">{plan.buttonText}</span>
                     {!plan.highlighted && (
                       <motion.div 
-                        className="absolute inset-0 bg-emerald-600"
+                        className="absolute inset-0"
+                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
                         initial={{ x: "-100%" }}
                         whileHover={{ x: 0 }}
                         transition={{ duration: 0.3 }}
@@ -451,9 +482,10 @@ const SimpleLandingPage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.05, rotate: -1 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative bg-emerald-600 text-white px-16 py-6 text-xl font-bold overflow-hidden group"
+                className="relative text-white px-16 py-6 text-xl font-bold overflow-hidden group"
                 style={{ 
                   clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)',
+                  background: 'linear-gradient(135deg, #10b981, #059669, #047857)',
                   boxShadow: '10px 10px 0 rgba(16, 185, 129, 0.4), 5px 5px 25px rgba(16, 185, 129, 0.3), 3px 3px 12px rgba(16, 185, 129, 0.2)',
                   transform: 'perspective(1000px) rotateX(2deg)',
                   textShadow: 'none'
@@ -461,13 +493,14 @@ const SimpleLandingPage: React.FC = () => {
               >
                 <span className="relative z-10">まずは無料で始める</span>
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-teal-700"
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(135deg, #047857, #065f46, #0f766e)' }}
                   initial={{ y: "100%" }}
                   whileHover={{ y: 0 }}
                   transition={{ duration: 0.3 }}
                 />
                 {/* アクセントライン */}
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-emerald-300 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                <div className="absolute bottom-0 left-0 w-full h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" style={{ background: 'linear-gradient(90deg, #6ee7b7, #34d399, #10b981)' }} />
               </motion.button>
             </Link>
           </motion.div>
