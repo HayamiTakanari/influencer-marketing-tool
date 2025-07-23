@@ -65,34 +65,35 @@ const SimpleLandingPage: React.FC = () => {
           </div>
         </div>
         
-        {/* 幾何学的パターン */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `
-            linear-gradient(90deg, #000000 1px, transparent 1px),
-            linear-gradient(180deg, #000000 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px'
-        }} />
-        
-        {/* 斜線パターン */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 35px,
-            rgba(0, 0, 0, 0.05) 35px,
-            rgba(0, 0, 0, 0.05) 70px
-          )`
-        }} />
-        
-        {/* サークルパターン */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.02]" xmlns="http://www.w3.org/2000/svg">
+        {/* アーティスティックパターン */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <pattern id="circles" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-              <circle cx="40" cy="40" r="30" fill="none" stroke="#000000" strokeWidth="1" />
+            <pattern id="artistic-pattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              {/* ミニマルな幾何学的形状 */}
+              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
+              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
+              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
+              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
             </pattern>
           </defs>
-          <rect x="0" y="0" width="100%" height="100%" fill="url(#circles)" />
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern)" />
+        </svg>
+        
+        {/* シンプルな波パターン */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `
+            radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,0.03) 31%, rgba(0,0,0,0.03) 32%, transparent 33%)
+          `,
+          backgroundSize: '200px 200px'
+        }} />
+        
+        {/* アシンメトリックライン */}
+        <svg className="absolute top-1/4 left-0 w-full h-px opacity-[0.05]" preserveAspectRatio="none">
+          <path d="M0,0 Q400,0 800,0 T1600,0" stroke="#000000" strokeWidth="1" fill="none" />
+        </svg>
+        <svg className="absolute top-3/4 left-0 w-full h-px opacity-[0.05]" preserveAspectRatio="none">
+          <path d="M0,0 Q600,0 1200,0 T2400,0" stroke="#000000" strokeWidth="1" fill="none" />
         </svg>
       </div>
       {/* ナビゲーション */}
@@ -190,15 +191,13 @@ const SimpleLandingPage: React.FC = () => {
                     boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
                   }}
                 >
-                  {/* パターンオーバーレイ */}
-                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
-                    backgroundImage: `repeating-linear-gradient(
-                      -45deg,
-                      transparent,
-                      transparent 25px,
-                      rgba(0,0,0,0.05) 25px,
-                      rgba(0,0,0,0.05) 50px
-                    )`
+                  {/* シンプルアーティスティックパターン */}
+                  <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{
+                    backgroundImage: `
+                      radial-gradient(circle at 20% 20%, rgba(0,0,0,0.05) 1px, transparent 1px),
+                      radial-gradient(circle at 80% 80%, rgba(0,0,0,0.05) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '60px 60px, 80px 80px'
                   }} />
                   {/* サブトルな内側シャドウ */}
                   <div className="absolute inset-0 pointer-events-none" style={{
