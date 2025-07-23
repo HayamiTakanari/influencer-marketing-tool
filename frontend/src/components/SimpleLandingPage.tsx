@@ -102,10 +102,7 @@ const SimpleLandingPage: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-12"
           >
-            <h2 className="text-2xl font-bold mb-8 text-gray-800">
-              抱えるお悩み
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
               {concerns.map((concern, index) => (
                 <motion.div
                   key={index}
@@ -122,6 +119,27 @@ const SimpleLandingPage: React.FC = () => {
                 </motion.div>
               ))}
             </div>
+            
+            {/* Freeプラン登録CTA */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-8"
+            >
+              <Link href="/register">
+                <motion.button
+                  whileHover={{ scale: 1.05, boxShadow: '0 15px 30px rgba(59, 130, 246, 0.3)' }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-xl text-lg font-bold shadow-lg"
+                >
+                  無料プランで今すぐ始める
+                </motion.button>
+              </Link>
+              <p className="text-sm text-gray-600 mt-3">
+                クレジットカード不要・即日利用可能
+              </p>
+            </motion.div>
           </motion.div>
 
           {/* そのお悩みを解決します */}
