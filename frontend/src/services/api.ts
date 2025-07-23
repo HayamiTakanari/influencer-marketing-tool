@@ -43,6 +43,113 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Password strength validation
+export const checkPasswordStrength = (password: string) => {
+  const strength = {
+    score: 0,
+    issues: [] as string[],
+    hasMinLength: false,
+    hasLowercase: false,
+    hasUppercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  };
+
+  // Check minimum length
+  if (password.length >= 8) {
+    strength.hasMinLength = true;
+    strength.score += 1;
+  } else {
+    strength.issues.push('8文字以上である必要があります');
+  }
+
+  // Check for lowercase
+  if (/[a-z]/.test(password)) {
+    strength.hasLowercase = true;
+    strength.score += 1;
+  } else {
+    strength.issues.push('小文字を含む必要があります');
+  }
+
+  // Check for uppercase
+  if (/[A-Z]/.test(password)) {
+    strength.hasUppercase = true;
+    strength.score += 1;
+  } else {
+    strength.issues.push('大文字を含む必要があります');
+  }
+
+  // Check for numbers
+  if (/\d/.test(password)) {
+    strength.hasNumber = true;
+    strength.score += 1;
+  } else {
+    strength.issues.push('数字を含む必要があります');
+  }
+
+  // Check for special characters
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    strength.hasSpecialChar = true;
+    strength.score += 1;
+  }
+
+  return strength;
+};
+
+// Email verification
+export const sendEmailVerification = async (email: string) => {
+  console.log('Send email verification called for:', email);
+  
+  // Mock implementation - in production, this would send an actual email
+  if (API_BASE_URL.includes('jsonplaceholder') || API_BASE_URL.includes('localhost')) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          message: 'メール認証リンクを送信しました。メールボックスを確認してください。'
+        });
+      }, 1000);
+    });
+  }
+
+  try {
+    const response = await api.post('/auth/send-verification', { email });
+    return response.data;
+  } catch (error) {
+    console.error('Send email verification error:', error);
+    throw error;
+  }
+};
+
+export const verifyEmail = async (token: string) => {
+  console.log('Verify email called with token:', token);
+  
+  // Mock implementation
+  if (API_BASE_URL.includes('jsonplaceholder') || API_BASE_URL.includes('localhost')) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Simulate success for valid-looking tokens
+        if (token && token.length > 10) {
+          resolve({
+            success: true,
+            message: 'メール認証が完了しました。'
+          });
+        } else {
+          reject(new Error('無効な認証トークンです。'));
+        }
+      }, 1000);
+    });
+  }
+
+  try {
+    const response = await api.post('/auth/verify-email', { token });
+    return response.data;
+  } catch (error) {
+    console.error('Email verification error:', error);
+    throw error;
+  }
+};
+
 // Auth
 export const login = async (email: string, password: string) => {
   console.log('Login API called with:', { email, baseURL: API_BASE_URL });
