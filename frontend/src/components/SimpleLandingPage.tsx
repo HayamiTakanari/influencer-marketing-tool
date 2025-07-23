@@ -82,7 +82,7 @@ const SimpleLandingPage: React.FC = () => {
         />
         
         {/* フローティングオーブ */}
-        {[...Array(6)].map((_, i) => (
+        {typeof window !== 'undefined' && [...Array(6)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-3xl"
