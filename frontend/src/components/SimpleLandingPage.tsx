@@ -27,7 +27,7 @@ const SimpleLandingPage: React.FC = () => {
       ],
       buttonText: 'まずは無料で始める',
       highlighted: false,
-      color: 'from-gray-500 to-gray-600'
+      color: 'from-emerald-500 to-emerald-600'
     },
     {
       name: 'Standardプラン',
@@ -36,7 +36,7 @@ const SimpleLandingPage: React.FC = () => {
       features: [],
       buttonText: '今すぐ始める',
       highlighted: true,
-      color: 'from-blue-500 to-purple-500'
+      color: 'from-emerald-500 to-teal-600'
     },
     {
       name: 'Proプラン',
@@ -59,9 +59,9 @@ const SimpleLandingPage: React.FC = () => {
         {/* メッシュグラデーション */}
         <div className="absolute inset-0 opacity-40">
           <div className="absolute -inset-[100%] opacity-60">
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-gray-200 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gray-300 rounded-full blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gray-400 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-100 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gray-200 rounded-full blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-emerald-200 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
           </div>
         </div>
         
@@ -120,12 +120,12 @@ const SimpleLandingPage: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="relative bg-black text-white px-6 py-2.5 font-medium overflow-hidden group"
+                  className="relative bg-emerald-600 text-white px-6 py-2.5 font-medium overflow-hidden group"
                   style={{ clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)' }}
                 >
                   <span className="relative z-10">まずは無料で始める</span>
                   <motion.div 
-                    className="absolute inset-0 bg-gray-800"
+                    className="absolute inset-0 bg-emerald-700"
                     initial={{ x: "-100%" }}
                     whileHover={{ x: 0 }}
                     transition={{ duration: 0.3 }}
@@ -152,8 +152,8 @@ const SimpleLandingPage: React.FC = () => {
               </span>
               {/* アクセントライン */}
               <svg className="absolute -bottom-2 left-0 w-full" height="20" viewBox="0 0 300 20" preserveAspectRatio="none">
-                <path d="M0,10 Q150,0 300,10" stroke="#6B7280" strokeWidth="2" fill="none" opacity="0.4"/>
-                <path d="M0,12 Q150,2 300,12" stroke="#9CA3AF" strokeWidth="1" fill="none" opacity="0.6"/>
+                <path d="M0,10 Q150,0 300,10" stroke="#10b981" strokeWidth="2" fill="none" opacity="0.6"/>
+                <path d="M0,12 Q150,2 300,12" stroke="#34d399" strokeWidth="1" fill="none" opacity="0.4"/>
               </svg>
             </span>
           </motion.h1>
@@ -209,7 +209,7 @@ const SimpleLandingPage: React.FC = () => {
                     {concern.subtitle}
                   </p>
                   {/* ホバー時のアクセント */}
-                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-gray-300 to-gray-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </motion.div>
               ))}
             </div>
@@ -220,11 +220,11 @@ const SimpleLandingPage: React.FC = () => {
             <div className="w-16 h-px bg-gray-300" />
             <div className="mx-4">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="8" y="8" width="4" height="4" fill="#374151" />
+                <rect x="8" y="8" width="4" height="4" fill="#10b981" />
                 <rect x="0" y="8" width="4" height="4" fill="#9CA3AF" />
                 <rect x="16" y="8" width="4" height="4" fill="#9CA3AF" />
-                <rect x="8" y="0" width="4" height="4" fill="#9CA3AF" />
-                <rect x="8" y="16" width="4" height="4" fill="#9CA3AF" />
+                <rect x="8" y="0" width="4" height="4" fill="#6ee7b7" />
+                <rect x="8" y="16" width="4" height="4" fill="#6ee7b7" />
               </svg>
             </div>
             <div className="w-16 h-px bg-gray-300" />
@@ -255,16 +255,16 @@ const SimpleLandingPage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="relative bg-black text-white px-12 py-4 text-lg font-semibold overflow-hidden group"
+                className="relative bg-emerald-600 text-white px-12 py-4 text-lg font-semibold overflow-hidden group"
                 style={{ 
                   clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
-                  boxShadow: '5px 5px 0 rgba(0,0,0,0.25), 3px 3px 15px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.1)',
+                  boxShadow: '5px 5px 0 rgba(16, 185, 129, 0.4), 3px 3px 15px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
                   textShadow: 'none'
                 }}
               >
                 <span className="relative z-10">無料プランで今すぐ始める</span>
                 <motion.div 
-                  className="absolute inset-0 bg-gray-800"
+                  className="absolute inset-0 bg-emerald-700"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: 0 }}
                   transition={{ duration: 0.3 }}
@@ -294,7 +294,7 @@ const SimpleLandingPage: React.FC = () => {
                 ツールの特徴
               </span>
               {/* サブトルなアンダーライン */}
-              <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-gray-400 opacity-60" />
+              <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-emerald-500 opacity-80" />
             </h3>
             <p className="text-xl text-gray-700">
               ご予算や条件に合ったインフルエンサーを<br />
@@ -387,8 +387,8 @@ const SimpleLandingPage: React.FC = () => {
                     whileTap={{ scale: 0.98 }}
                     className={`relative w-full py-3 font-medium transition-all overflow-hidden group ${
                       plan.highlighted
-                        ? 'bg-black text-white'
-                        : 'bg-white text-gray-900 border-2 border-gray-900'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-white text-gray-900 border-2 border-emerald-600'
                     }`}
                     style={{ 
                       boxShadow: plan.highlighted 
@@ -400,7 +400,7 @@ const SimpleLandingPage: React.FC = () => {
                     <span className="relative z-10">{plan.buttonText}</span>
                     {!plan.highlighted && (
                       <motion.div 
-                        className="absolute inset-0 bg-gray-900"
+                        className="absolute inset-0 bg-emerald-600"
                         initial={{ x: "-100%" }}
                         whileHover={{ x: 0 }}
                         transition={{ duration: 0.3 }}
@@ -451,23 +451,23 @@ const SimpleLandingPage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.05, rotate: -1 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative bg-black text-white px-16 py-6 text-xl font-bold overflow-hidden group"
+                className="relative bg-emerald-600 text-white px-16 py-6 text-xl font-bold overflow-hidden group"
                 style={{ 
                   clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)',
-                  boxShadow: '10px 10px 0 rgba(0,0,0,0.4), 5px 5px 25px rgba(0,0,0,0.2), 3px 3px 12px rgba(0,0,0,0.15)',
+                  boxShadow: '10px 10px 0 rgba(16, 185, 129, 0.4), 5px 5px 25px rgba(16, 185, 129, 0.3), 3px 3px 12px rgba(16, 185, 129, 0.2)',
                   transform: 'perspective(1000px) rotateX(2deg)',
                   textShadow: 'none'
                 }}
               >
                 <span className="relative z-10">まずは無料で始める</span>
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-700"
+                  className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-teal-700"
                   initial={{ y: "100%" }}
                   whileHover={{ y: 0 }}
                   transition={{ duration: 0.3 }}
                 />
                 {/* アクセントライン */}
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-emerald-300 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
               </motion.button>
             </Link>
           </motion.div>
