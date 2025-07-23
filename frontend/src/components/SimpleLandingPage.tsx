@@ -57,10 +57,11 @@ const SimpleLandingPage: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
         
         {/* メッシュグラデーション */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute -inset-[100%] opacity-50">
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute -inset-[100%] opacity-60">
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-gray-200 rounded-full blur-3xl" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gray-300 rounded-full blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gray-400 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
           </div>
         </div>
         
@@ -95,7 +96,7 @@ const SimpleLandingPage: React.FC = () => {
         </svg>
       </div>
       {/* ナビゲーション */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-b border-gray-200 z-50 shadow-md">
+      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <motion.div
@@ -145,11 +146,18 @@ const SimpleLandingPage: React.FC = () => {
             className="text-6xl md:text-7xl font-bold mb-12 relative"
           >
             <span className="relative">
-              <span className="text-gray-900">ツール名</span>
+              <span className="text-gray-900 relative" style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.1), 1px 1px 2px rgba(0,0,0,0.05)' }}>
+                ツール名
+              </span>
               {/* アクセントライン */}
               <svg className="absolute -bottom-2 left-0 w-full" height="20" viewBox="0 0 300 20" preserveAspectRatio="none">
-                <path d="M0,10 Q150,0 300,10" stroke="#000" strokeWidth="2" fill="none" opacity="0.3"/>
+                <path d="M0,10 Q150,0 300,10" stroke="#6B7280" strokeWidth="2" fill="none" opacity="0.4"/>
+                <path d="M0,12 Q150,2 300,12" stroke="#9CA3AF" strokeWidth="1" fill="none" opacity="0.6"/>
               </svg>
+              {/* アーティスティックな影 */}
+              <div className="absolute -bottom-4 -right-4 text-6xl md:text-7xl font-bold text-gray-300 -z-10 select-none">
+                ツール名
+              </div>
             </span>
           </motion.h1>
 
@@ -168,7 +176,7 @@ const SimpleLandingPage: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                  className="relative bg-white border border-gray-200 p-8 shadow-sm hover:shadow-xl transition-all group overflow-hidden"
+                  className="relative bg-white border border-gray-200 p-8 transition-all group overflow-hidden"
                   style={{ 
                     background: `
                       linear-gradient(135deg, transparent 10px, white 10px),
@@ -178,11 +186,12 @@ const SimpleLandingPage: React.FC = () => {
                     `,
                     backgroundPosition: 'top left, top right, bottom right, bottom left',
                     backgroundSize: '50% 50%',
-                    backgroundRepeat: 'no-repeat'
+                    backgroundRepeat: 'no-repeat',
+                    boxShadow: '4px 4px 12px rgba(0,0,0,0.08), 2px 2px 6px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
                   }}
                 >
                   {/* パターンオーバーレイ */}
-                  <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{
+                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
                     backgroundImage: `repeating-linear-gradient(
                       -45deg,
                       transparent,
@@ -190,6 +199,10 @@ const SimpleLandingPage: React.FC = () => {
                       rgba(0,0,0,0.05) 25px,
                       rgba(0,0,0,0.05) 50px
                     )`
+                  }} />
+                  {/* サブトルな内側シャドウ */}
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.03), inset -1px -1px 2px rgba(255,255,255,0.5)'
                   }} />
                   <div className="text-4xl mb-4 relative z-10">
                     {concern.icon}
@@ -229,8 +242,12 @@ const SimpleLandingPage: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-8"
           >
-            <h2 className="text-3xl md:text-4xl font-bold">
-              <span className="text-gray-900">
+            <h2 className="text-3xl md:text-4xl font-bold relative">
+              <span className="text-gray-900 relative" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.08)' }}>
+                そのお悩みを解決します！
+              </span>
+              {/* アーティスティックなシャドウテキスト */}
+              <span className="absolute -top-1 -left-1 text-gray-400 -z-10 select-none" style={{ opacity: 0.3 }}>
                 そのお悩みを解決します！
               </span>
             </h2>
@@ -250,7 +267,8 @@ const SimpleLandingPage: React.FC = () => {
                 className="relative bg-black text-white px-12 py-4 text-lg font-semibold overflow-hidden group"
                 style={{ 
                   clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
-                  boxShadow: '4px 4px 0 rgba(0,0,0,0.2)'
+                  boxShadow: '4px 4px 0 rgba(0,0,0,0.2), 2px 2px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
                 }}
               >
                 <span className="relative z-10">無料プランで今すぐ始める</span>
@@ -272,21 +290,27 @@ const SimpleLandingPage: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="relative bg-white p-10 mb-20 max-w-3xl mx-auto border-2 border-gray-900 shadow-lg"
+            className="relative bg-white p-10 mb-20 max-w-3xl mx-auto border-2 border-gray-900"
             style={{ 
-              boxShadow: '8px 8px 0 rgba(0,0,0,0.1)',
+              boxShadow: '8px 8px 0 rgba(0,0,0,0.1), 4px 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
               background: 'linear-gradient(45deg, #f9fafb 25%, transparent 25%), linear-gradient(-45deg, #f9fafb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f9fafb 75%), linear-gradient(-45deg, transparent 75%, #f9fafb 75%)',
               backgroundSize: '20px 20px',
               backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
             }}
           >
-            <h3 className="text-2xl font-bold mb-4 text-gray-900">
-              ツールの特徴
+            <h3 className="text-2xl font-bold mb-4 text-gray-900 relative">
+              <span style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.08)' }}>
+                ツールの特徴
+              </span>
+              {/* サブトルなアンダーライン */}
+              <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-gray-400 opacity-60" />
             </h3>
-            <p className="text-xl text-gray-700">
+            <p className="text-xl text-gray-700" style={{ textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.05)' }}>
               ご予算や条件に合ったインフルエンサーを<br />
-              <span className="font-bold text-gray-900">
-                AIが分析し、ご提案します！
+              <span className="font-bold text-gray-900 relative">
+                <span style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
+                  AIが分析し、ご提案します！
+                </span>
               </span>
             </p>
           </motion.div>
@@ -308,9 +332,15 @@ const SimpleLandingPage: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-center mb-16"
+            className="text-4xl md:text-5xl font-bold text-center mb-16 relative"
           >
-            料金プラン
+            <span style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.1)' }}>
+              料金プラン
+            </span>
+            {/* アーティスティックな背景シャドウ */}
+            <span className="absolute -top-1 -left-1 text-gray-300 -z-10 select-none" style={{ opacity: 0.4 }}>
+              料金プラン
+            </span>
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -329,8 +359,8 @@ const SimpleLandingPage: React.FC = () => {
                 }`}
                 style={{
                   boxShadow: plan.highlighted 
-                    ? '6px 6px 0 rgba(0,0,0,0.2)' 
-                    : '3px 3px 0 rgba(0,0,0,0.1)',
+                    ? '6px 6px 0 rgba(0,0,0,0.2), 2px 2px 15px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)' 
+                    : '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
                   borderRadius: '0'
                 }}
               >
@@ -376,7 +406,10 @@ const SimpleLandingPage: React.FC = () => {
                         : 'bg-white text-gray-900 border-2 border-gray-900'
                     }`}
                     style={{ 
-                      boxShadow: '2px 2px 0 rgba(0,0,0,0.2)' 
+                      boxShadow: plan.highlighted 
+                        ? '2px 2px 0 rgba(0,0,0,0.2), 1px 1px 6px rgba(0,0,0,0.1)'
+                        : '2px 2px 0 rgba(0,0,0,0.2), 1px 1px 6px rgba(0,0,0,0.08)',
+                      textShadow: plan.highlighted ? '0.5px 0.5px 1px rgba(0,0,0,0.3)' : 'none'
                     }}
                   >
                     <span className="relative z-10">{plan.buttonText}</span>
@@ -436,8 +469,9 @@ const SimpleLandingPage: React.FC = () => {
                 className="relative bg-black text-white px-16 py-6 text-xl font-bold overflow-hidden group"
                 style={{ 
                   clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)',
-                  boxShadow: '8px 8px 0 rgba(0,0,0,0.2)',
-                  transform: 'perspective(1000px) rotateX(2deg)'
+                  boxShadow: '8px 8px 0 rgba(0,0,0,0.3), 4px 4px 20px rgba(0,0,0,0.15), 2px 2px 8px rgba(0,0,0,0.1)',
+                  transform: 'perspective(1000px) rotateX(2deg)',
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
                 }}
               >
                 <span className="relative z-10">まずは無料で始める</span>
