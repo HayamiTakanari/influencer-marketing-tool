@@ -3,18 +3,9 @@ import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const SimpleLandingPage: React.FC = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3]);
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
   const concerns = [
     {
       icon: '🔍',
@@ -103,15 +94,12 @@ const SimpleLandingPage: React.FC = () => {
           />
         ))}
         
-        {/* マウス追従グロウ */}
-        <motion.div
-          className="pointer-events-none absolute w-96 h-96 rounded-full bg-gradient-to-r from-blue-300/20 to-purple-300/20 blur-3xl"
-          animate={{
-            x: mousePosition.x - 192,
-            y: mousePosition.y - 192,
-          }}
-          transition={{ type: "spring", damping: 30, stiffness: 200 }}
-        />
+        {/* 静的な装飾パターン */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(59, 130, 246, 0.1) 35px, rgba(59, 130, 246, 0.1) 70px)`,
+          }} />
+        </div>
       </div>
       {/* ナビゲーション */}
       <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-b border-gray-200 z-50 shadow-lg">
