@@ -155,10 +155,6 @@ const SimpleLandingPage: React.FC = () => {
                 <path d="M0,10 Q150,0 300,10" stroke="#6B7280" strokeWidth="2" fill="none" opacity="0.4"/>
                 <path d="M0,12 Q150,2 300,12" stroke="#9CA3AF" strokeWidth="1" fill="none" opacity="0.6"/>
               </svg>
-              {/* アーティスティックな影 */}
-              <div className="absolute -bottom-4 -right-4 text-6xl md:text-7xl font-bold text-gray-300 -z-10 select-none">
-                ツール名
-              </div>
             </span>
           </motion.h1>
 
@@ -245,10 +241,6 @@ const SimpleLandingPage: React.FC = () => {
               <span className="text-gray-900 relative">
                 そのお悩みを解決します！
               </span>
-              {/* アーティスティックなシャドウテキスト */}
-              <span className="absolute -top-1 -left-1 text-gray-400 -z-10 select-none" style={{ opacity: 0.3 }}>
-                そのお悩みを解決します！
-              </span>
             </h2>
           </motion.div>
 
@@ -332,10 +324,6 @@ const SimpleLandingPage: React.FC = () => {
             className="text-4xl md:text-5xl font-bold text-center mb-16 relative"
           >
             <span>
-              料金プラン
-            </span>
-            {/* アーティスティックな背景シャドウ */}
-            <span className="absolute -top-1 -left-1 text-gray-300 -z-10 select-none" style={{ opacity: 0.4 }}>
               料金プラン
             </span>
           </motion.h2>
