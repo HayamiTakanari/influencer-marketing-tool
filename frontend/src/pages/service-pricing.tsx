@@ -246,51 +246,60 @@ const ServicePricingPage: React.FC = () => {
         )}
 
         {/* 料金設定一覧 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {servicePricings.map((service, index) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
+              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all flex flex-col min-h-[280px]"
             >
+              {/* カードヘッダー */}
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
                     {serviceTypeLabels[service.serviceType as keyof typeof serviceTypeLabels]}
                   </h3>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-2xl font-bold text-blue-600 mb-1">
                     ¥{service.price.toLocaleString()}
                   </p>
                   <p className="text-sm text-gray-600">
                     {unitLabels[service.unit as keyof typeof unitLabels]}
                   </p>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 ml-2">
                   <button
                     onClick={() => handleEdit(service)}
-                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                    className="text-blue-600 hover:text-blue-800 transition-colors p-1"
+                    title="編集"
                   >
                     ✏️
                   </button>
                   <button
                     onClick={() => handleDelete(service.id)}
-                    className="text-red-600 hover:text-red-800 transition-colors"
+                    className="text-red-600 hover:text-red-800 transition-colors p-1"
+                    title="削除"
                   >
                     🗑️
                   </button>
                 </div>
               </div>
 
-              {service.description && (
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  {service.description}
-                </p>
-              )}
+              {/* カード内容（説明） */}
+              <div className="flex-1 mb-4">
+                {service.description ? (
+                  <p className="text-gray-600 text-sm line-clamp-3">
+                    {service.description}
+                  </p>
+                ) : (
+                  <p className="text-gray-400 text-sm italic">説明なし</p>
+                )}
+              </div>
 
-              <div className="flex justify-between items-center">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              {/* カードフッター */}
+              <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-200">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   service.isActive 
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-gray-100 text-gray-800'
@@ -336,14 +345,14 @@ const ServicePricingPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleBulkSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 {bulkPricingData.map((item, index) => (
-                  <div key={item.serviceType} className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="font-semibold text-gray-800 mb-3">
+                  <div key={item.serviceType} className="bg-gray-50 rounded-xl p-4 min-h-[300px] flex flex-col">
+                    <h3 className="font-semibold text-gray-800 mb-3 text-center">
                       {serviceTypeLabels[item.serviceType as keyof typeof serviceTypeLabels]}
                     </h3>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-3 flex-1">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           料金（円）
@@ -354,6 +363,7 @@ const ServicePricingPage: React.FC = () => {
                           onChange={(e) => updateBulkPricing(index, 'price', parseInt(e.target.value) || 0)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="10000"
+                          min="0"
                         />
                       </div>
 
@@ -372,27 +382,28 @@ const ServicePricingPage: React.FC = () => {
                         </select>
                       </div>
 
-                      <div>
+                      <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           説明
                         </label>
                         <textarea
                           value={item.description}
                           onChange={(e) => updateBulkPricing(index, 'description', e.target.value)}
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                           placeholder="詳細説明..."
                         />
                       </div>
 
-                      <div className="flex items-center">
+                      <div className="flex items-center justify-center pt-2">
                         <input
                           type="checkbox"
                           checked={item.isActive}
                           onChange={(e) => updateBulkPricing(index, 'isActive', e.target.checked)}
-                          className="mr-2"
+                          className="mr-2 h-4 w-4"
+                          id={`active-${index}`}
                         />
-                        <label className="text-sm text-gray-700">有効</label>
+                        <label htmlFor={`active-${index}`} className="text-sm text-gray-700 font-medium">有効</label>
                       </div>
                     </div>
                   </div>
