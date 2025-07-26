@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
@@ -13,7 +15,94 @@ const io = new Server(httpServer, {
   }
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || (process.env.NODE_ENV === 'production' ? 80 : 10000);
+
+// Security Middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// レート制限設定
+const generalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1分
+  max: 100, // 最大100リクエスト
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10分
+  max: 5, // 最大5回の認証試行
+  message: 'Too many authentication attempts from this IP, please try again after 10 minutes.',
+  skipSuccessfulRequests: true,
+});
+
+// 全体的なレート制限を適用
+app.use('/api/', generalLimiter);
+
+// 異常パターン検知ミドルウェア
+const suspiciousPatterns = {
+  userAgents: [
+    /sqlmap/i, /nikto/i, /havij/i, /nmap/i,
+    /acunetix/i, /burp/i, /owasp/i, /scanner/i
+  ],
+  paths: [
+    /\.\.\//, /\.env/, /config\.(json|yml|yaml)/, /\/admin/,
+    /phpmyadmin/i, /wp-admin/i, /\.git/
+  ],
+  headers: {
+    'x-forwarded-for': /[;<>'"]/,
+    'user-agent': /<script|javascript:|onerror=/i
+  }
+};
+
+function abnormalPatternDetection(req, res, next) {
+  const userAgent = req.get('user-agent') || '';
+  const path = req.path;
+  
+  // 疑わしいUser-Agentの検出
+  for (const pattern of suspiciousPatterns.userAgents) {
+    if (pattern.test(userAgent)) {
+      console.log(`[SECURITY] Suspicious User-Agent detected: ${userAgent}`);
+      return res.status(403).json({ error: 'Access denied' });
+    }
+  }
+  
+  // 疑わしいパスの検出
+  for (const pattern of suspiciousPatterns.paths) {
+    if (pattern.test(path)) {
+      console.log(`[SECURITY] Suspicious path detected: ${path}`);
+      return res.status(403).json({ error: 'Access denied' });
+    }
+  }
+  
+  // 疑わしいヘッダーの検出
+  for (const [header, pattern] of Object.entries(suspiciousPatterns.headers)) {
+    const value = req.get(header);
+    if (value && pattern.test(value)) {
+      console.log(`[SECURITY] Suspicious header detected: ${header}=${value}`);
+      return res.status(403).json({ error: 'Access denied' });
+    }
+  }
+  
+  next();
+}
+
+app.use(abnormalPatternDetection);
 
 // Middleware
 app.use(cors({
@@ -156,7 +245,7 @@ app.get('/health', (req, res) => {
 });
 
 // Auth endpoints
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -1343,13 +1432,42 @@ app.get('/api/analytics/comparison', (req, res) => {
   }
 });
 
-// Start server
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Backend server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔐 Auth endpoint: http://localhost:${PORT}/api/auth/login`);
-  console.log(`🔔 Socket.io enabled for real-time notifications`);
-  console.log(`✅ Server ready without database dependencies`);
+// XSS test endpoint - コメント投稿をシミュレート
+app.post('/api/comments', (req, res) => {
+  const { content, postId } = req.body;
+  
+  // XSS対策: 基本的なHTMLエスケープ
+  const escapeHtml = (unsafe) => {
+    return String(unsafe)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+  
+  const sanitizedContent = escapeHtml(content);
+  
+  res.json({
+    id: Date.now().toString(),
+    content: sanitizedContent,
+    originalContent: content, // テスト用：元のコンテンツも返す
+    postId,
+    createdAt: new Date(),
+    message: "コメントが投稿されました（サニタイズ済み）"
+  });
 });
 
+// Start server
+if (process.env.NODE_ENV !== 'production') {
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Backend server running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`🔐 Auth endpoint: http://localhost:${PORT}/api/auth/login`);
+    console.log(`🔔 Socket.io enabled for real-time notifications`);
+    console.log(`✅ Server ready without database dependencies`);
+  });
+}
+
+// Export for Vercel
 module.exports = app;

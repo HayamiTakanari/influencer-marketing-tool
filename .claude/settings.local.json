@@ -84,7 +84,9 @@
       "Bash(gh workflow:*)",
       "Bash(npx next:*)",
       "Bash(/dev/null)",
-      "WebFetch(domain:bitstar.tokyo)"
+      "WebFetch(domain:bitstar.tokyo)",
+      "Bash(git rm:*)",
+      "Bash(git merge:*)"
     ],
     "deny": []
   }

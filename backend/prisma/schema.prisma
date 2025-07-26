@@ -85,6 +85,7 @@ model User {
   notifications   Notification[]
   reviewsGiven    Review[]      @relation("ReviewGiven")
   reviewsReceived Review[]      @relation("ReviewReceived")
+  securityLogs    SecurityLog[]
 }
 
 model Client {
@@ -452,3 +453,212 @@ model Milestone {
   @@index([dueDate, isCompleted])
   @@index([dueDate, notificationSent])
 }
+
+// セキュリティログ管理
+enum SecurityEventType {
+  XSS_ATTACK
+  SQL_INJECTION
+  COMMAND_INJECTION
+  CSRF_ATTACK
+  BRUTE_FORCE
+  SUSPICIOUS_ACTIVITY
+  CSP_VIOLATION
+  AUTHENTICATION_FAILURE
+  AUTHORIZATION_FAILURE
+  DATA_BREACH_ATTEMPT
+  MALWARE_UPLOAD
+  RATE_LIMIT_EXCEEDED
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecurityStatus {
+  DETECTED
+  INVESTIGATING
+  RESOLVED
+  FALSE_POSITIVE
+  IGNORED
+}
+
+// セキュリティインシデントログ
+model SecurityLog {
+  id              String          @id @default(cuid())
+  eventType       SecurityEventType
+  severity        SecuritySeverity
+  status          SecurityStatus  @default(DETECTED)
+  
+  // 攻撃者情報
+  ipAddress       String
+  userAgent       String?
+  userId          String?
+  sessionId       String?
+  
+  // リクエスト情報
+  url             String
+  method          String          @default("GET")
+  headers         Json?
+  payload         String?         // 攻撃ペイロード（部分的）
+  
+  // 検出情報
+  detectionEngine String          @default("XSS_ENGINE")
+  confidence      Int             @default(0) // 0-100
+  riskScore       Int             @default(0) // 0-100
+  detectedPatterns Json?          // 検出されたパターン
+  
+  // 地理的情報
+  country         String?
+  region          String?
+  city            String?
+  
+  // タイムスタンプ
+  detectedAt      DateTime        @default(now())
+  resolvedAt      DateTime?
+  updatedAt       DateTime        @updatedAt
+  
+  // 関連情報
+  incidentId      String?         // 関連インシデントID
+  parentLogId     String?         // 親ログID（関連攻撃）
+  
+  // アクション
+  actionTaken     String?         // 実行されたアクション
+  blocked         Boolean         @default(false)
+  notified        Boolean         @default(false)
+  
+  // メタデータ
+  metadata        Json?           // 追加情報
+  notes           String?         // 管理者メモ
+  
+  // Relations
+  user            User?           @relation(fields: [userId], references: [id])
+  parentLog       SecurityLog?    @relation("SecurityLogHierarchy", fields: [parentLogId], references: [id])
+  childLogs       SecurityLog[]   @relation("SecurityLogHierarchy")
+  
+  @@index([eventType, detectedAt])
+  @@index([severity, detectedAt])
+  @@index([ipAddress, detectedAt])
+  @@index([userId, detectedAt])
+  @@index([status, detectedAt])
+  @@index([incidentId])
+  @@index([detectedAt])
+}
+
+// セキュリティ統計情報（日次集計）
+model SecurityStats {
+  id              String          @id @default(cuid())
+  date            DateTime        @unique @db.Date
+  
+  // 攻撃統計
+  totalAttacks    Int             @default(0)
+  xssAttacks      Int             @default(0)
+  sqlInjections   Int             @default(0)
+  bruteForce      Int             @default(0)
+  otherAttacks    Int             @default(0)
+  
+  // 重要度別統計
+  criticalEvents  Int             @default(0)
+  highEvents      Int             @default(0)
+  mediumEvents    Int             @default(0)
+  lowEvents       Int             @default(0)
+  
+  // 地理的統計
+  topCountries    Json?           // 攻撃元上位国
+  topRegions      Json?           // 攻撃元上位地域
+  
+  // IP統計
+  uniqueIPs       Int             @default(0)
+  blockedIPs      Int             @default(0)
+  topAttackerIPs  Json?           // 上位攻撃者IP
+  
+  // ユーザー統計
+  affectedUsers   Int             @default(0)
+  suspiciousUsers Json?           // 疑わしいユーザー
+  
+  // システム統計
+  avgResponseTime Float?          // 平均検出時間
+  falsePositives  Int             @default(0)
+  resolvedIncidents Int           @default(0)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([date])
+}
+
+// IPアドレスブラックリスト
+model IPBlacklist {
+  id              String          @id @default(cuid())
+  ipAddress       String          @unique
+  cidr            String?         // CIDR notation for IP ranges
+  
+  // ブロック理由
+  reason          String
+  severity        SecuritySeverity
+  firstDetected   DateTime
+  lastActivity    DateTime
+  
+  // 統計情報
+  attackCount     Int             @default(1)
+  blockedRequests Int             @default(0)
+  
+  // ブロック設定
+  isActive        Boolean         @default(true)
+  expiresAt       DateTime?       // 自動解除日時
+  permanent       Boolean         @default(false)
+  
+  // 地理的情報
+  country         String?
+  region          String?
+  asn             String?         // Autonomous System Number
+  isp             String?
+  
+  // 管理情報
+  addedBy         String?         // 追加した管理者ID
+  notes           String?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([ipAddress])
+  @@index([isActive, expiresAt])
+  @@index([country])
+  @@index([lastActivity])
+}
+
+// セキュリティルール管理
+model SecurityRule {
+  id              String          @id @default(cuid())
+  name            String          @unique
+  description     String?
+  
+  // ルール定義
+  ruleType        SecurityEventType
+  pattern         String          // 検出パターン (正規表現等)
+  severity        SecuritySeverity
+  confidence      Int             @default(50) // 0-100
+  
+  // ルール設定
+  isActive        Boolean         @default(true)
+  autoBlock       Boolean         @default(false)
+  autoNotify      Boolean         @default(true)
+  
+  // 統計情報
+  matchCount      Int             @default(0)
+  falsePositives  Int             @default(0)
+  lastMatched     DateTime?
+  
+  // 管理情報
+  createdBy       String?         // 作成者ID
+  version         Int             @default(1)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([ruleType, isActive])
+  @@index([isActive, severity])
+}
+

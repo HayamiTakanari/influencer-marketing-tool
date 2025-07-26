@@ -6,18 +6,21 @@
       "use": "@vercel/next"
     },
     {
-      "src": "backend/package.json", 
+      "src": "backend/simple-backend.js", 
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/src/index.ts"
+      "dest": "backend/simple-backend.js"
     },
     {
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
