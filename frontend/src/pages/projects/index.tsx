@@ -257,13 +257,13 @@ const ProjectsPage: React.FC = () => {
                     {/* アクションボタン */}
                     {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS') && project.matchedInfluencer && (
                       <Button
-                        onClick={() => router.push(`/project-chat/${project.id}`)}
+                        onClick={() => router.push(`/project-submissions/${project.id}`)}
                         variant="secondary"
                         size="md"
-                        icon="💬"
+                        icon="📹"
                         className="relative"
                       >
-                        <span className="hidden md:inline">チャット</span>
+                        <span className="hidden md:inline">動画投稿</span>
                         {/* 未読バッジ */}
                         {Math.random() > 0.5 && (
                           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">

@@ -570,14 +570,14 @@ const ProjectDetailPage: React.FC = () => {
                       <span>メッセージ</span>
                     </motion.button>
                   </Link>
-                  <Link href={`/project-chat/${project.id}`}>
+                  <Link href={`/project-submissions/${project.id}`}>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors shadow-lg flex items-center space-x-2"
                     >
-                      <span>📅</span>
-                      <span>プロジェクト管理</span>
+                      <span>📹</span>
+                      <span>動画投稿・管理</span>
                     </motion.button>
                   </Link>
                 </div>
@@ -650,9 +650,9 @@ const ProjectDetailPage: React.FC = () => {
                       💬 メッセージ
                     </button>
                   </Link>
-                  <Link href={`/project-chat/${project.id}`}>
+                  <Link href={`/project-submissions/${project.id}`}>
                     <button className="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors">
-                      📅 管理
+                      📹 動画投稿
                     </button>
                   </Link>
                 </div>
