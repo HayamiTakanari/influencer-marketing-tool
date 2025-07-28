@@ -1,0 +1,1303 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import PageLayout from '../../components/shared/PageLayout';
+import Card from '../../components/shared/Card';
+import Button from '../../components/shared/Button';
+
+interface Application {
+  id: string;
+  influencer: {
+    id: string;
+    displayName: string;
+    bio: string;
+    categories: string[];
+    prefecture: string;
+    priceMin: number;
+    priceMax: number;
+    socialAccounts: {
+      platform: string;
+      followerCount: number;
+      engagementRate: number;
+    }[];
+  };
+  message: string;
+  proposedPrice: number;
+  appliedAt: string;
+  isAccepted: boolean;
+  isRejected?: boolean;
+  rejectReason?: string;
+  rejectedAt?: string;
+}
+
+interface ProjectDetails {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  budget: number;
+  status: 'PENDING' | 'MATCHED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  targetPlatforms: string[];
+  targetPrefecture: string;
+  targetCity: string;
+  targetGender: string;
+  targetAgeMin: number;
+  targetAgeMax: number;
+  targetFollowerMin: number;
+  targetFollowerMax: number;
+  startDate: string;
+  endDate: string;
+  deliverables: string;
+  requirements: string;
+  additionalInfo: string;
+  createdAt: string;
+  applications: Application[];
+  // 新しい詳細項目
+  advertiserName?: string;
+  brandName?: string;
+  productName?: string;
+  productUrl?: string;
+  productPrice?: number;
+  productFeatures?: string;
+  campaignObjective?: string;
+  campaignTarget?: string;
+  postingPeriodStart?: string;
+  postingPeriodEnd?: string;
+  postingMedia?: string[];
+  messageToConvey?: string;
+  shootingAngle?: string;
+  packagePhotography?: string;
+  productOrientationSpecified?: string;
+  musicUsage?: string;
+  brandContentSettings?: string;
+  advertiserAccount?: string;
+  desiredHashtags?: string[];
+  ngItems?: string;
+  legalRequirements?: string;
+  notes?: string;
+  secondaryUsage?: string;
+  secondaryUsageScope?: string;
+  secondaryUsagePeriod?: string;
+  insightDisclosure?: string;
+  matchedInfluencer?: {
+    id: string;
+    displayName: string;
+  };
+}
+
+interface Props {
+  projectId: string;
+}
+
+// 各項目の説明文
+const fieldDescriptions: Record<string, string> = {
+  advertiserName: '広告を出稿する企業・ブランドの正式名称です。',
+  brandName: '宣伝したい商品やサービスのブランド名です。',
+  productName: '具体的な商品・サービスの正式名称です。',
+  productUrl: '商品の詳細情報が掲載されている公式ページのURLです。',
+  productPrice: '商品の税込み価格です。フォロワーが購入を検討する際の参考になります。',
+  productFeatures: '商品の特徴や魅力を250文字程度で説明します。インフルエンサーがコンテンツを作る際の参考になります。',
+  campaignObjective: 'このキャンペーンで達成したい目標（認知拡大、売上向上、ブランドイメージ向上など）です。',
+  campaignTarget: 'ターゲットとする顧客層（年齢、性別、興味関心など）です。',
+  postingPeriodStart: 'インフルエンサーに投稿してもらいたい期間の開始日です。',
+  postingPeriodEnd: 'インフルエンサーに投稿してもらいたい期間の終了日です。',
+  postingMedia: '投稿してもらいたいSNSプラットフォーム（Instagram、TikTok、YouTubeなど）です。',
+  messageToConvey: '投稿を通じてフォロワーに伝えたいメッセージや訴求ポイントです。',
+  shootingAngle: '人物を撮影する際の角度の指定です。商品との組み合わせや見せ方に影響します。',
+  packagePhotography: '商品の外装やパッケージを撮影に含めるかどうかの指定です。',
+  productOrientationSpecified: '商品の向きや角度について具体的な指定があるかどうかです。',
+  musicUsage: 'BGMや効果音の使用について。著作権の関係で商用利用可能な音源のみ使用を推奨します。',
+  brandContentSettings: 'SNSプラットフォームのブランドコンテンツ機能を使用するかどうかの設定です。',
+  advertiserAccount: '広告主の公式SNSアカウント名です。タグ付けに使用されることがあります。',
+  desiredHashtags: 'キャンペーンで使用してもらいたいハッシュタグです（最大5つまで）。',
+  ngItems: 'コンテンツ制作時に避けてもらいたい内容や表現です。',
+  legalRequirements: '薬機法など法的規制に基づいて必要な表現や注釈です。',
+  notes: '上記以外で特に注意してもらいたい点や要望です。',
+  secondaryUsage: 'インフルエンサーのコンテンツを広告主が二次利用（転載・再利用）できるかどうかです。',
+  secondaryUsageScope: '二次利用が許可されている場合の使用範囲（公式サイト、広告など）です。',
+  secondaryUsagePeriod: '二次利用が許可されている期間です。',
+  insightDisclosure: '投稿のパフォーマンスデータ（いいね数、リーチ数など）の開示を求めるかどうかです。'
+};
+
+// ヘルプボタンコンポーネント
+const HelpButton: React.FC<{ field: string }> = ({ field }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const description = fieldDescriptions[field];
+
+  if (!description) return null;
+
+  return (
+    <div className="relative inline-block ml-2">
+      <button
+        type="button"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onClick={() => setShowTooltip(!showTooltip)}
+        className="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition-colors cursor-pointer"
+        aria-label="ヘルプを表示"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+      {showTooltip && (
+        <div className="absolute z-50 w-64 p-3 mt-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg left-6 top-0">
+          <div className="absolute -left-2 top-2">
+            <div className="w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+          </div>
+          {description}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
+  const [user, setUser] = useState<any>(null);
+  const [project, setProject] = useState<ProjectDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'overview' | 'applications'>('overview');
+  const router = useRouter();
+  const { id } = router.query;
+  
+  // 折りたたみ状態を管理
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    'product-info': false,
+    'campaign-details': false,
+    'production-specs': false,
+    'hashtags-restrictions': false,
+    'secondary-usage': false
+  });
+
+  // セクションの折りたたみ/展開を切り替える関数
+  const toggleSection = (sectionId: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  useEffect(() => {
+    const currentId = id || projectId;
+    console.log('Project Detail - useEffect triggered, id:', currentId, 'projectId:', projectId);
+    const userData = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    console.log('Project Detail - userData:', userData);
+    console.log('Project Detail - token:', token);
+    
+    if (userData && token) {
+      const parsedUser = JSON.parse(userData);
+      console.log('Project Detail - User data:', parsedUser);
+      setUser(parsedUser);
+      
+      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
+        console.log('Access denied - User role:', parsedUser.role);
+        router.push('/dashboard');
+        return;
+      }
+      
+      console.log('Access granted - User role:', parsedUser.role);
+      
+      if (currentId) {
+        console.log('Fetching project details for id:', currentId);
+        fetchProjectDetails(currentId);
+      } else {
+        console.log('No project id available yet');
+      }
+    } else {
+      console.log('No user data or token - redirecting to login');
+      router.push('/login');
+    }
+  }, [id, projectId, router]);
+
+  const fetchProjectDetails = async (currentId?: string | string[]) => {
+    try {
+      const projectIdToUse = currentId || id || projectId;
+      console.log('Calling getProjectById with id:', projectIdToUse);
+      const { getProjectById } = await import('../../services/api');
+      const result = await getProjectById(projectIdToUse as string);
+      console.log('Project details received:', result);
+      setProject(result);
+    } catch (err: any) {
+      console.error('Error fetching project details:', err);
+      console.log('Using fallback mock data');
+      // フォールバック用のモックデータ
+      const projectIdToUse = currentId || id || projectId;
+      const mockProject: ProjectDetails = {
+        id: (projectIdToUse || '1') as string,
+        title: '新商品コスメのPRキャンペーン',
+        description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
+        category: '美容・化粧品',
+        budget: 300000,
+        status: 'PENDING',
+        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+        targetPrefecture: '東京都',
+        targetCity: '渋谷区、新宿区',
+        targetGender: 'FEMALE',
+        targetAgeMin: 20,
+        targetAgeMax: 35,
+        targetFollowerMin: 10000,
+        targetFollowerMax: 100000,
+        startDate: '2024-02-01',
+        endDate: '2024-02-28',
+        deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
+        requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
+        additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
+        createdAt: '2024-01-15',
+        // 新規作成時の全詳細情報を追加
+        advertiserName: 'ビューティー株式会社',
+        brandName: 'Natural Beauty',
+        productName: 'ナチュラルグロウファンデーション',
+        productUrl: 'https://www.example-beauty.com/foundation-natural-glow',
+        productPrice: 4980,
+        productFeatures: '24時間崩れにくいロングラスティング処方で、自然な艶感を演出。SPF30 PA+++で紫外線対策も万全。敏感肌の方にも安心してお使いいただける、パラベンフリー・無香料・アルコールフリーの低刺激処方です。カバー力がありながらも厚塗り感がなく、素肌のような仕上がりを実現します。',
+        campaignObjective: '新商品ファンデーションの認知拡大と購入促進。特に20-30代女性の間でのブランド認知度向上を目指します。',
+        campaignTarget: '美容に関心が高い20-30代の女性。ナチュラルメイクを好み、日常的にSNSで美容情報を収集・発信している層をメインターゲットとします。',
+        postingPeriodStart: '2024-02-01',
+        postingPeriodEnd: '2024-02-28',
+        postingMedia: ['INSTAGRAM', 'TIKTOK'],
+        messageToConvey: '自然な美しさを引き出すファンデーション。つけているのを忘れるほど軽やかなのに、一日中美しい仕上がりが続く、という点を重視してお伝えください。',
+        shootingAngle: '斜め上からのアングルで、肌の質感が分かりやすく映るように撮影してください',
+        packagePhotography: '商品パッケージの撮影は必須です。ブランドロゴがはっきり見えるように配慮してください',
+        productOrientationSpecified: '商品は正面向きで、ブランド名とキャップ部分が見えるように配置してください',
+        musicUsage: '明るく上品な印象のBGMを推奨。商用利用可能な楽曲のみご使用ください',
+        brandContentSettings: 'InstagramとTikTokでブランドコンテンツタグの設定をお願いします',
+        advertiserAccount: '@naturalbeauty_official',
+        desiredHashtags: ['#NaturalBeauty', '#ナチュラルグロウ', '#新商品ファンデーション', '#素肌美人', '#自然な仕上がり'],
+        ngItems: '他社コスメブランドとの比較、過度な効果効能の表現、医薬品的な効果を謳う表現は避けてください',
+        legalRequirements: '化粧品の効果効能は薬機法の範囲内で表現してください。「美白」「シワ改善」等の医薬部外品的効果の表現は使用禁止です',
+        notes: '撮影時はナチュラルな照明を心がけ、加工は最小限に留めてください。リアルな使用感が伝わることを重視します',
+        secondaryUsage: '許可（条件あり）',
+        secondaryUsageScope: '公式サイト、公式SNSアカウント、プレスリリース、店頭ディスプレイでの使用',
+        secondaryUsagePeriod: '投稿から1年間',
+        insightDisclosure: '必要',
+        applications: [
+          {
+            id: 'app1',
+            influencer: {
+              id: 'inf1',
+              displayName: '田中美咲',
+              bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
+              categories: ['美容', 'ファッション'],
+              prefecture: '東京都',
+              priceMin: 50000,
+              priceMax: 200000,
+              socialAccounts: [
+                { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
+                { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
+              ]
+            },
+            message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
+            proposedPrice: 150000,
+            appliedAt: '2024-01-16',
+            isAccepted: false
+          },
+          {
+            id: 'app2',
+            influencer: {
+              id: 'inf2',
+              displayName: '鈴木さやか',
+              bio: 'ライフスタイル系クリエイター。料理、旅行、美容など幅広く発信。',
+              categories: ['ライフスタイル', '美容', '料理'],
+              prefecture: '大阪府',
+              priceMin: 80000,
+              priceMax: 300000,
+              socialAccounts: [
+                { platform: 'INSTAGRAM', followerCount: 60000, engagementRate: 4.2 },
+                { platform: 'TIKTOK', followerCount: 29000, engagementRate: 5.1 }
+              ]
+            },
+            message: 'ナチュラルメイクの動画コンテンツを得意としています。TikTokでのメイクアップ動画は特に反響が良いです。',
+            proposedPrice: 200000,
+            appliedAt: '2024-01-17',
+            isAccepted: false
+          }
+        ]
+      };
+      
+      setProject(mockProject);
+      setError('プロジェクト詳細の取得に失敗しました。');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAcceptApplication = async (applicationId: string) => {
+    try {
+      // TODO: API実装
+      console.log('Accepting application:', applicationId);
+      alert('応募を承諾しました！');
+      await fetchProjectDetails();
+    } catch (err) {
+      console.error('Error accepting application:', err);
+      alert('応募承諾に失敗しました。');
+    }
+  };
+
+  const handleRejectApplication = async (applicationId: string) => {
+    if (confirm('この応募を却下しますか？')) {
+      try {
+        // TODO: API実装
+        console.log('Rejecting application:', applicationId);
+        alert('応募を却下しました。');
+        await fetchProjectDetails();
+      } catch (err) {
+        console.error('Error rejecting application:', err);
+        alert('応募却下に失敗しました。');
+      }
+    }
+  };
+
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'PENDING': return { label: '募集中', color: 'bg-yellow-100 text-yellow-800' };
+      case 'MATCHED': return { label: 'マッチング済み', color: 'bg-blue-100 text-blue-800' };
+      case 'IN_PROGRESS': return { label: '進行中', color: 'bg-green-100 text-green-800' };
+      case 'COMPLETED': return { label: '完了', color: 'bg-purple-100 text-purple-800' };
+      case 'CANCELLED': return { label: 'キャンセル', color: 'bg-red-100 text-red-800' };
+      default: return { label: '不明', color: 'bg-gray-100 text-gray-800' };
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('ja-JP', {
+      style: 'currency',
+      currency: 'JPY',
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getPlatformIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'instagram': return '📸';
+      case 'youtube': return '🎥';
+      case 'tiktok': return '🎵';
+      case 'twitter': return '🐦';
+      default: return '📱';
+    }
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 10000) {
+      return (num / 10000).toFixed(1) + '万';
+    }
+    return num.toLocaleString();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
+  if (loading) {
+    return (
+      <PageLayout title="プロジェクト詳細" subtitle="読み込み中...">
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error || !project) {
+    return (
+      <PageLayout title="エラー" subtitle="プロジェクトの読み込みに失敗しました">
+        <Card className="text-center py-12">
+          <div className="text-6xl mb-4">❌</div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h3>
+          <p className="text-gray-600 mb-4">{error || 'プロジェクトが見つかりませんでした。'}</p>
+          <Link href="/projects">
+            <Button variant="primary" size="lg">
+              プロジェクト一覧に戻る
+            </Button>
+          </Link>
+        </Card>
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout
+      title="プロジェクト詳細"
+      subtitle={project.title}
+      userEmail={user?.email}
+      onLogout={handleLogout}
+    >
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-4">
+          <Link href="/projects">
+            <Button variant="ghost" size="md">
+              ← プロジェクト一覧に戻る
+            </Button>
+          </Link>
+          <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusInfo(project.status).color}`}>
+            {getStatusInfo(project.status).label}
+          </span>
+        </div>
+      </div>
+      {/* プロジェクト概要 */}
+      <Card className="mb-8" padding="xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+              {project.title}
+              <span className="ml-2 inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 cursor-pointer" title="プロジェクトのタイトル">
+                ?
+              </span>
+            </h2>
+            <div className="flex items-center">
+              <div className="text-2xl font-bold text-green-600">{formatPrice(project.budget)}</div>
+              <div className="ml-2 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-pointer" title="プロジェクトの予算">?</div>
+            </div>
+          </div>
+          
+          <p className="text-gray-700 mb-6">{project.description}</p>
+
+          {/* パフォーマンス指標 */}
+          {(project.status === 'IN_PROGRESS' || project.status === 'COMPLETED') && (
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">📊 パフォーマンス指標</h3>
+                <span className="text-sm text-gray-500">リアルタイム更新</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-blue-600">2.4M</div>
+                  <div className="text-sm text-gray-600">総リーチ</div>
+                  <div className="text-xs text-green-600">目標+20%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-green-600">3.2%</div>
+                  <div className="text-sm text-gray-600">エンゲージメント率</div>
+                  <div className="text-xs text-green-600">業界平均+0.8%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-purple-600">1,580</div>
+                  <div className="text-sm text-gray-600">コンバージョン</div>
+                  <div className="text-xs text-green-600">CVR: 0.065%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-orange-600">¥760</div>
+                  <div className="text-sm text-gray-600">CPA</div>
+                  <div className="text-xs text-green-600">目標比-15%</div>
+                </div>
+              </div>
+              
+              {/* プラットフォーム別詳細 */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">プラットフォーム別パフォーマンス</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {project.targetPlatforms.map(platform => (
+                    <div key={platform} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{getPlatformIcon(platform)}</span>
+                        <span className="font-medium text-gray-900">{platform}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-semibold text-blue-600">
+                          {platform === 'INSTAGRAM' ? '1.2M' : platform === 'TIKTOK' ? '800K' : '600K'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {platform === 'INSTAGRAM' ? '4.2%' : platform === 'TIKTOK' ? '6.1%' : '2.8%'} エンゲージ
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ROI分析 */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">ROI分析</h4>
+                    <p className="text-xs text-gray-600">投資対効果の詳細分析</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600">340%</div>
+                    <div className="text-xs text-gray-500">前回比+25%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 予測分析（企画段階） */}
+          {project.status === 'PENDING' && (
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">🔮 予測分析</h3>
+                <span className="text-sm text-gray-500">AI予測</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-blue-600">1.8M</div>
+                  <div className="text-sm text-gray-600">予想リーチ</div>
+                  <div className="text-xs text-blue-600">信頼度85%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-green-600">2.8%</div>
+                  <div className="text-sm text-gray-600">予想エンゲージ率</div>
+                  <div className="text-xs text-blue-600">信頼度78%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-purple-600">1,200</div>
+                  <div className="text-sm text-gray-600">予想CV数</div>
+                  <div className="text-xs text-blue-600">信頼度72%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-xl font-bold text-orange-600">280%</div>
+                  <div className="text-sm text-gray-600">予想ROI</div>
+                  <div className="text-xs text-blue-600">信頼度80%</div>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <span className="font-semibold">💡 最適化提案:</span> 
+                  ターゲット年齢を25-32歳に絞ることで、エンゲージメント率を+0.4%向上できる可能性があります。
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* アクションボタン */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            {project.status === 'IN_PROGRESS' && (
+              <Button
+                onClick={() => router.push(`/payments/${project.id}`)}
+                variant="primary"
+                size="lg"
+                icon="💳"
+              >
+                支払いを行う
+              </Button>
+            )}
+            {(project.status === 'IN_PROGRESS' || project.status === 'MATCHED') && (
+              <Button
+                onClick={() => router.push(`/project-chat/${project.id}`)}
+                variant="secondary"
+                size="lg"
+                icon="💬"
+              >
+                プロジェクトチャット
+              </Button>
+            )}
+            <Button
+              onClick={() => router.push('/payments/history')}
+              variant="outline"
+              size="lg"
+              icon="📊"
+            >
+              支払い履歴
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="text-center">
+              <div className="text-lg font-bold text-gray-900">{project.category}</div>
+              <div className="text-gray-600 text-sm">カテゴリー</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-gray-900">{formatDate(project.startDate)}</div>
+              <div className="text-gray-600 text-sm">プロジェクト開始日</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-gray-900">{formatDate(project.endDate)}</div>
+              <div className="text-gray-600 text-sm">プロジェクト終了日</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-gray-900">{project.applications.length}件</div>
+              <div className="text-gray-600 text-sm">応募数</div>
+            </div>
+          </div>
+
+          {/* 投稿期間の表示 */}
+          {(project.postingPeriodStart || project.postingPeriodEnd) && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+              <h4 className="font-semibold text-purple-900 mb-2">📅 投稿期間</h4>
+              <p className="text-purple-800">
+                {project.postingPeriodStart && project.postingPeriodEnd
+                  ? `${formatDate(project.postingPeriodStart)} 〜 ${formatDate(project.postingPeriodEnd)}`
+                  : project.postingPeriodStart 
+                    ? `開始日: ${formatDate(project.postingPeriodStart)}`
+                    : `終了日: ${formatDate(project.postingPeriodEnd)}`
+                }
+              </p>
+            </div>
+          )}
+
+          <div className="flex space-x-2 mb-4">
+            {project.targetPlatforms.map(platform => (
+              <span key={platform} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                {getPlatformIcon(platform)} {platform}
+              </span>
+            ))}
+          </div>
+        </Card>
+
+      {/* タブナビゲーション */}
+      <Card className="mb-8" padding="sm">
+          <div className="flex space-x-2">
+            {[
+              { key: 'overview', label: '詳細情報', icon: '📋' },
+              { key: 'applications', label: '応募一覧', icon: '📝' }
+            ].map(tab => (
+              <motion.button
+                key={tab.key}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab(tab.key as any)}
+                className={`flex-1 px-6 py-3 rounded-2xl font-semibold transition-all ${
+                  activeTab === tab.key
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <span className="mr-2">{tab.icon}</span>
+                {tab.label}
+              </motion.button>
+            ))}
+          </div>
+        </Card>
+
+        {/* 詳細情報タブ */}
+        {activeTab === 'overview' && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            {/* ターゲット設定 */}
+            <Card padding="xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">ターゲット設定</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">地域</h4>
+                  <p className="text-gray-600">{project.targetPrefecture}</p>
+                  {project.targetCity && (
+                    <p className="text-gray-500 text-sm">{project.targetCity}</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">性別</h4>
+                  <p className="text-gray-600">
+                    {project.targetGender === 'MALE' ? '男性' : 
+                     project.targetGender === 'FEMALE' ? '女性' : 
+                     project.targetGender === 'OTHER' ? 'その他' : '指定なし'}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">年齢層</h4>
+                  <p className="text-gray-600">
+                    {project.targetAgeMin > 0 && project.targetAgeMax > 0 
+                      ? `${project.targetAgeMin}-${project.targetAgeMax}歳`
+                      : '指定なし'
+                    }
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">フォロワー数</h4>
+                  <p className="text-gray-600">
+                    {project.targetFollowerMin > 0 && project.targetFollowerMax > 0 
+                      ? `${formatNumber(project.targetFollowerMin)} - ${formatNumber(project.targetFollowerMax)}`
+                      : '指定なし'
+                    }
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* 基本要件 */}
+            <Card padding="xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">基本要件</h3>
+              <div className="space-y-6">
+                {project.deliverables && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      成果物・納品物
+                      <HelpButton field="deliverables" />
+                    </h4>
+                    <p className="text-gray-700">{project.deliverables}</p>
+                  </div>
+                )}
+                {project.requirements && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      要求事項
+                      <HelpButton field="requirements" />
+                    </h4>
+                    <p className="text-gray-700">{project.requirements}</p>
+                  </div>
+                )}
+                {project.additionalInfo && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      その他の情報
+                      <HelpButton field="additionalInfo" />
+                    </h4>
+                    <p className="text-gray-700">{project.additionalInfo}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* 商品・広告主情報 */}
+            {(project.advertiserName || project.brandName || project.productName) && (
+              <Card padding="xl">
+                <motion.h3 
+                  className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                  onClick={() => toggleSection('product-info')}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <span>商品・広告主情報</span>
+                  <motion.span
+                    animate={{ rotate: collapsedSections['product-info'] ? 0 : 90 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-lg text-gray-600"
+                  >
+                    ▶
+                  </motion.span>
+                </motion.h3>
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: collapsedSections['product-info'] ? 0 : 'auto',
+                    opacity: collapsedSections['product-info'] ? 0 : 1
+                  }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {project.advertiserName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        広告主名
+                        <HelpButton field="advertiserName" />
+                      </h4>
+                      <p className="text-gray-700">{project.advertiserName}</p>
+                    </div>
+                  )}
+                  {project.brandName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        ブランド名
+                        <HelpButton field="brandName" />
+                      </h4>
+                      <p className="text-gray-700">{project.brandName}</p>
+                    </div>
+                  )}
+                  {project.productName && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品正式名称
+                        <HelpButton field="productName" />
+                      </h4>
+                      <p className="text-gray-700">{project.productName}</p>
+                    </div>
+                  )}
+                  {project.productUrl && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品URL
+                        <HelpButton field="productUrl" />
+                      </h4>
+                      <a href={project.productUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                        {project.productUrl}
+                      </a>
+                    </div>
+                  )}
+                  {project.productPrice && project.productPrice > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品税込価格
+                        <HelpButton field="productPrice" />
+                      </h4>
+                      <p className="text-gray-700">{formatPrice(project.productPrice)}</p>
+                    </div>
+                  )}
+                  {project.advertiserAccount && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        広告主アカウント
+                        <HelpButton field="advertiserAccount" />
+                      </h4>
+                      <p className="text-gray-700 font-mono">{project.advertiserAccount}</p>
+                    </div>
+                  )}
+                  {project.productFeatures && (
+                    <div className="md:col-span-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        商品特徴
+                        <HelpButton field="productFeatures" />
+                      </h4>
+                      <p className="text-gray-700">{project.productFeatures}</p>
+                    </div>
+                  )}
+                  </div>
+                </motion.div>
+              </Card>
+            )}
+
+            {/* キャンペーン詳細 */}
+            <Card padding="xl">
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('campaign-details')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>キャンペーン詳細</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['campaign-details'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                  >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['campaign-details'] ? 0 : 'auto',
+                  opacity: collapsedSections['campaign-details'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="space-y-6">
+                  {project.campaignObjective && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      施策の目的
+                      <HelpButton field="campaignObjective" />
+                    </h4>
+                    <p className="text-gray-700">{project.campaignObjective}</p>
+                  </div>
+                )}
+                {project.campaignTarget && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      施策ターゲット
+                      <HelpButton field="campaignTarget" />
+                    </h4>
+                    <p className="text-gray-700">{project.campaignTarget}</p>
+                  </div>
+                )}
+                {(project.postingPeriodStart || project.postingPeriodEnd) && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      投稿期間
+                      <HelpButton field="postingPeriodStart" />
+                    </h4>
+                    <p className="text-gray-700">
+                      {project.postingPeriodStart && project.postingPeriodEnd
+                        ? `${formatDate(project.postingPeriodStart)} 〜 ${formatDate(project.postingPeriodEnd)}`
+                        : project.postingPeriodStart 
+                          ? `開始日: ${formatDate(project.postingPeriodStart)}`
+                          : `終了日: ${formatDate(project.postingPeriodEnd)}`
+                      }
+                    </p>
+                  </div>
+                )}
+                {project.postingMedia && project.postingMedia.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      投稿メディア
+                      <HelpButton field="postingMedia" />
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {project.postingMedia.map(media => (
+                        <span key={media} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                          {media === 'INSTAGRAM' ? '📸 Instagram' :
+                           media === 'YOUTUBE' ? '🎥 YouTube' :
+                           media === 'TIKTOK' ? '🎵 TikTok' :
+                           media === 'TWITTER' ? '🐦 Twitter' : media}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {project.messageToConvey && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      投稿を通じて伝えたいこと
+                      <HelpButton field="messageToConvey" />
+                    </h4>
+                    <p className="text-gray-700">{project.messageToConvey}</p>
+                  </div>
+                )}
+                  {/* 表示されていない場合のデフォルトメッセージ */}
+                  {!project.campaignObjective && !project.campaignTarget && !project.postingPeriodStart && !project.postingPeriodEnd && !project.postingMedia?.length && !project.messageToConvey && (
+                    <p className="text-gray-500 italic">キャンペーン詳細情報は入力されていません</p>
+                  )}
+                </div>
+              </motion.div>
+            </Card>
+
+            {/* 撮影・制作仕様 */}
+            <Card padding="xl">
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('production-specs')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>撮影・制作仕様</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['production-specs'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['production-specs'] ? 0 : 'auto',
+                  opacity: collapsedSections['production-specs'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    人物の撮影アングル
+                    <HelpButton field="shootingAngle" />
+                  </h4>
+                  <p className="text-gray-700">{project.shootingAngle || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    外装やパッケージ撮影
+                    <HelpButton field="packagePhotography" />
+                  </h4>
+                  <p className="text-gray-700">{project.packagePhotography || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    商品の向きの撮影指定
+                    <HelpButton field="productOrientationSpecified" />
+                  </h4>
+                  <p className="text-gray-700">{project.productOrientationSpecified || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    音楽使用
+                    <HelpButton field="musicUsage" />
+                  </h4>
+                  <p className="text-gray-700">{project.musicUsage || '指定なし'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    ブランドコンテンツ設定
+                    <HelpButton field="brandContentSettings" />
+                  </h4>
+                    <p className="text-gray-700">{project.brandContentSettings || '指定なし'}</p>
+                  </div>
+                </div>
+              </motion.div>
+            </Card>
+
+            {/* ハッシュタグ・制約事項 */}
+            <Card padding="xl">
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('hashtags-restrictions')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>ハッシュタグ・制約事項</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['hashtags-restrictions'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['hashtags-restrictions'] ? 0 : 'auto',
+                  opacity: collapsedSections['hashtags-restrictions'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    希望ハッシュタグ
+                    <HelpButton field="desiredHashtags" />
+                  </h4>
+                  {project.desiredHashtags && project.desiredHashtags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {project.desiredHashtags.filter(tag => tag).map((hashtag, index) => (
+                        <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-mono">
+                          {hashtag.startsWith('#') ? hashtag : `#${hashtag}`}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic">ハッシュタグは指定されていません</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    NG項目
+                    <HelpButton field="ngItems" />
+                  </h4>
+                  {project.ngItems ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-red-800">{project.ngItems}</p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic">特にNG項目は指定されていません</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    薬機法に基づく表現や注釈が必要な表現
+                    <HelpButton field="legalRequirements" />
+                  </h4>
+                  {project.legalRequirements ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-yellow-800">{project.legalRequirements}</p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic">特に法的要件は指定されていません</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    注意点
+                    <HelpButton field="notes" />
+                  </h4>
+                  {project.notes ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-blue-800">{project.notes}</p>
+                    </div>
+                  ) : (
+                      <p className="text-gray-500 italic">特に注意点は指定されていません</p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </Card>
+
+            {/* 二次利用・開示設定 */}
+            <Card padding="xl">
+              <motion.h3 
+                className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleSection('secondary-usage')}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span>二次利用・開示設定</span>
+                <motion.span
+                  animate={{ rotate: collapsedSections['secondary-usage'] ? 0 : 90 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-lg text-gray-600"
+                >
+                  ▶
+                </motion.span>
+              </motion.h3>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: collapsedSections['secondary-usage'] ? 0 : 'auto',
+                  opacity: collapsedSections['secondary-usage'] ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    二次利用有無
+                    <HelpButton field="secondaryUsage" />
+                  </h4>
+                  {project.secondaryUsage ? (
+                    <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                      project.secondaryUsage === '許可（条件なし）' 
+                        ? 'bg-green-100 text-green-800' 
+                        : project.secondaryUsage === '許可（条件あり）'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {project.secondaryUsage}
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 italic">未指定</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    投稿のインサイト開示
+                    <HelpButton field="insightDisclosure" />
+                  </h4>
+                  {project.insightDisclosure ? (
+                    <p className={`text-sm px-3 py-1 rounded-full inline-block font-medium ${
+                      project.insightDisclosure === '必要' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {project.insightDisclosure}
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 italic">未指定</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    二次利用範囲
+                    <HelpButton field="secondaryUsageScope" />
+                  </h4>
+                  <p className="text-gray-700">{project.secondaryUsageScope || '未指定'}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    二次利用期間
+                    <HelpButton field="secondaryUsagePeriod" />
+                  </h4>
+                    <p className="text-gray-700">{project.secondaryUsagePeriod || '未指定'}</p>
+                  </div>
+                </div>
+              </motion.div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* 応募一覧タブ */}
+        {activeTab === 'applications' && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card padding="xl">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">応募一覧</h3>
+            
+            {project.applications.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📭</div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">まだ応募がありません</h4>
+                <p className="text-gray-600">インフルエンサーからの応募をお待ちください。</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {project.applications.map((application, index) => (
+                  <motion.div
+                    key={application.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="bg-gray-50 rounded-2xl p-6"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold">
+                            {application.influencer.displayName.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-gray-900">{application.influencer.displayName}</h4>
+                          <p className="text-gray-600">{application.influencer.prefecture}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4 mt-4 lg:mt-0">
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-green-600">{formatPrice(application.proposedPrice)}</div>
+                          <div className="text-gray-500 text-sm">提案料金</div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => handleAcceptApplication(application.id)}
+                            variant="primary"
+                            size="md"
+                          >
+                            承諾
+                          </Button>
+                          <Button
+                            onClick={() => handleRejectApplication(application.id)}
+                            variant="secondary"
+                            size="md"
+                          >
+                            却下
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <p className="text-gray-700">{application.influencer.bio}</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {application.influencer.categories.map(category => (
+                        <span key={category} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="mb-4">
+                      <h5 className="font-semibold text-gray-900 mb-2">メッセージ</h5>
+                      <p className="text-gray-700 bg-white p-3 rounded-lg">{application.message}</p>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="flex space-x-4">
+                        {application.influencer.socialAccounts.map(account => (
+                          <div key={account.platform} className="text-center">
+                            <div className="text-sm font-medium text-gray-900">
+                              {getPlatformIcon(account.platform)} {formatNumber(account.followerCount)}
+                            </div>
+                            <div className="text-xs text-gray-500">{account.engagementRate}%</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        応募日: {formatDate(application.appliedAt)}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+            </Card>
+          </motion.div>
+        )}
+      </div>
+    </PageLayout>
+  );
+};
+
+// Use server-side rendering for reliable dynamic routing on Vercel
+export async function getServerSideProps(context: { params: { id: string } }) {
+  const { id } = context.params;
+  
+  return {
+    props: {
+      projectId: id,
+    },
+  };
+}
+
+export default ProjectDetailPage;
