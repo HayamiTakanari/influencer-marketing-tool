@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import PageLayout from '../components/shared/PageLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
 
 // Chart.jsを動的インポートしてSSRエラーを回避
 const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
@@ -238,22 +241,18 @@ const AnalyticsPage: React.FC = () => {
         <div className="space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl"
-            >
+            <Card hover={false} padding="md">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">応募数</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.totalInfluencers || 0}</p>
                   <p className="text-green-600 text-sm">承認率 85%</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
                   📝
                 </div>
               </div>
-            </motion.div>
+            </Card>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -895,52 +894,27 @@ const AnalyticsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg hover:shadow-xl transition-all text-gray-700 hover:text-blue-600"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="font-medium">ダッシュボードに戻る</span>
-            </button>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">アナリティクス</h1>
-              <p className="text-sm text-gray-600">パフォーマンスを分析</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageLayout
+      title="アナリティクス"
+      subtitle="パフォーマンスを詳細に分析"
+      userEmail={user?.email}
+      onLogout={() => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        router.push('/login');
+      }}
+    >
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
+          <Card className="mb-6 bg-red-50 border-red-200">
+            <div className="text-red-700">
+              {error}
+            </div>
+          </Card>
         )}
 
         {/* Period and Project Selector */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
-        >
+        <Card className="mb-8">
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4">期間選択</h2>
@@ -952,22 +926,17 @@ const AnalyticsPage: React.FC = () => {
                   { value: '6months', label: '過去6ヶ月' },
                   { value: 'year', label: '過去1年' },
                 ].map(period => (
-                  <motion.button
+                  <Button
                     key={period.value}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    variant={selectedPeriod === period.value ? 'primary' : 'secondary'}
+                    size="sm"
                     onClick={() => {
                       setLoading(true);
                       setSelectedPeriod(period.value);
                     }}
-                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                      selectedPeriod === period.value
-                        ? 'bg-blue-500 text-white shadow-lg'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
                   >
                     {period.label}
-                  </motion.button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -999,64 +968,44 @@ const AnalyticsPage: React.FC = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </Card>
 
         {/* Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
-        >
+        <Card className="mb-8">
           <div className="flex gap-2 flex-wrap">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Button
+              variant={activeTab === 'overview' ? 'primary' : 'secondary'}
+              size="sm"
               onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === 'overview'
-                  ? 'bg-blue-500 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
             >
               概要
-            </motion.button>
+            </Button>
             {user?.role === 'INFLUENCER' && (
               <>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <Button
+                  variant={activeTab === 'performance' ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setActiveTab('performance')}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    activeTab === 'performance'
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
                 >
                   パフォーマンス
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                </Button>
+                <Button
+                  variant={activeTab === 'comparison' ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setActiveTab('comparison')}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    activeTab === 'comparison'
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
                 >
                   業界比較
-                </motion.button>
+                </Button>
               </>
             )}
           </div>
-        </motion.div>
+        </Card>
 
         {/* Content */}
         {activeTab === 'overview' && renderOverviewTab()}
         {activeTab === 'performance' && renderPerformanceTab()}
         {activeTab === 'comparison' && renderComparisonTab()}
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

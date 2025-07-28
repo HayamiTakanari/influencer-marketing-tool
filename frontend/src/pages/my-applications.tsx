@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import BackButton from '../components/BackButton';
+import PageLayout from '../components/shared/PageLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
 
 interface MyApplication {
   id: string;
@@ -141,37 +144,18 @@ const MyApplicationsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
-            <BackButton text="ダッシュボードに戻る" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">応募履歴</h1>
-              <p className="text-sm text-gray-600">あなたの応募状況を確認</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageLayout
+      title="応募履歴"
+      subtitle="あなたの応募状況を確認"
+      userEmail={user?.email}
+      onLogout={() => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        router.push('/login');
+      }}
+    >
         {/* フィルター */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
-        >
+        <Card className="mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-2">応募履歴</h2>
@@ -185,33 +169,26 @@ const MyApplicationsPage: React.FC = () => {
                 { value: 'active', label: '進行中' },
                 { value: 'completed', label: '完了' }
               ].map(filter => (
-                <motion.button
+                <Button
                   key={filter.value}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  variant={statusFilter === filter.value ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setStatusFilter(filter.value)}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    statusFilter === filter.value
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
                 >
                   {filter.label}
-                </motion.button>
+                </Button>
               ))}
             </div>
           </div>
-        </motion.div>
+        </Card>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
+          <Card className="mb-6 bg-red-50 border-red-200">
+            <div className="text-red-700">
+              {error}
+            </div>
+          </Card>
         )}
 
         {/* 応募履歴一覧 */}
@@ -323,42 +300,36 @@ const MyApplicationsPage: React.FC = () => {
         </div>
 
         {/* 統計情報 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mt-8"
-        >
+        <Card className="mt-8" padding="xl">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">応募統計</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl font-bold text-emerald-600 mb-2">
                 {applications.length}
               </div>
               <div className="text-gray-600">総応募数</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+              <div className="text-3xl font-bold text-teal-600 mb-2">
                 {applications.filter(a => a.isAccepted).length}
               </div>
               <div className="text-gray-600">承認済み</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
+              <div className="text-3xl font-bold text-emerald-500 mb-2">
                 {applications.filter(a => a.project.status === 'COMPLETED').length}
               </div>
               <div className="text-gray-600">完了済み</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-2">
+              <div className="text-3xl font-bold text-gray-700 mb-2">
                 {applications.filter(a => a.isAccepted).reduce((sum, a) => sum + a.proposedPrice, 0).toLocaleString()}
               </div>
               <div className="text-gray-600">総獲得予定額（円）</div>
             </div>
           </div>
-        </motion.div>
-      </div>
-    </div>
+        </Card>
+    </PageLayout>
   );
 };
 

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import BackButton from '../../components/BackButton';
+import PageLayout from '../../components/shared/PageLayout';
+import Card from '../../components/shared/Card';
+import Button from '../../components/shared/Button';
 
 interface AssignedInfluencer {
   id: string;
@@ -136,123 +138,106 @@ const ProjectsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
+      <PageLayout title="プロジェクト管理" subtitle="読み込み中...">
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
-            <BackButton text="ダッシュボードに戻る" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">進行中のプロジェクト</h1>
-              <p className="text-sm text-gray-600">あなたのマーケティングプロジェクトを管理</p>
-            </div>
+    <PageLayout
+      title="プロジェクト管理"
+      subtitle="あなたのインフルエンサーマーケティングプロジェクトを一元管理"
+      userEmail={user?.email}
+      onLogout={handleLogout}
+    >
+      <div className="mb-8 flex justify-end">
+        <Button
+          onClick={() => router.push('/projects/create')}
+          variant="primary"
+          size="lg"
+          icon="+"
+        >
+          新規プロジェクト作成
+        </Button>
+      </div>
+      {/* 検索・フィルター */}
+      <Card className="mb-8" padding="lg">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="プロジェクト名、説明、カテゴリーで検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
           </div>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => {
-                console.log('Button clicked!');
-                window.location.href = '/projects/create';
-              }}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
-            >
-              + 新規作成
-            </button>
+          <div className="flex gap-2 flex-wrap">
+            {statusOptions.map(option => (
+              <motion.button
+                key={option.value}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setStatusFilter(option.value)}
+                className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                  statusFilter === option.value
+                    ? 'bg-emerald-500 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {option.label}
+              </motion.button>
+            ))}
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* 検索・フィルター */}
+      {/* エラーメッセージ */}
+      {error && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
+          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
         >
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="プロジェクト名、説明、カテゴリーで検索..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {statusOptions.map(option => (
-                <motion.button
-                  key={option.value}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setStatusFilter(option.value)}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    statusFilter === option.value
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {option.label}
-                </motion.button>
-              ))}
-            </div>
-          </div>
+          {error}
         </motion.div>
+      )}
 
-        {/* エラーメッセージ */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
-        )}
-
-        {/* プロジェクト一覧 */}
-        <div className="space-y-6">
-          {filteredProjects.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📋</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトが見つかりません</h3>
-              <p className="text-gray-600 mb-4">
-                {statusFilter === 'all' ? '新しいプロジェクトを作成してみましょう。' : '条件に合うプロジェクトがありません。'}
-              </p>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Navigating to /projects/create from empty state');
-                  router.push('/projects/create');
-                }}
-                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
-              >
-                新しいプロジェクトを作成
-              </button>
-            </div>
-          ) : (
-            filteredProjects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300"
-              >
+      {/* プロジェクト一覧 */}
+      <div className="space-y-6">
+        {filteredProjects.length === 0 ? (
+          <Card className="text-center py-12">
+            <div className="text-6xl mb-4">📋</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトが見つかりません</h3>
+            <p className="text-gray-600 mb-4">
+              {statusFilter === 'all' ? '新しいプロジェクトを作成してみましょう。' : '条件に合うプロジェクトがありません。'}
+            </p>
+            <Button
+              onClick={() => router.push('/projects/create')}
+              variant="primary"
+              size="lg"
+            >
+              新しいプロジェクトを作成
+            </Button>
+          </Card>
+        ) : (
+          filteredProjects.map((project, index) => (
+            <motion.div
+              key={project.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card hover={true} padding="lg">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
@@ -269,30 +254,31 @@ const ProjectsPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 mt-4 lg:mt-0">
-                    {/* チャットボタン（マッチング済みまたは進行中の場合のみ表示） */}
+                    {/* アクションボタン */}
                     {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS') && project.matchedInfluencer && (
-                      <Link href={`/project-chat/${project.id}`}>
-                        <button className="relative px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors hover:scale-105 flex items-center space-x-2">
-                          <span>💬</span>
-                          <span className="hidden md:inline">チャット</span>
-                          {/* 未読バッジ（例：2件の未読がある場合） */}
-                          {Math.random() > 0.5 && (
-                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                              {Math.floor(Math.random() * 9) + 1}
-                            </span>
-                          )}
-                        </button>
-                      </Link>
+                      <Button
+                        onClick={() => router.push(`/project-chat/${project.id}`)}
+                        variant="secondary"
+                        size="md"
+                        icon="💬"
+                        className="relative"
+                      >
+                        <span className="hidden md:inline">チャット</span>
+                        {/* 未読バッジ */}
+                        {Math.random() > 0.5 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                            {Math.floor(Math.random() * 9) + 1}
+                          </span>
+                        )}
+                      </Button>
                     )}
-                    <button
-                      onClick={() => {
-                        console.log('Detail button clicked!');
-                        router.push(`/project-detail?id=${project.id}`);
-                      }}
-                      className="px-6 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors hover:scale-105"
+                    <Button
+                      onClick={() => router.push(`/project-detail?id=${project.id}`)}
+                      variant="primary"
+                      size="md"
                     >
-                      詳細
-                    </button>
+                      詳細を見る
+                    </Button>
                   </div>
                 </div>
 
@@ -398,22 +384,24 @@ const ProjectsPage: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </motion.div>
-            ))
-          )}
-        </div>
+              </Card>
+            </motion.div>
+          ))
+        )}
+      </div>
 
-        {/* 統計情報 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mt-8"
-        >
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">統計情報</h3>
+      {/* 統計情報 */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="mt-8"
+      >
+        <Card padding="xl">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">プロジェクト統計</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl font-bold text-emerald-600 mb-2">
                 {projects.length}
               </div>
               <div className="text-gray-600">総プロジェクト数</div>
@@ -425,7 +413,7 @@ const ProjectsPage: React.FC = () => {
               <div className="text-gray-600">募集中</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+              <div className="text-3xl font-bold text-teal-600 mb-2">
                 {projects.filter(p => p.status === 'IN_PROGRESS').length}
               </div>
               <div className="text-gray-600">進行中</div>
@@ -437,9 +425,9 @@ const ProjectsPage: React.FC = () => {
               <div className="text-gray-600">完了済み</div>
             </div>
           </div>
-        </motion.div>
-      </div>
-    </div>
+        </Card>
+      </motion.div>
+    </PageLayout>
   );
 };
 

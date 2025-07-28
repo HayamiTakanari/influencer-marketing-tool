@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import PageLayout from '../components/shared/PageLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
 
 interface ProjectOpportunity {
   id: string;
@@ -404,36 +407,18 @@ const OpportunitiesPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">プロジェクト機会</h1>
-              <p className="text-sm text-gray-600">参加可能なプロジェクトを探そう</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageLayout
+      title="プロジェクト機会"
+      subtitle="参加可能なプロジェクトを探そう"
+      userEmail={user?.email}
+      onLogout={() => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        router.push('/login');
+      }}
+    >
         {/* 検索・フィルター */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
-        >
+        <Card className="mb-8">
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
             <div className="flex-1">
               <input
@@ -446,19 +431,14 @@ const OpportunitiesPage: React.FC = () => {
             </div>
             <div className="flex gap-2 flex-wrap">
               {categories.map(category => (
-                <motion.button
+                <Button
                   key={category.value}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  variant={categoryFilter === category.value ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setCategoryFilter(category.value)}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    categoryFilter === category.value
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
                 >
                   {category.label}
-                </motion.button>
+                </Button>
               ))}
             </div>
           </div>
@@ -475,17 +455,15 @@ const OpportunitiesPage: React.FC = () => {
               プロフィールに合致するもののみ表示
             </label>
           </div>
-        </motion.div>
+        </Card>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
+          <Card className="mb-6 bg-red-50 border-red-200">
+            <div className="text-red-700">
+              {error}
+            </div>
+          </Card>
         )}
 
         {/* プロジェクト一覧 */}
@@ -542,41 +520,39 @@ const OpportunitiesPage: React.FC = () => {
                       <div className="text-gray-500 text-sm">予算</div>
                     </div>
                     <div className="flex flex-col space-y-2">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                      <Button
+                        variant="secondary"
+                        size="md"
                         onClick={() => {
                           setSelectedProject(opportunity);
                           setShowProjectDetail(true);
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                       >
                         詳細を見る
-                      </motion.button>
+                      </Button>
                       {!opportunity.isApplied && (
                         <>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                          <Button
+                            variant="primary"
+                            size="md"
                             onClick={() => {
                               setSelectedProject(opportunity);
                               setShowApplicationForm(true);
                             }}
-                            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                           >
                             応募する
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="md"
                             onClick={() => {
                               setSelectedProject(opportunity);
                               setShowRejectForm(true);
                             }}
-                            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                            className="border-red-500 text-red-600 hover:bg-red-50"
                           >
                             却下する
-                          </motion.button>
+                          </Button>
                         </>
                       )}
                     </div>
@@ -613,41 +589,35 @@ const OpportunitiesPage: React.FC = () => {
         </div>
 
         {/* 統計情報 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mt-8"
-        >
+        <Card className="mt-8" padding="xl">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">統計情報</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl font-bold text-emerald-600 mb-2">
                 {opportunities.length}
               </div>
               <div className="text-gray-600">利用可能な機会</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+              <div className="text-3xl font-bold text-teal-600 mb-2">
                 {opportunities.filter(o => o.matchesProfile).length}
               </div>
               <div className="text-gray-600">プロフィールに合致</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
+              <div className="text-3xl font-bold text-emerald-500 mb-2">
                 {opportunities.filter(o => o.isApplied).length}
               </div>
               <div className="text-gray-600">応募済み</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-2">
+              <div className="text-3xl font-bold text-gray-700 mb-2">
                 {Math.round(opportunities.reduce((sum, o) => sum + o.budget, 0) / opportunities.length).toLocaleString()}
               </div>
               <div className="text-gray-600">平均予算（円）</div>
             </div>
           </div>
-        </motion.div>
-      </div>
+        </Card>
 
       {/* 応募フォーム */}
       {showApplicationForm && selectedProject && (
@@ -1174,7 +1144,7 @@ const OpportunitiesPage: React.FC = () => {
           </motion.div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 };
 

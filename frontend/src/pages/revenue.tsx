@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import PageLayout from '../components/shared/PageLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
 
 interface RevenueData {
   totalEarnings: number;
@@ -159,38 +162,23 @@ const RevenuePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">収益ダッシュボード</h1>
-              <p className="text-sm text-gray-600">あなたの収益状況と実績</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageLayout
+      title="収益ダッシュボード"
+      subtitle="あなたの収益状況と実績"
+      userEmail={user?.email}
+      onLogout={() => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        router.push('/login');
+      }}
+    >
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
+          <Card className="mb-6 bg-red-50 border-red-200">
+            <div className="text-red-700">
+              {error}
+            </div>
+          </Card>
         )}
 
         {/* 収益サマリー */}
@@ -341,8 +329,7 @@ const RevenuePage: React.FC = () => {
             </div>
           </div>
         </motion.div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

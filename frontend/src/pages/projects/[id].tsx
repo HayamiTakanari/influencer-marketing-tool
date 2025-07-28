@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import PageLayout from '../../components/shared/PageLayout';
+import Card from '../../components/shared/Card';
+import Button from '../../components/shared/Button';
 
 interface Application {
   id: string;
@@ -394,63 +397,58 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
+      <PageLayout title="プロジェクト詳細" subtitle="読み込み中...">
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   if (error || !project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
+      <PageLayout title="エラー" subtitle="プロジェクトの読み込みに失敗しました">
+        <Card className="text-center py-12">
           <div className="text-6xl mb-4">❌</div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h3>
           <p className="text-gray-600 mb-4">{error || 'プロジェクトが見つかりませんでした。'}</p>
-          <Link href="/projects" className="text-blue-600 hover:underline">
-            プロジェクト一覧に戻る
+          <Link href="/projects">
+            <Button variant="primary" size="lg">
+              プロジェクト一覧に戻る
+            </Button>
           </Link>
-        </div>
-      </div>
+        </Card>
+      </PageLayout>
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/projects" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">←</span>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">プロジェクト詳細</h1>
-              <p className="text-sm text-gray-600">{project.title}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusInfo(project.status).color}`}>
-              {getStatusInfo(project.status).label}
-            </span>
-            <Link href="/projects" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              一覧に戻る
-            </Link>
-          </div>
+    <PageLayout
+      title="プロジェクト詳細"
+      subtitle={project.title}
+      userEmail={user?.email}
+      onLogout={handleLogout}
+    >
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-4">
+          <Link href="/projects">
+            <Button variant="ghost" size="md">
+              ← プロジェクト一覧に戻る
+            </Button>
+          </Link>
+          <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusInfo(project.status).color}`}>
+            {getStatusInfo(project.status).label}
+          </span>
         </div>
       </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* プロジェクト概要 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-        >
+      {/* プロジェクト概要 */}
+      <Card className="mb-8" padding="xl">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl font-bold text-gray-900 flex items-center">
               {project.title}
@@ -576,36 +574,33 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
           {/* アクションボタン */}
           <div className="flex flex-wrap gap-3 mb-6">
             {project.status === 'IN_PROGRESS' && (
-              <Link href={`/payments/${project.id}`}>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                >
-                  💳 支払いを行う
-                </motion.button>
-              </Link>
+              <Button
+                onClick={() => router.push(`/payments/${project.id}`)}
+                variant="primary"
+                size="lg"
+                icon="💳"
+              >
+                支払いを行う
+              </Button>
             )}
             {(project.status === 'IN_PROGRESS' || project.status === 'MATCHED') && (
-              <Link href={`/project-chat/${project.id}`}>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                >
-                  💬 プロジェクトチャット
-                </motion.button>
-              </Link>
-            )}
-            <Link href="/payments/history">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+              <Button
+                onClick={() => router.push(`/project-chat/${project.id}`)}
+                variant="secondary"
+                size="lg"
+                icon="💬"
               >
-                📊 支払い履歴
-              </motion.button>
-            </Link>
+                プロジェクトチャット
+              </Button>
+            )}
+            <Button
+              onClick={() => router.push('/payments/history')}
+              variant="outline"
+              size="lg"
+              icon="📊"
+            >
+              支払い履歴
+            </Button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -651,13 +646,8 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
           </div>
         </motion.div>
 
-        {/* タブナビゲーション */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-2 shadow-xl mb-8"
-        >
+      {/* タブナビゲーション */}
+      <Card className="mb-8" padding="sm">
           <div className="flex space-x-2">
             {[
               { key: 'overview', label: '詳細情報', icon: '📋' },
@@ -690,7 +680,7 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
             className="space-y-6"
           >
             {/* ターゲット設定 */}
-            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+            <Card padding="xl">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">ターゲット設定</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
@@ -727,10 +717,10 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* 基本要件 */}
-            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+            <Card padding="xl">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">基本要件</h3>
               <div className="space-y-6">
                 {project.deliverables && (
@@ -761,11 +751,11 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
 
             {/* 商品・広告主情報 */}
             {(project.advertiserName || project.brandName || project.productName) && (
-              <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+              <Card padding="xl">
                 <motion.h3 
                   className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
                   onClick={() => toggleSection('product-info')}
@@ -858,11 +848,11 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                   )}
                   </div>
                 </motion.div>
-              </div>
+              </Card>
             )}
 
             {/* キャンペーン詳細 */}
-            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+            <Card padding="xl">
               <motion.h3 
                 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
                 onClick={() => toggleSection('campaign-details')}
@@ -955,10 +945,10 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                   )}
                 </div>
               </motion.div>
-            </div>
+            </Card>
 
             {/* 撮影・制作仕様 */}
-            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+            <Card padding="xl">
               <motion.h3 
                 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
                 onClick={() => toggleSection('production-specs')}
@@ -1021,10 +1011,10 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                   </div>
                 </div>
               </motion.div>
-            </div>
+            </Card>
 
             {/* ハッシュタグ・制約事項 */}
-            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+            <Card padding="xl">
               <motion.h3 
                 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
                 onClick={() => toggleSection('hashtags-restrictions')}
@@ -1108,10 +1098,10 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                   </div>
                 </div>
               </motion.div>
-            </div>
+            </Card>
 
             {/* 二次利用・開示設定 */}
-            <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
+            <Card padding="xl">
               <motion.h3 
                 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between cursor-pointer select-none"
                 onClick={() => toggleSection('secondary-usage')}
@@ -1189,7 +1179,7 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                   </div>
                 </div>
               </motion.div>
-            </div>
+            </Card>
           </motion.div>
         )}
 
@@ -1199,8 +1189,8 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
           >
+            <Card padding="xl">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">応募一覧</h3>
             
             {project.applications.length === 0 ? (
@@ -1237,22 +1227,20 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                           <div className="text-gray-500 text-sm">提案料金</div>
                         </div>
                         <div className="flex space-x-2">
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                          <Button
                             onClick={() => handleAcceptApplication(application.id)}
-                            className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
+                            variant="primary"
+                            size="md"
                           >
                             承諾
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                          </Button>
+                          <Button
                             onClick={() => handleRejectApplication(application.id)}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                            variant="secondary"
+                            size="md"
                           >
                             却下
-                          </motion.button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1293,10 +1281,11 @@ const ProjectDetailPage: React.FC<Props> = ({ projectId }) => {
                 ))}
               </div>
             )}
+            </Card>
           </motion.div>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

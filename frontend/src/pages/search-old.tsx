@@ -1,0 +1,1066 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/router';
+import { searchInfluencers } from '../services/api';
+import PageLayout from '../components/shared/PageLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
+
+const SearchPage: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [influencers, setInfluencers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [pagination, setPagination] = useState<any>(null);
+  const [performance, setPerformance] = useState<any>(null);
+  const router = useRouter();
+
+  // 検索フィルター
+  const [filters, setFilters] = useState(() => {
+    // SSR対応のため、クライアントサイドでのみローカルストレージから復元
+    if (typeof window !== 'undefined') {
+      const savedFilters = localStorage.getItem('searchFilters');
+      if (savedFilters) {
+        try {
+          const parsed = JSON.parse(savedFilters);
+          return {
+            query: parsed.query || '',
+            category: parsed.category || '',
+            prefecture: parsed.prefecture || '',
+            platform: parsed.platform || '',
+            minFollowers: parsed.minFollowers || '',
+            maxFollowers: parsed.maxFollowers || '',
+            minEngagement: parsed.minEngagement || '',
+            maxEngagement: parsed.maxEngagement || '',
+            ageMin: parsed.ageMin || '',
+            ageMax: parsed.ageMax || '',
+            gender: parsed.gender || '',
+            priceMin: parsed.priceMin || '',
+            priceMax: parsed.priceMax || '',
+            sortBy: parsed.sortBy || 'relevance',
+            verifiedOnly: parsed.verifiedOnly || false,
+            hasMediaKit: parsed.hasMediaKit || false,
+            page: 1, // ページは常に1から開始
+            limit: parsed.limit || 20,
+            testLargeData: false,
+          };
+        } catch (e) {
+          console.error('Failed to parse saved filters:', e);
+        }
+      }
+    }
+    return {
+      query: '',
+      category: '',
+      prefecture: '',
+      platform: '',
+      minFollowers: '',
+      maxFollowers: '',
+      minEngagement: '',
+      maxEngagement: '',
+      ageMin: '',
+      ageMax: '',
+      gender: '',
+      priceMin: '',
+      priceMax: '',
+      sortBy: 'relevance',
+      verifiedOnly: false,
+      hasMediaKit: false,
+      page: 1,
+      limit: 20,
+      testLargeData: false,
+    };
+  });
+
+  // パフォーマンス測定
+  const [searchTime, setSearchTime] = useState<number>(0);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      router.push('/login');
+      return;
+    }
+
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+
+    if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
+      router.push('/dashboard');
+      return;
+    }
+  }, [router]);
+
+  // 初期検索実行のための別のuseEffect
+  useEffect(() => {
+    if (user) {
+      handleSearch();
+    }
+  }, [user]);
+
+  const handleSearch = async () => {
+    console.log('Search button clicked!'); // デバッグログ
+    console.log('Current filters:', filters); // フィルター状態を確認
+    
+    const startTime = Date.now();
+    setLoading(true);
+    setError('');
+
+    try {
+      const searchParams = {
+        ...filters,
+        minFollowers: filters.minFollowers ? parseInt(filters.minFollowers) : undefined,
+        maxFollowers: filters.maxFollowers ? parseInt(filters.maxFollowers) : undefined,
+      };
+
+      console.log('Search params:', searchParams); // 検索パラメータを確認
+      
+      const result = await searchInfluencers(searchParams);
+      const endTime = Date.now();
+      
+      console.log('Search result:', result); // 検索結果を確認
+      
+      setInfluencers(result.influencers || []);
+      setPagination(result.pagination || null);
+      setPerformance(result.performance || null);
+      setSearchTime(endTime - startTime);
+    } catch (err: any) {
+      console.error('Search error:', err);
+      setError('検索に失敗しました: ' + (err.message || err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePageChange = async (newPage: number) => {
+    const newFilters = { ...filters, page: newPage };
+    setFilters(newFilters);
+    
+    // 更新されたフィルターで検索を実行
+    console.log('Page changed to:', newPage);
+    const startTime = Date.now();
+    setLoading(true);
+    setError('');
+
+    try {
+      const searchParams = {
+        ...newFilters,
+        minFollowers: newFilters.minFollowers ? parseInt(newFilters.minFollowers) : undefined,
+        maxFollowers: newFilters.maxFollowers ? parseInt(newFilters.maxFollowers) : undefined,
+      };
+
+      const result = await searchInfluencers(searchParams);
+      const endTime = Date.now();
+      
+      setInfluencers(result.influencers || []);
+      setPagination(result.pagination || null);
+      setPerformance(result.performance || null);
+      setSearchTime(endTime - startTime);
+    } catch (err: any) {
+      console.error('Page change search error:', err);
+      setError('検索に失敗しました: ' + (err.message || err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilterChange = (key: string, value: any) => {
+    const newFilters = { ...filters, [key]: value, page: 1 };
+    setFilters(newFilters);
+    // SSR対応のため、クライアントサイドでのみローカルストレージに保存
+    if (typeof window !== 'undefined') {
+      const filtersToSave = {
+        query: newFilters.query,
+        category: newFilters.category,
+        prefecture: newFilters.prefecture,
+        platform: newFilters.platform,
+        minFollowers: newFilters.minFollowers,
+        maxFollowers: newFilters.maxFollowers,
+        minEngagement: newFilters.minEngagement,
+        maxEngagement: newFilters.maxEngagement,
+        ageMin: newFilters.ageMin,
+        ageMax: newFilters.ageMax,
+        gender: newFilters.gender,
+        priceMin: newFilters.priceMin,
+        priceMax: newFilters.priceMax,
+        sortBy: newFilters.sortBy,
+        verifiedOnly: newFilters.verifiedOnly,
+        hasMediaKit: newFilters.hasMediaKit,
+        limit: newFilters.limit,
+      };
+      localStorage.setItem('searchFilters', JSON.stringify(filtersToSave));
+    }
+  };
+
+  // CSV抽出機能（現在のページのみ）
+  const exportToCSV = () => {
+    if (!influencers || influencers.length === 0) {
+      alert('抽出するデータがありません');
+      return;
+    }
+
+    // CSVヘッダー（複数SNS対応）
+    const headers = [
+      '名前',
+      '都道府県',
+      'カテゴリー',
+      'Instagramフォロワー数',
+      'Instagramエンゲージメント率',
+      'TikTokフォロワー数',
+      'TikTokエンゲージメント率',
+      'YouTubeフォロワー数',
+      'YouTubeエンゲージメント率',
+      'Xフォロワー数',
+      'Xエンゲージメント率',
+      '最低料金',
+      '最高料金',
+      'プロフィール'
+    ];
+
+    // CSVデータを作成
+    const csvData = influencers.map(influencer => {
+      const getAccountData = (platform: string) => {
+        const account = influencer.socialAccounts?.find((acc: any) => acc.platform === platform);
+        return account ? [account.followerCount || 0, account.engagementRate || ''] : [0, ''];
+      };
+
+      const [instagramFollowers, instagramEngagement] = getAccountData('Instagram');
+      const [tiktokFollowers, tiktokEngagement] = getAccountData('TikTok');
+      const [youtubeFollowers, youtubeEngagement] = getAccountData('YouTube');
+      const [xFollowers, xEngagement] = getAccountData('X');
+
+      return [
+        influencer.displayName || '',
+        influencer.prefecture || '',
+        influencer.categories?.join(';') || '',
+        instagramFollowers,
+        instagramEngagement,
+        tiktokFollowers,
+        tiktokEngagement,
+        youtubeFollowers,
+        youtubeEngagement,
+        xFollowers,
+        xEngagement,
+        influencer.priceMin || '',
+        influencer.priceMax || '',
+        (influencer.bio || '').replace(/"/g, '""')
+      ];
+    });
+
+    // CSVコンテンツを作成
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => 
+        row.map(field => 
+          typeof field === 'string' && field.includes(',') 
+            ? `"${field}"` 
+            : field
+        ).join(',')
+      )
+    ].join('\n');
+
+    // BOMを追加してExcelでの文字化けを防ぐ
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // ダウンロードリンクを作成
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    
+    // ファイル名を生成（現在の日時を含む）
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0, 19).replace(/[T:]/g, '-');
+    link.setAttribute('download', `influencers_${timestamp}.csv`);
+    
+    // ダウンロードを実行
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 全データのCSV抽出機能
+  const exportAllToCSV = async () => {
+    if (!pagination) {
+      alert('検索を実行してからCSV抽出してください');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 全データを取得するため、limit を大きく設定
+      const allDataParams = {
+        ...filters,
+        page: 1,
+        limit: pagination.total, // 全件取得
+        minFollowers: filters.minFollowers ? parseInt(filters.minFollowers) : undefined,
+        maxFollowers: filters.maxFollowers ? parseInt(filters.maxFollowers) : undefined,
+      };
+
+      const result = await searchInfluencers(allDataParams);
+      const allInfluencers = result.influencers || [];
+
+      if (allInfluencers.length === 0) {
+        alert('抽出するデータがありません');
+        return;
+      }
+
+      // CSVヘッダー（複数SNS対応）
+      const headers = [
+        '名前',
+        '都道府県',
+        'カテゴリー',
+        'Instagramフォロワー数',
+        'Instagramエンゲージメント率',
+        'TikTokフォロワー数',
+        'TikTokエンゲージメント率',
+        'YouTubeフォロワー数',
+        'YouTubeエンゲージメント率',
+        'Xフォロワー数',
+        'Xエンゲージメント率',
+        '最低料金',
+        '最高料金',
+        'プロフィール'
+      ];
+
+      // CSVデータを作成
+      const csvData = allInfluencers.map(influencer => {
+        const getAccountData = (platform: string) => {
+          const account = influencer.socialAccounts?.find((acc: any) => acc.platform === platform);
+          return account ? [account.followerCount || 0, account.engagementRate || ''] : [0, ''];
+        };
+
+        const [instagramFollowers, instagramEngagement] = getAccountData('Instagram');
+        const [tiktokFollowers, tiktokEngagement] = getAccountData('TikTok');
+        const [youtubeFollowers, youtubeEngagement] = getAccountData('YouTube');
+        const [xFollowers, xEngagement] = getAccountData('X');
+
+        return [
+          influencer.displayName || '',
+          influencer.prefecture || '',
+          influencer.categories?.join(';') || '',
+          instagramFollowers,
+          instagramEngagement,
+          tiktokFollowers,
+          tiktokEngagement,
+          youtubeFollowers,
+          youtubeEngagement,
+          xFollowers,
+          xEngagement,
+          influencer.priceMin || '',
+          influencer.priceMax || '',
+          (influencer.bio || '').replace(/"/g, '""')
+        ];
+      });
+
+      // CSVコンテンツを作成
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => 
+          row.map(field => 
+            typeof field === 'string' && field.includes(',') 
+              ? `"${field}"` 
+              : field
+          ).join(',')
+        )
+      ].join('\n');
+
+      // BOMを追加してExcelでの文字化けを防ぐ
+      const bom = '\uFEFF';
+      const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      // ダウンロードリンクを作成
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      
+      // ファイル名を生成
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/[T:]/g, '-');
+      link.setAttribute('download', `influencers_all_${timestamp}.csv`);
+      
+      // ダウンロードを実行
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      alert(`${allInfluencers.length}件のデータを抽出しました`);
+    } catch (error) {
+      console.error('CSV抽出エラー:', error);
+      alert('CSV抽出に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // パフォーマンステストモードの切り替え
+  const togglePerformanceTest = () => {
+    setFilters(prev => ({ 
+      ...prev, 
+      testLargeData: !prev.testLargeData,
+      page: 1 
+    }));
+  };
+
+  // 自動検索を無効化し、手動検索ボタンを使用
+  // useEffect(() => {
+  //   const timeoutId = setTimeout(handleSearch, 500);
+  //   return () => clearTimeout(timeoutId);
+  // }, [filters]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/');
+  };
+
+  if (!user) return null;
+
+  return (
+    <PageLayout
+      title="インフルエンサー検索"
+      subtitle="条件を指定して最適なインフルエンサーを見つけましょう"
+      userEmail={user.email}
+      onLogout={handleLogout}
+    >
+
+        {/* パフォーマンス情報 */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-600">検索時間</p>
+              <p className="text-lg font-bold text-blue-600">{searchTime.toFixed(0)}ms</p>
+            </div>
+            {pagination && (
+              <div className="text-center">
+                <p className="text-sm text-gray-600">総件数</p>
+                <p className="text-lg font-bold text-green-600">{pagination.total.toLocaleString()}</p>
+              </div>
+            )}
+            {performance && (
+              <>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">サーバー応答時間</p>
+                  <p className="text-lg font-bold text-purple-600">{performance.responseTime}ms</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">キャッシュ</p>
+                  <p className={`text-lg font-bold ${performance.cacheHit ? 'text-green-600' : 'text-gray-600'}`}>
+                    {performance.cacheHit ? 'HIT' : 'MISS'}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* パフォーマンステストモード */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-yellow-800">パフォーマンステストモード</h3>
+              <p className="text-sm text-yellow-700">
+                {filters.testLargeData ? '10,000件のデータでテスト中' : '通常モード（50件）'}
+              </p>
+            </div>
+            <button
+              onClick={togglePerformanceTest}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                filters.testLargeData 
+                  ? 'bg-yellow-600 text-white' 
+                  : 'bg-yellow-200 text-yellow-800'
+              }`}
+            >
+              {filters.testLargeData ? '通常モードに切り替え' : 'テストモードに切り替え'}
+            </button>
+          </div>
+        </div>
+
+        {/* 検索フィルター */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg mb-6">
+          {/* 基本フィルター */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              🔍 基本検索
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">キーワード</label>
+                <input
+                  type="text"
+                  value={filters.query}
+                  onChange={(e) => handleFilterChange('query', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="インフルエンサー名..."
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
+                <select
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">全て</option>
+                  <option value="美容">美容</option>
+                  <option value="ライフスタイル">ライフスタイル</option>
+                  <option value="ファッション">ファッション</option>
+                  <option value="グルメ">グルメ</option>
+                  <option value="旅行">旅行</option>
+                  <option value="テック">テック</option>
+                  <option value="フィットネス">フィットネス</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">都道府県</label>
+                <select
+                  value={filters.prefecture}
+                  onChange={(e) => handleFilterChange('prefecture', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">全て</option>
+                  <option value="東京都">東京都</option>
+                  <option value="大阪府">大阪府</option>
+                  <option value="神奈川県">神奈川県</option>
+                  <option value="愛知県">愛知県</option>
+                  <option value="福岡県">福岡県</option>
+                  <option value="北海道">北海道</option>
+                  <option value="京都府">京都府</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">SNSプラットフォーム</label>
+                <select
+                  value={filters.platform}
+                  onChange={(e) => handleFilterChange('platform', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">全て</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="X">X (Twitter)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">並び順</label>
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="relevance">関連度</option>
+                  <option value="followers_desc">フォロワー数(多い順)</option>
+                  <option value="followers_asc">フォロワー数(少ない順)</option>
+                  <option value="engagement_desc">エンゲージメント率(高い順)</option>
+                  <option value="price_asc">料金(安い順)</option>
+                  <option value="price_desc">料金(高い順)</option>
+                  <option value="newest">登録日(新しい順)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">表示件数</label>
+                <select
+                  value={filters.limit}
+                  onChange={(e) => handleFilterChange('limit', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={10}>10件</option>
+                  <option value={20}>20件</option>
+                  <option value={50}>50件</option>
+                  <option value={100}>100件</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* 高度なフィルター */}
+          <div className="border-t border-gray-200 pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              ⚙️ 高度なフィルター
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* フォロワー数範囲 */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">フォロワー数範囲</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={filters.minFollowers}
+                    onChange={(e) => handleFilterChange('minFollowers', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小 (例: 1000)"
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                  <input
+                    type="number"
+                    value={filters.maxFollowers}
+                    onChange={(e) => handleFilterChange('maxFollowers', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大 (例: 100000)"
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                </div>
+              </div>
+
+              {/* エンゲージメント率範囲 */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">エンゲージメント率(%)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={filters.minEngagement}
+                    onChange={(e) => handleFilterChange('minEngagement', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小 (例: 2.0)"
+                  />
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={filters.maxEngagement}
+                    onChange={(e) => handleFilterChange('maxEngagement', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大 (例: 10.0)"
+                  />
+                </div>
+              </div>
+
+              {/* 年齢範囲 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">年齢範囲</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={filters.ageMin}
+                    onChange={(e) => handleFilterChange('ageMin', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小"
+                  />
+                  <input
+                    type="number"
+                    value={filters.ageMax}
+                    onChange={(e) => handleFilterChange('ageMax', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大"
+                  />
+                </div>
+              </div>
+
+              {/* 性別 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">性別</label>
+                <select
+                  value={filters.gender}
+                  onChange={(e) => handleFilterChange('gender', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">指定しない</option>
+                  <option value="MALE">男性</option>
+                  <option value="FEMALE">女性</option>
+                  <option value="OTHER">その他</option>
+                </select>
+              </div>
+
+              {/* 料金範囲 */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">料金範囲 (円)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={filters.priceMin}
+                    onChange={(e) => handleFilterChange('priceMin', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最小 (例: 50000)"
+                  />
+                  <input
+                    type="number"
+                    value={filters.priceMax}
+                    onChange={(e) => handleFilterChange('priceMax', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="最大 (例: 500000)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 特別フィルター */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-3">特別条件</label>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={filters.verifiedOnly}
+                    onChange={(e) => handleFilterChange('verifiedOnly', e.target.checked)}
+                    className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">認証済みアカウントのみ</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={filters.hasMediaKit}
+                    onChange={(e) => handleFilterChange('hasMediaKit', e.target.checked)}
+                    className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">メディアキット保有者のみ</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* 検索ボタンエリア */}
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('Button clicked!');
+                handleSearch();
+              }}
+              disabled={loading}
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>検索中...</span>
+                </>
+              ) : (
+                <>
+                  <span>🔍</span>
+                  <span>検索実行</span>
+                </>
+              )}
+            </button>
+            
+            <button
+              onClick={() => {
+                const resetFilters = {
+                  query: '',
+                  category: '',
+                  prefecture: '',
+                  platform: '',
+                  minFollowers: '',
+                  maxFollowers: '',
+                  minEngagement: '',
+                  maxEngagement: '',
+                  ageMin: '',
+                  ageMax: '',
+                  gender: '',
+                  priceMin: '',
+                  priceMax: '',
+                  sortBy: 'relevance',
+                  verifiedOnly: false,
+                  hasMediaKit: false,
+                  page: 1,
+                  limit: 20,
+                  testLargeData: filters.testLargeData,
+                };
+                setFilters(resetFilters);
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('searchFilters');
+                }
+                handleSearch();
+              }}
+              className="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
+            >
+              🔄 リセット
+            </button>
+          </div>
+        </div>
+
+        {/* エラーメッセージ */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+            {error}
+          </div>
+        )}
+
+        {/* ローディング */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">検索中...</p>
+          </div>
+        )}
+
+        {/* アクティブフィルター表示 */}
+        {(filters.query || filters.category || filters.prefecture || filters.platform || filters.minFollowers || filters.maxFollowers || filters.minEngagement || filters.maxEngagement || filters.ageMin || filters.ageMax || filters.gender || filters.priceMin || filters.priceMax || filters.verifiedOnly || filters.hasMediaKit) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <h3 className="font-semibold text-blue-900 mb-3 flex items-center">
+              🎯 現在の検索条件
+              <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                {[filters.query, filters.category, filters.prefecture, filters.platform, filters.minFollowers, filters.maxFollowers, filters.minEngagement, filters.maxEngagement, filters.ageMin, filters.ageMax, filters.gender, filters.priceMin, filters.priceMax, filters.verifiedOnly, filters.hasMediaKit].filter(Boolean).length}個の条件
+              </span>
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {filters.query && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  🔍 キーワード: {filters.query}
+                </span>
+              )}
+              {filters.category && (
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                  📂 カテゴリ: {filters.category}
+                </span>
+              )}
+              {filters.prefecture && (
+                <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
+                  📍 都道府県: {filters.prefecture}
+                </span>
+              )}
+              {filters.platform && (
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">
+                  📱 {filters.platform}専門
+                </span>
+              )}
+              {(filters.minFollowers || filters.maxFollowers) && (
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
+                  👥 フォロワー: {filters.minFollowers ? parseInt(filters.minFollowers).toLocaleString() : '0'}〜{filters.maxFollowers ? parseInt(filters.maxFollowers).toLocaleString() : '∞'}
+                </span>
+              )}
+              {(filters.minEngagement || filters.maxEngagement) && (
+                <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">
+                  📈 エンゲージ: {filters.minEngagement || '0'}%〜{filters.maxEngagement || '∞'}%
+                </span>
+              )}
+              {(filters.ageMin || filters.ageMax) && (
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                  🎂 年齢: {filters.ageMin || '0'}〜{filters.ageMax || '∞'}歳
+                </span>
+              )}
+              {filters.gender && (
+                <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm">
+                  👤 性別: {filters.gender === 'MALE' ? '男性' : filters.gender === 'FEMALE' ? '女性' : 'その他'}
+                </span>
+              )}
+              {(filters.priceMin || filters.priceMax) && (
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm">
+                  💰 料金: ¥{filters.priceMin ? parseInt(filters.priceMin).toLocaleString() : '0'}〜¥{filters.priceMax ? parseInt(filters.priceMax).toLocaleString() : '∞'}
+                </span>
+              )}
+              {filters.verifiedOnly && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  ✅ 認証済みのみ
+                </span>
+              )}
+              {filters.hasMediaKit && (
+                <span className="px-3 py-1 bg-violet-100 text-violet-800 rounded-full text-sm">
+                  📋 メディアキット保有
+                </span>
+              )}
+              {filters.sortBy !== 'relevance' && (
+                <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                  🔄 並び順: {
+                    filters.sortBy === 'followers_desc' ? 'フォロワー数(多い順)' :
+                    filters.sortBy === 'followers_asc' ? 'フォロワー数(少ない順)' :
+                    filters.sortBy === 'engagement_desc' ? 'エンゲージメント率(高い順)' :
+                    filters.sortBy === 'price_asc' ? '料金(安い順)' :
+                    filters.sortBy === 'price_desc' ? '料金(高い順)' :
+                    filters.sortBy === 'newest' ? '登録日(新しい順)' : '関連度'
+                  }
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 検索結果 */}
+        {!loading && influencers.length > 0 && (
+          <>
+            {/* ページネーション情報とCSV抽出ボタン */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-4">
+                {pagination && (
+                  <>
+                    <p className="text-gray-600">
+                      {pagination.total.toLocaleString()}件中 {((pagination.page - 1) * pagination.limit + 1).toLocaleString()}-{Math.min(pagination.page * pagination.limit, pagination.total).toLocaleString()}件を表示
+                    </p>
+                    <span className="text-gray-400">|</span>
+                    <p className="text-gray-600">
+                      ページ {pagination.page} / {pagination.totalPages}
+                    </p>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={exportToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                >
+                  <span>📊</span>
+                  <span>現在ページCSV抽出</span>
+                </button>
+                <button
+                  onClick={exportAllToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  disabled={loading}
+                >
+                  <span>📁</span>
+                  <span>全データCSV抽出</span>
+                </button>
+              </div>
+            </div>
+
+            {/* インフルエンサーリスト表示（コンパクト版） */}
+            <div className="space-y-3 mb-8">
+              {influencers.map((influencer, index) => (
+                <motion.div
+                  key={influencer.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="bg-white/90 backdrop-blur-xl rounded-lg shadow hover:shadow-md transition-all"
+                >
+                  <div className="p-4">
+                    <div className="flex items-center gap-4">
+                      {/* アイコン */}
+                      <div 
+                        className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+                        onClick={() => router.push(`/influencer/${influencer.id}`)}
+                        title={`${influencer.displayName}の詳細を見る`}
+                      >
+                        {influencer.displayName?.charAt(0) || 'U'}
+                      </div>
+                      
+                      {/* メイン情報 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="text-lg font-bold text-gray-900 truncate">{influencer.displayName}</h3>
+                              <span className="text-sm text-gray-500">({influencer.prefecture})</span>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-1 mb-2">{influencer.bio}</p>
+                            <div className="flex items-center gap-4 text-sm">
+                              {/* カテゴリー */}
+                              <div className="flex gap-2">
+                                {influencer.categories?.map((category: string, index: number) => (
+                                  <span key={index} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                    {category}
+                                  </span>
+                                ))}
+                              </div>
+                              {/* SNS情報（プラットフォーム別） */}
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                {['Instagram', 'TikTok', 'YouTube', 'X'].map(platform => {
+                                  const account = influencer.socialAccounts?.find((acc: any) => acc.platform === platform);
+                                  const isSelectedPlatform = filters.platform === platform;
+                                  
+                                  if (!account) {
+                                    return (
+                                      <div key={platform} className={`flex items-center gap-1 ${isSelectedPlatform ? 'text-gray-600' : 'text-gray-400'}`}>
+                                        <span className={`w-16 ${isSelectedPlatform ? 'font-semibold' : ''}`}>
+                                          {platform}{isSelectedPlatform ? '*' : ''}:
+                                        </span>
+                                        <span>-</span>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div key={platform} className={`flex items-center gap-1 ${isSelectedPlatform ? 'bg-blue-50 px-2 py-1 rounded' : ''}`}>
+                                      <span className={`${isSelectedPlatform ? 'text-blue-700 font-semibold' : 'text-gray-500'} w-16`}>
+                                        {platform}{isSelectedPlatform ? '*' : ''}:
+                                      </span>
+                                      <span className={`font-semibold ${isSelectedPlatform ? 'text-blue-900' : 'text-gray-900'}`}>
+                                        {account.followerCount?.toLocaleString()}
+                                      </span>
+                                      {account.engagementRate && (
+                                        <span className={isSelectedPlatform ? 'text-blue-600' : 'text-green-600'}>
+                                          ({account.engagementRate}%)
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* 右側の情報 */}
+                          <div className="flex items-center gap-4 flex-shrink-0">
+                            <div className="text-right">
+                              <div className="text-xs text-gray-500">料金レンジ</div>
+                              <div className="text-sm font-bold text-gray-900">
+                                ¥{influencer.priceMin?.toLocaleString()} - ¥{influencer.priceMax?.toLocaleString()}
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => router.push(`/influencer/${influencer.id}`)}
+                              className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-md text-sm font-medium hover:shadow-md transition-all"
+                            >
+                              詳細
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* ページネーション */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={!pagination.hasPrev}
+                  className="px-4 py-2 bg-white rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  前へ
+                </button>
+                
+                {Array.from({ length: Math.min(10, pagination.totalPages) }, (_, i) => {
+                  const page = Math.max(1, pagination.page - 5) + i;
+                  if (page > pagination.totalPages) return null;
+                  
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-4 py-2 rounded-lg border ${
+                        page === pagination.page
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={!pagination.hasNext}
+                  className="px-4 py-2 bg-white rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  次へ
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 検索結果なし */}
+        {!loading && influencers.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">検索条件に一致するインフルエンサーが見つかりませんでした。</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SearchPage;
