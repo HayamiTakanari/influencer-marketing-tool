@@ -283,8 +283,7 @@ const DashboardPage: React.FC = () => {
                     <div className="bg-white border border-gray-200 p-6 text-center transition-all hover:shadow-lg" style={{
                       boxShadow: '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
                     }}>
-                      <div className="text-3xl mb-3">{action.icon}</div>
-                      <h3 className="text-sm font-medium text-gray-900">{action.title}</h3>
+                      <div className="text-4xl">{action.icon}</div>
                     </div>
                   </Link>
                 </motion.div>
@@ -292,63 +291,6 @@ const DashboardPage: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* 最近の活動 */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="relative bg-white p-10 max-w-4xl mx-auto border-2 border-gray-900"
-            style={{ 
-              boxShadow: '10px 10px 0 rgba(0,0,0,0.12), 5px 5px 25px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.9)',
-              background: 'linear-gradient(45deg, #f9fafb 25%, transparent 25%), linear-gradient(-45deg, #f9fafb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f9fafb 75%), linear-gradient(-45deg, transparent 75%, #f9fafb 75%)',
-              backgroundSize: '20px 20px',
-              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
-            }}
-          >
-            <h3 className="text-2xl font-bold mb-6 text-gray-900 relative">
-              <span>最近の活動</span>
-              <div className="absolute -bottom-1 left-0 w-8 h-0.5 opacity-80" style={{ background: 'linear-gradient(90deg, #10b981, #34d399)' }} />
-            </h3>
-            <div className="space-y-4">
-              {user.type === 'influencer' ? (
-                <>
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <span className="text-green-500">✓</span>
-                    <span>新しいプロジェクトオファーを受信しました</span>
-                    <span className="text-sm text-gray-500">2時間前</span>
-                  </div>
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <span className="text-blue-500">📊</span>
-                    <span>先月の収益レポートが生成されました</span>
-                    <span className="text-sm text-gray-500">1日前</span>
-                  </div>
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <span className="text-purple-500">⭐</span>
-                    <span>新しいレビューが投稿されました（5.0★）</span>
-                    <span className="text-sm text-gray-500">3日前</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <span className="text-green-500">✓</span>
-                    <span>新しいプロジェクトが開始されました</span>
-                    <span className="text-sm text-gray-500">1時間前</span>
-                  </div>
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <span className="text-blue-500">📹</span>
-                    <span>新しい動画投稿が承認されました</span>
-                    <span className="text-sm text-gray-500">4時間前</span>
-                  </div>
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <span className="text-purple-500">📊</span>
-                    <span>キャンペーン分析レポートが更新されました</span>
-                    <span className="text-sm text-gray-500">1日前</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </motion.div>
         </div>
       </div>
     </div>
