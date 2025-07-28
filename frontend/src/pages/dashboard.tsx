@@ -80,20 +80,10 @@ const DashboardPage: React.FC = () => {
         linkText: '詳細を見る',
         gradient: 'from-teal-500 to-emerald-600'
       },
-      {
-        icon: '⚡',
-        title: '要対応',
-        value: '5',
-        description: '返信待ちメッセージ',
-        link: '/chat',
-        linkText: '対応する',
-        gradient: 'from-emerald-600 to-green-600'
-      }
     ],
     quickActions: [
       { title: 'プロフィール編集', href: '/profile', icon: '👤' },
       { title: '応募履歴', href: '/my-applications', icon: '📝' },
-      { title: 'メッセージ', href: '/chat', icon: '💬' },
       { title: '収益分析', href: '/analytics', icon: '📊' },
       { title: 'レビュー管理', href: '/reviews', icon: '⭐' },
       { title: '実績管理', href: '/achievements', icon: '🏆' }
@@ -112,15 +102,6 @@ const DashboardPage: React.FC = () => {
         gradient: 'from-emerald-500 to-teal-600'
       },
       {
-        icon: '💬',
-        title: 'プロジェクトチャット',
-        value: '12',
-        description: '進行中の会話',
-        link: '/chat',
-        linkText: 'チャットを見る',
-        gradient: 'from-teal-500 to-emerald-600'
-      },
-      {
         icon: '👥',
         title: 'インフルエンサー検索',
         value: '∞',
@@ -133,7 +114,6 @@ const DashboardPage: React.FC = () => {
     quickActions: [
       { title: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
       { title: 'インフルエンサー検索', href: '/search', icon: '🔍' },
-      { title: 'メッセージ', href: '/chat', icon: '💬' },
       { title: '分析レポート', href: '/analytics', icon: '📊' },
       { title: '支払い履歴', href: '/payments/history', icon: '💳' },
       { title: '会社プロフィール', href: '/company-profile', icon: '🏢' }
@@ -234,7 +214,7 @@ const DashboardPage: React.FC = () => {
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto"
           >
             {dashboardData.cards.map((card, index) => (
               <motion.div
@@ -293,7 +273,7 @@ const DashboardPage: React.FC = () => {
             className="mb-16"
           >
             <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">クイックアクション</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
               {dashboardData.quickActions.map((action, index) => (
                 <motion.div
                   key={index}
@@ -357,8 +337,8 @@ const DashboardPage: React.FC = () => {
                     <span className="text-sm text-gray-500">1時間前</span>
                   </div>
                   <div className="flex items-center space-x-3 text-gray-700">
-                    <span className="text-blue-500">💬</span>
-                    <span>インフルエンサーからメッセージが届きました</span>
+                    <span className="text-blue-500">📹</span>
+                    <span>新しい動画投稿が承認されました</span>
                     <span className="text-sm text-gray-500">4時間前</span>
                   </div>
                   <div className="flex items-center space-x-3 text-gray-700">
