@@ -186,11 +186,6 @@ const ProjectChatPage: React.FC = () => {
   });
   const [conteDescription, setConteDescription] = useState('');
   
-  // 動画提出関連
-  const [showVideoSubmitForm, setShowVideoSubmitForm] = useState(false);
-  const [videoSubmitType, setVideoSubmitType] = useState<'initial' | 'revised'>('initial');
-  const [videoSubmitFiles, setVideoSubmitFiles] = useState<File[]>([]);
-  const [videoSubmitDescription, setVideoSubmitDescription] = useState('');
   
   // 構成案修正指摘関連
   const [showConteRevisionForm, setShowConteRevisionForm] = useState(false);
@@ -205,7 +200,7 @@ const ProjectChatPage: React.FC = () => {
   
   // 提出物一覧サイドパネル関連
   const [showSubmissionPanel, setShowSubmissionPanel] = useState(false);
-  const [submissionFilter, setSubmissionFilter] = useState<'all' | 'conte' | 'videos'>('all');
+  const [submissionFilter, setSubmissionFilter] = useState<'all' | 'conte'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   
   // AIコンテンツチェック関連
@@ -667,58 +662,6 @@ const ProjectChatPage: React.FC = () => {
     // TODO: Send conte to server
   };
   
-  // 動画提出機能
-  const handleVideoSubmitFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      setVideoSubmitFiles(Array.from(files));
-    }
-  };
-  
-  const handleSubmitVideoDeliverable = async () => {
-    if (!user || !project) return;
-    
-    if (videoSubmitFiles.length === 0) {
-      alert('動画ファイルを選択してください。');
-      return;
-    }
-    
-    const videoMessage: Message = {
-      id: Date.now().toString(),
-      content: `${videoSubmitType === 'initial' ? '初稿動画' : '修正動画'}を提出しました`,
-      createdAt: new Date().toISOString(),
-      senderId: user.id,
-      messageType: videoSubmitType === 'initial' ? 'initial_video' : 'revised_video',
-      sender: {
-        id: user.id,
-        role: user.role,
-        displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
-      },
-      videoData: {
-        id: Date.now().toString(),
-        type: videoSubmitType,
-        description: videoSubmitDescription,
-        status: 'submitted',
-        submittedAt: new Date().toISOString()
-      },
-      attachments: videoSubmitFiles.map((file, index) => ({
-        id: `${Date.now()}-${index}`,
-        fileName: file.name,
-        fileType: file.type,
-        fileUrl: URL.createObjectURL(file),
-        fileSize: file.size
-      }))
-    };
-    
-    setMessages(prev => [...prev, videoMessage]);
-    
-    // Reset form
-    setVideoSubmitFiles([]);
-    setVideoSubmitDescription('');
-    setShowVideoSubmitForm(false);
-    
-    // TODO: Send video to server
-  };
   
   // 構成案修正指摘機能
   const handleOpenConteRevision = (conteMessage: any) => {
@@ -879,8 +822,6 @@ const ProjectChatPage: React.FC = () => {
     switch (submissionFilter) {
       case 'conte':
         return submissions.filter(s => s.type === 'conte');
-      case 'videos':
-        return submissions.filter(s => s.type === 'video');
       default:
         return submissions;
     }
@@ -1238,15 +1179,6 @@ const ProjectChatPage: React.FC = () => {
                           📋 構成案提出
                         </button>
                         <button
-                          onClick={() => {
-                            setVideoSubmitType('initial');
-                            setShowVideoSubmitForm(true);
-                          }}
-                          className="px-3 py-1.5 bg-green-500 text-white text-sm rounded-lg font-medium hover:bg-green-600 transition-colors"
-                        >
-                          🎬 動画提出
-                        </button>
-                        <button
                           onClick={() => setShowVideoForm(true)}
                           className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-lg font-medium hover:bg-gray-600 transition-colors"
                         >
@@ -1266,15 +1198,6 @@ const ProjectChatPage: React.FC = () => {
                           className="px-3 py-1.5 bg-purple-100 text-purple-700 text-sm rounded-lg font-medium hover:bg-purple-200 transition-colors"
                         >
                           📋 修正稿構成案
-                        </button>
-                        <button
-                          onClick={() => {
-                            setVideoSubmitType('revised');
-                            setShowVideoSubmitForm(true);
-                          }}
-                          className="px-3 py-1.5 bg-green-100 text-green-700 text-sm rounded-lg font-medium hover:bg-green-200 transition-colors"
-                        >
-                          🎬 修正版動画
                         </button>
                       </div>
                     </div>
@@ -1306,26 +1229,6 @@ const ProjectChatPage: React.FC = () => {
                         className="px-3 py-1.5 bg-orange-500 text-white text-sm rounded-lg font-medium hover:bg-orange-600 transition-colors"
                       >
                         📝 構成案修正依頼
-                      </button>
-                      <button
-                        onClick={() => {
-                          const revisionMessage = {
-                            id: Date.now().toString(),
-                            content: '動画の修正をお願いします。',
-                            createdAt: new Date().toISOString(),
-                            senderId: user.id,
-                            messageType: 'text' as const,
-                            sender: {
-                              id: user.id,
-                              role: user.role,
-                              displayName: project?.client.displayName || 'クライアント'
-                            }
-                          };
-                          setMessages(prev => [...prev, revisionMessage]);
-                        }}
-                        className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg font-medium hover:bg-red-600 transition-colors"
-                      >
-                        🎬 動画修正依頼
                       </button>
                     </div>
                   </div>
@@ -2544,136 +2447,6 @@ const ProjectChatPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* 動画提出モーダル（初稿・修正版） */}
-      <AnimatePresence>
-        {showVideoSubmitForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 max-w-xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {videoSubmitType === 'initial' ? '初稿' : '修正'}動画提出
-                </h3>
-                <button
-                  onClick={() => setShowVideoSubmitForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {/* 動画タイプ選択 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">動画タイプ</label>
-                  <div className="flex space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="initial"
-                        checked={videoSubmitType === 'initial'}
-                        onChange={(e) => setVideoSubmitType(e.target.value as 'initial' | 'revised')}
-                        className="mr-2"
-                      />
-                      <span>初稿動画</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="revised"
-                        checked={videoSubmitType === 'revised'}
-                        onChange={(e) => setVideoSubmitType(e.target.value as 'initial' | 'revised')}
-                        className="mr-2"
-                      />
-                      <span>修正版動画</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* 動画ファイルアップロード */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">動画ファイル *</label>
-                  <input
-                    type="file"
-                    onChange={handleVideoSubmitFileUpload}
-                    multiple
-                    accept="video/*"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    対応形式: MP4, MOV, AVI, WMV, MKV など
-                  </p>
-                </div>
-
-                {/* 選択されたファイル一覧 */}
-                {videoSubmitFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-700">選択された動画:</p>
-                    {videoSubmitFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            🎬
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setVideoSubmitFiles(files => files.filter((_, i) => i !== index))}
-                          className="text-red-500 hover:bg-red-50 px-2 py-1 rounded"
-                        >
-                          削除
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* 説明・補足 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">説明・補足</label>
-                  <textarea
-                    value={videoSubmitDescription}
-                    onChange={(e) => setVideoSubmitDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    rows={3}
-                    placeholder={`${videoSubmitType === 'initial' ? '初稿' : '修正版'}動画の説明や補足事項を入力してください`}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowVideoSubmitForm(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  キャンセル
-                </button>
-                <button
-                  onClick={handleSubmitVideoDeliverable}
-                  className="px-6 py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
-                  disabled={videoSubmitFiles.length === 0}
-                >
-                  提出する
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* 構成案修正指摘モーダル */}
       <AnimatePresence>
@@ -2966,16 +2739,6 @@ const ProjectChatPage: React.FC = () => {
                   >
                     構成案
                   </button>
-                  <button
-                    onClick={() => setSubmissionFilter('videos')}
-                    className={`px-3 py-1 text-xs rounded-full font-medium ${
-                      submissionFilter === 'videos'
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    動画
-                  </button>
                 </div>
               </div>
               
@@ -3134,25 +2897,6 @@ const ProjectChatPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* 動画詳細 */}
-                {selectedSubmission.type === 'video' && selectedSubmission.data && (
-                  <div className="space-y-3">
-                    <div className="bg-green-50 rounded p-4">
-                      <h4 className="font-semibold text-green-800 mb-2">🎬 動画詳細</h4>
-                      <div className="space-y-2 text-sm">
-                        {selectedSubmission.data.type && (
-                          <div><strong>タイプ:</strong> {selectedSubmission.data.type === 'initial' ? '初稿' : '修正版'}</div>
-                        )}
-                        {selectedSubmission.data.description && (
-                          <div><strong>説明:</strong> {selectedSubmission.data.description}</div>
-                        )}
-                        {selectedSubmission.data.submittedAt && (
-                          <div><strong>提出日:</strong> {formatTimestamp(selectedSubmission.data.submittedAt)}</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* ファイル一覧 */}
                 {selectedSubmission.message.attachments && (
