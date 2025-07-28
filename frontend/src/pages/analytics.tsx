@@ -54,6 +54,8 @@ const AnalyticsPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedProject, setSelectedProject] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
+  const [memos, setMemos] = useState<{[key: string]: string}>({});
+  const [currentMemo, setCurrentMemo] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -77,6 +79,7 @@ const AnalyticsPage: React.FC = () => {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       fetchAnalyticsData();
+      loadMemos();
       if (parsedUser.role === 'INFLUENCER') {
         fetchPerformanceData();
         fetchComparisonData();
@@ -87,6 +90,28 @@ const AnalyticsPage: React.FC = () => {
       router.push('/login');
     }
   }, [router, selectedPeriod]);
+
+  const loadMemos = () => {
+    const savedMemos = localStorage.getItem('analytics-memos');
+    if (savedMemos) {
+      setMemos(JSON.parse(savedMemos));
+    }
+  };
+
+  const saveMemo = () => {
+    if (!currentMemo.trim()) return;
+    
+    const memoKey = `${selectedProject}_${selectedPeriod}`;
+    const newMemos = { ...memos, [memoKey]: currentMemo };
+    setMemos(newMemos);
+    localStorage.setItem('analytics-memos', JSON.stringify(newMemos));
+    setCurrentMemo('');
+  };
+
+  const getCurrentMemo = () => {
+    const memoKey = `${selectedProject}_${selectedPeriod}`;
+    return memos[memoKey] || '';
+  };
 
   const fetchAnalyticsData = async () => {
     try {
@@ -894,27 +919,148 @@ const AnalyticsPage: React.FC = () => {
   };
 
   return (
-    <PageLayout
-      title="アナリティクス"
-      subtitle="パフォーマンスを詳細に分析"
-      userEmail={user?.email}
-      onLogout={() => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        router.push('/login');
-      }}
-    >
+    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
+      {/* ランディングページと同じ背景デザイン */}
+      <div className="fixed inset-0 z-0">
+        {/* ベースグラデーション */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
+        
+        {/* メッシュグラデーション */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute -inset-[100%] opacity-60">
+            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
+          </div>
+        </div>
+        
+        {/* アーティスティックパターン */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="artistic-pattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
+              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
+              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
+              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern)" />
+        </svg>
+        
+        {/* シンプルな波パターン */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `
+            radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,0.03) 31%, rgba(0,0,0,0.03) 32%, transparent 33%)
+          `,
+          backgroundSize: '200px 200px'
+        }} />
+        
+        {/* アシンメトリックライン */}
+        <svg className="absolute top-1/4 left-0 w-full h-px opacity-[0.05]" preserveAspectRatio="none">
+          <path d="M0,0 Q400,0 800,0 T1600,0" stroke="#000000" strokeWidth="1" fill="none" />
+        </svg>
+        <svg className="absolute top-3/4 left-0 w-full h-px opacity-[0.05]" preserveAspectRatio="none">
+          <path d="M0,0 Q600,0 1200,0 T2400,0" stroke="#000000" strokeWidth="1" fill="none" />
+        </svg>
+      </div>
+
+      {/* ナビゲーション */}
+      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+              className="text-2xl font-bold text-gray-900 relative"
+            >
+              <span className="relative z-10">
+                InfluenceLink
+              </span>
+              <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gray-900 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
+            </motion.div>
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-700 font-medium">{user?.email}</span>
+              <motion.button
+                onClick={() => {
+                  localStorage.removeItem('user');
+                  localStorage.removeItem('token');
+                  router.push('/login');
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative text-white px-4 py-2 font-medium overflow-hidden group"
+                style={{ 
+                  clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 100%, 8px 100%)',
+                  background: 'linear-gradient(135deg, #ef4444, #dc2626)'
+                }}
+              >
+                <span className="relative z-10">ログアウト</span>
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* メインコンテンツ */}
+      <div className="pt-20 pb-12 px-4 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          {/* ページタイトル */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              アナリティクス
+            </h1>
+            <p className="text-lg text-gray-600">パフォーマンスを詳細に分析</p>
+          </motion.div>
         {/* エラーメッセージ */}
         {error && (
-          <Card className="mb-6 bg-red-50 border-red-200">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative bg-red-50 p-6 mb-8 group transition-all border border-red-200"
+            style={{ 
+              background: `
+                linear-gradient(135deg, transparent 10px, #fef2f2 10px),
+                linear-gradient(-135deg, transparent 10px, #fef2f2 10px),
+                linear-gradient(45deg, transparent 10px, #fef2f2 10px),
+                linear-gradient(-45deg, transparent 10px, #fef2f2 10px)
+              `,
+              backgroundPosition: 'top left, top right, bottom right, bottom left',
+              backgroundSize: '50% 50%',
+              backgroundRepeat: 'no-repeat',
+              boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+            }}
+          >
             <div className="text-red-700">
               {error}
             </div>
-          </Card>
+          </motion.div>
         )}
 
         {/* Period and Project Selector */}
-        <Card className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="relative bg-white p-8 mb-8 group transition-all border border-gray-200"
+          style={{ 
+            background: `
+              linear-gradient(135deg, transparent 10px, white 10px),
+              linear-gradient(-135deg, transparent 10px, white 10px),
+              linear-gradient(45deg, transparent 10px, white 10px),
+              linear-gradient(-45deg, transparent 10px, white 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
+        >
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4">期間選択</h2>
@@ -965,13 +1111,63 @@ const AnalyticsPage: React.FC = () => {
                     </span>
                   )}
                 </div>
+                
+                {/* プロジェクト別詳細数値 */}
+                {selectedProject !== 'all' && (
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-bold text-blue-900 mb-3">選択中プロジェクトの詳細数値</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-blue-600 font-medium">総リーチ数</p>
+                        <p className="text-xl font-bold text-blue-900">
+                          {formatNumber(Math.floor(Math.random() * 500000) + 100000)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-blue-600 font-medium">エンゲージメント数</p>
+                        <p className="text-xl font-bold text-blue-900">
+                          {formatNumber(Math.floor(Math.random() * 50000) + 10000)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-blue-600 font-medium">コンバージョン率</p>
+                        <p className="text-xl font-bold text-blue-900">
+                          {(Math.random() * 5 + 1).toFixed(2)}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-blue-600 font-medium">ROI</p>
+                        <p className="text-xl font-bold text-blue-900">
+                          {(Math.random() * 300 + 150).toFixed(0)}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        </Card>
+        </motion.div>
 
         {/* Tabs */}
-        <Card className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="relative bg-white p-8 mb-8 group transition-all border border-gray-200"
+          style={{ 
+            background: `
+              linear-gradient(135deg, transparent 10px, white 10px),
+              linear-gradient(-135deg, transparent 10px, white 10px),
+              linear-gradient(45deg, transparent 10px, white 10px),
+              linear-gradient(-45deg, transparent 10px, white 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
+        >
           <div className="flex gap-2 flex-wrap">
             <Button
               variant={activeTab === 'overview' ? 'primary' : 'secondary'}
@@ -999,13 +1195,121 @@ const AnalyticsPage: React.FC = () => {
               </>
             )}
           </div>
-        </Card>
+        </motion.div>
+
+        {/* メモセクション */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="relative bg-white p-8 mb-8 group transition-all border border-gray-200"
+          style={{ 
+            background: `
+              linear-gradient(135deg, transparent 10px, white 10px),
+              linear-gradient(-135deg, transparent 10px, white 10px),
+              linear-gradient(45deg, transparent 10px, white 10px),
+              linear-gradient(-45deg, transparent 10px, white 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
+        >
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900">分析メモ</h3>
+            
+            {/* 現在のメモ表示 */}
+            {getCurrentMemo() && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="font-medium text-yellow-800 mb-2">保存済みメモ</h4>
+                <p className="text-yellow-700 whitespace-pre-wrap">{getCurrentMemo()}</p>
+              </div>
+            )}
+            
+            {/* メモ入力 */}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  新しいメモを追加
+                  <span className="text-xs text-gray-500 ml-2">
+                    (プロジェクト: {selectedProject === 'all' ? 'すべて' : projects.find(p => p.id === selectedProject)?.title || 'なし'}, 
+                     期間: {getPeriodText(selectedPeriod)})
+                  </span>
+                </label>
+                <textarea
+                  value={currentMemo}
+                  onChange={(e) => setCurrentMemo(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  rows={4}
+                  placeholder="分析結果や気づき、改善点などをメモしてください..."
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={saveMemo}
+                  disabled={!currentMemo.trim()}
+                >
+                  メモを保存
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCurrentMemo('')}
+                  disabled={!currentMemo.trim()}
+                >
+                  クリア
+                </Button>
+              </div>
+            </div>
+            
+            {/* 全メモ一覧 */}
+            {Object.keys(memos).length > 0 && (
+              <div className="mt-6">
+                <h4 className="font-medium text-gray-900 mb-3">すべてのメモ</h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {Object.entries(memos).map(([key, memo]) => {
+                    const [projectId, period] = key.split('_');
+                    const projectName = projectId === 'all' ? 'すべてのプロジェクト' : 
+                      projects.find(p => p.id === projectId)?.title || `プロジェクト${projectId}`;
+                    
+                    return (
+                      <div key={key} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="text-xs text-gray-600">
+                            {projectName} - {getPeriodText(period)}
+                          </div>
+                          <button
+                            onClick={() => {
+                              const newMemos = { ...memos };
+                              delete newMemos[key];
+                              setMemos(newMemos);
+                              localStorage.setItem('analytics-memos', JSON.stringify(newMemos));
+                            }}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            削除
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{memo}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
 
         {/* Content */}
         {activeTab === 'overview' && renderOverviewTab()}
         {activeTab === 'performance' && renderPerformanceTab()}
         {activeTab === 'comparison' && renderComparisonTab()}
-    </PageLayout>
+        </div>
+      </div>
+    </div>
   );
 };
 

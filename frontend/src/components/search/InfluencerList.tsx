@@ -54,7 +54,7 @@ const InfluencerList: React.FC<InfluencerListProps> = ({ influencers, filters })
                       <span className="text-sm text-gray-500">({influencer.prefecture})</span>
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-1 mb-2">{influencer.bio}</p>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="space-y-2">
                       {/* カテゴリー */}
                       <div className="flex gap-2">
                         {influencer.categories?.map((category: string, index: number) => (
@@ -63,6 +63,16 @@ const InfluencerList: React.FC<InfluencerListProps> = ({ influencers, filters })
                           </span>
                         ))}
                       </div>
+                      {/* ハッシュタグ（使用頻度順に3つ） */}
+                      <div className="flex gap-2">
+                        {influencer.topHashtags?.slice(0, 3).map((hashtag: string, index: number) => (
+                          <span key={index} className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                            #{hashtag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm mt-2">
                       {/* SNS情報（プラットフォーム別） */}
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         {['Instagram', 'TikTok', 'YouTube', 'X'].map(platform => {

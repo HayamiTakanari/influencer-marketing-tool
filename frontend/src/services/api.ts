@@ -299,6 +299,9 @@ export const searchInfluencers = async (filters: any = {}) => {
         priceMax: (actualIndex % 10 + 1) * 50000,
         gender: ['男性', '女性'][actualIndex % 2],
         age: 20 + (actualIndex % 25),
+        topHashtags: actualIndex % 2 === 0 
+          ? ['美容', 'コスメ', 'スキンケア', 'メイク', 'ファッション', 'OOTD']
+          : ['グルメ', '食べ歩き', '旅行', '観光', 'カフェ', 'インスタ映え'],
         socialAccounts: [
           {
             platform: 'Instagram',
@@ -377,7 +380,8 @@ export const searchInfluencers = async (filters: any = {}) => {
         gender: influencer.gender,
         priceMin: influencer.priceMin,
         priceMax: influencer.priceMax,
-        socialAccounts: influencer.socialAccounts
+        socialAccounts: influencer.socialAccounts,
+        topHashtags: influencer.topHashtags
       };
     });
     
@@ -445,6 +449,9 @@ export const searchInfluencers = async (filters: any = {}) => {
         priceMax: (actualIndex % 10 + 1) * 50000,
         gender: ['男性', '女性'][actualIndex % 2],
         age: 20 + (actualIndex % 25),
+        topHashtags: actualIndex % 2 === 0 
+          ? ['美容', 'コスメ', 'スキンケア', 'メイク', 'ファッション', 'OOTD']
+          : ['グルメ', '食べ歩き', '旅行', '観光', 'カフェ', 'インスタ映え'],
         socialAccounts: [
           {
             platform: 'Instagram',
