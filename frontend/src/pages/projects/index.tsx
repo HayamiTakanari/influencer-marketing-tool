@@ -79,15 +79,18 @@ const ProjectsPage: React.FC = () => {
         return;
       }
       
-      fetchProjects();
+      if (parsedUser) {
+        fetchProjects(parsedUser);
+      }
     } else {
       router.push('/login');
     }
-  }, [router, user]);
+  }, [router]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (currentUser?: any) => {
     try {
-      if (user?.role === 'INFLUENCER') {
+      const userToCheck = currentUser || user;
+      if (userToCheck?.role === 'INFLUENCER') {
         // インフルエンサー用のモックデータ
         const mockInfluencerProjects: Project[] = [
           {
@@ -312,23 +315,6 @@ const ProjectsPage: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-3 mt-4 lg:mt-0">
                     {/* アクションボタン */}
-                    {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS') && project.matchedInfluencer && (
-                      <Button
-                        onClick={() => router.push(`/project-submissions/${project.id}`)}
-                        variant="secondary"
-                        size="md"
-                        icon="📹"
-                        className="relative"
-                      >
-                        <span className="hidden md:inline">動画投稿</span>
-                        {/* 未読バッジ */}
-                        {Math.random() > 0.5 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                            {Math.floor(Math.random() * 9) + 1}
-                          </span>
-                        )}
-                      </Button>
-                    )}
                     
                     {/* チャットボタン - 全プロジェクトで表示 */}
                     <Button
