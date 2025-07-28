@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const SimpleLandingPage: React.FC = () => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Remove the mounted state check as it causes hydration issues
 
   const concerns = [
     {
@@ -54,38 +50,6 @@ const SimpleLandingPage: React.FC = () => {
       color: 'from-purple-500 to-pink-500'
     }
   ];
-
-  // ローディング状態時は基本的なスタイルのみ表示
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
-        {/* Basic loading content */}
-        <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="text-2xl font-bold text-gray-900">InfluenceLink</div>
-              <div className="flex items-center space-x-4">
-                <Link href="/login">
-                  <span className="text-gray-700 hover:text-gray-900 font-medium cursor-pointer">ログイン</span>
-                </Link>
-                <Link href="/register">
-                  <button className="relative text-white px-6 py-2.5 font-medium bg-emerald-600 hover:bg-emerald-700">
-                    まずは無料で始める
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </nav>
-        <section className="pt-32 pb-20 px-4">
-          <div className="max-w-5xl mx-auto text-center">
-            <h1 className="text-6xl md:text-7xl font-bold mb-12 text-gray-900">InfluenceLink</h1>
-            <div className="text-xl text-gray-700 mb-8">読み込み中...</div>
-          </div>
-        </section>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
@@ -183,11 +147,10 @@ const SimpleLandingPage: React.FC = () => {
       <section className="pt-32 pb-20 px-4 relative z-10">
         <div className="max-w-5xl mx-auto text-center relative">
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-6xl md:text-7xl font-bold mb-12 relative opacity-100"
-            style={{ opacity: 1 }} // Fallback for when animations don't work
+            className="text-6xl md:text-7xl font-bold mb-12 relative"
           >
             <span className="relative">
               <span className="text-gray-900 relative">
@@ -214,22 +177,20 @@ const SimpleLandingPage: React.FC = () => {
 
           {/* お悩みセクション */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-12 opacity-100"
-            style={{ opacity: 1 }} // Fallback
+            className="mb-12"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
               {concerns.map((concern, index) => (
                 <motion.div
                   key={index}
                   whileHover={{ y: -4 }}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                  className="relative bg-white border border-gray-200 p-8 transition-all group overflow-hidden opacity-100"
-                  style={{ opacity: 1 }} // Fallback
+                  className="relative bg-white border border-gray-200 p-8 transition-all group overflow-hidden"
                   style={{ 
                     background: `
                       linear-gradient(135deg, transparent 10px, white 10px),
@@ -298,11 +259,10 @@ const SimpleLandingPage: React.FC = () => {
 
           {/* そのお悩みを解決します */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-8 opacity-100"
-            style={{ opacity: 1 }} // Fallback
+            className="mb-8"
           >
             <h2 className="text-3xl md:text-4xl font-bold relative">
               <span className="text-gray-900 relative">
@@ -313,11 +273,10 @@ const SimpleLandingPage: React.FC = () => {
 
           {/* Freeプラン登録CTA */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={false}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-16 opacity-100"
-            style={{ opacity: 1 }} // Fallback
+            className="mb-16"
           >
             <Link href="/register">
               <motion.button
@@ -348,11 +307,10 @@ const SimpleLandingPage: React.FC = () => {
 
           {/* ツールの特徴 */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="relative bg-white p-10 mb-20 max-w-3xl mx-auto border-2 border-gray-900 opacity-100"
-            style={{ opacity: 1 }} // Fallback
+            className="relative bg-white p-10 mb-20 max-w-3xl mx-auto border-2 border-gray-900"
             style={{ 
               boxShadow: '10px 10px 0 rgba(0,0,0,0.12), 5px 5px 25px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.9)',
               background: 'linear-gradient(45deg, #f9fafb 25%, transparent 25%), linear-gradient(-45deg, #f9fafb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f9fafb 75%), linear-gradient(-45deg, transparent 75%, #f9fafb 75%)',
@@ -388,12 +346,11 @@ const SimpleLandingPage: React.FC = () => {
       <section className="py-20 px-4 bg-gray-50 relative z-10">
         <div className="max-w-6xl mx-auto">
           <motion.h2
-            initial={{ opacity: 0, y: 30 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-center mb-16 relative opacity-100"
-            style={{ opacity: 1 }} // Fallback
+            className="text-4xl md:text-5xl font-bold text-center mb-16 relative"
           >
             <span>
               料金プラン
@@ -404,12 +361,12 @@ const SimpleLandingPage: React.FC = () => {
             {pricingPlans.map((plan, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className={`relative bg-white p-8 group transition-all opacity-100 ${
+                className={`relative bg-white p-8 group transition-all ${
                   plan.highlighted 
                     ? 'border-2 border-gray-900 shadow-xl' 
                     : 'border border-gray-300 shadow-md'
@@ -418,8 +375,7 @@ const SimpleLandingPage: React.FC = () => {
                   boxShadow: plan.highlighted 
                     ? '6px 6px 0 rgba(0,0,0,0.2), 2px 2px 15px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)' 
                     : '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
-                  borderRadius: '0',
-                  opacity: 1 // Fallback
+                  borderRadius: '0'
                 }}
               >
                 {plan.highlighted && (
@@ -497,12 +453,11 @@ const SimpleLandingPage: React.FC = () => {
           </div>
 
           <motion.p
-            initial={{ opacity: 0 }}
+            initial={false}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             viewport={{ once: true }}
-            className="text-center text-gray-600 mt-8 opacity-100"
-            style={{ opacity: 1 }} // Fallback
+            className="text-center text-gray-600 mt-8"
           >
             ※ 支払い方法はクレジットカードのみ
           </motion.p>
@@ -520,12 +475,10 @@ const SimpleLandingPage: React.FC = () => {
       <section className="py-20 px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={false}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="opacity-100"
-            style={{ opacity: 1 }} // Fallback
           >
             <Link href="/register">
               <motion.button
