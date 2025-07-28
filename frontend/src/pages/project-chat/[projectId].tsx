@@ -830,7 +830,7 @@ const ProjectChatPage: React.FC = () => {
         submissions.push({
           id: message.id,
           type: 'video',
-          title: '参考動画',
+          title: '初稿動画',
           submittedAt: message.createdAt,
           data: { description: message.content },
           message: message
@@ -1243,7 +1243,7 @@ const ProjectChatPage: React.FC = () => {
                           onClick={() => setShowVideoForm(true)}
                           className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-lg font-medium hover:bg-gray-600 transition-colors"
                         >
-                          🎥 参考動画
+                          🎥 初稿動画
                         </button>
                       </div>
                     </div>
