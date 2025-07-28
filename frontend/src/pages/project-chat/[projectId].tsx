@@ -212,63 +212,45 @@ const ProjectChatPage: React.FC = () => {
 
 
   useEffect(() => {
-    const initializeData = () => {
+    const initializeData = async () => {
       try {
-        console.log('Starting initialization...');
-        console.log('projectId:', projectId);
-        console.log('router.isReady:', router.isReady);
-        
         if (typeof window === 'undefined') {
-          console.log('Window is undefined, skipping...');
           return;
         }
         
         const userData = localStorage.getItem('user');
         const token = localStorage.getItem('token');
         
-        console.log('userData:', userData ? 'exists' : 'null');
-        console.log('token:', token ? 'exists' : 'null');
-        
         if (!userData || !token) {
-          console.log('No user data or token, redirecting to login');
           router.push('/login');
           return;
         }
 
         const parsedUser = JSON.parse(userData);
-        console.log('parsedUser:', parsedUser);
         setUser(parsedUser);
 
         if (projectId && typeof projectId === 'string') {
-          console.log('Loading project data and messages...');
           setLoading(true);
           setError('');
           
-          // Load data sequentially for debugging
-          fetchProjectData()
-            .then(() => {
-              console.log('Project data loaded successfully');
-              return fetchMessages();
-            })
-            .then(() => {
-              console.log('Messages loaded successfully');
-              setLoading(false);
-            })
-            .catch((err: any) => {
-              console.error('Error loading data:', err);
-              setError(`データの読み込みに失敗しました: ${err.message || err}`);
-              setLoading(false);
-            });
+          try {
+            await Promise.all([
+              fetchProjectData(),
+              fetchMessages()
+            ]);
+          } catch (err: any) {
+            console.error('Error loading data:', err);
+            setError('データの読み込みに失敗しました。ページを再読み込みしてください。');
+          } finally {
+            setLoading(false);
+          }
         } else if (router.isReady && !projectId) {
-          console.log('No projectId provided');
           setError('プロジェクトIDが指定されていません。');
           setLoading(false);
-        } else {
-          console.log('Waiting for router to be ready or projectId...');
         }
       } catch (err: any) {
         console.error('Error in useEffect:', err);
-        setError(`初期化に失敗しました: ${err.message || err}`);
+        setError('初期化に失敗しました。');
         setLoading(false);
       }
     };
@@ -277,7 +259,6 @@ const ProjectChatPage: React.FC = () => {
   }, [router, router.isReady, projectId]);
 
   const fetchProjectData = async () => {
-    console.log('fetchProjectData called');
     try {
       // Mock project data - 実際の環境ではAPIから取得
       const mockProject: Project = {
@@ -408,17 +389,14 @@ const ProjectChatPage: React.FC = () => {
           }
         }
       };
-      console.log('Setting project data:', mockProject.title);
       setProject(mockProject);
-      console.log('Project data set successfully');
     } catch (err: any) {
       console.error('Error fetching project:', err);
-      throw new Error(`プロジェクト情報の取得に失敗しました: ${err.message || err}`);
+      throw new Error('プロジェクト情報の取得に失敗しました。');
     }
   };
 
   const fetchMessages = async () => {
-    console.log('fetchMessages called');
     try {
       // Mock messages data
       const mockMessages: Message[] = [
@@ -510,12 +488,10 @@ const ProjectChatPage: React.FC = () => {
           }
         }
       ];
-      console.log('Setting messages data, count:', mockMessages.length);
       setMessages(mockMessages);
-      console.log('Messages set successfully');
     } catch (err: any) {
       console.error('Error fetching messages:', err);
-      throw new Error(`メッセージの取得に失敗しました: ${err.message || err}`);
+      throw new Error('メッセージの取得に失敗しました。');
     }
   };
 
@@ -1675,8 +1651,7 @@ const ProjectChatPage: React.FC = () => {
                                 <>
                                   {/* 薬機法チェック結果サマリー */}
                                   <YakujihoCheckSummary 
-                                    violations={yakujihoResult.violations}
-                                    riskScore={yakujihoResult.riskScore}
+                                    result={yakujihoResult}
                                     className="mb-3"
                                   />
                                   
