@@ -162,6 +162,7 @@ const ProjectChatPage: React.FC = () => {
   const [showVideoForm, setShowVideoForm] = useState(false);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [videoDescription, setVideoDescription] = useState('');
+  const [videoType, setVideoType] = useState<'initial' | 'revised'>('initial');
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
   const [proposedDate, setProposedDate] = useState('');
   
@@ -550,14 +551,21 @@ const ProjectChatPage: React.FC = () => {
 
     const videoMessage: Message = {
       id: Date.now().toString(),
-      content: videoDescription || '動画を提出しました',
+      content: videoDescription || `${videoType === 'initial' ? '初稿' : '修正稿'}動画を提出しました`,
       createdAt: new Date().toISOString(),
       senderId: user.id,
-      messageType: 'video',
+      messageType: videoType === 'initial' ? 'initial_video' : 'revised_video',
       sender: {
         id: user.id,
         role: user.role,
         displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
+      },
+      videoData: {
+        id: Date.now().toString(),
+        type: videoType,
+        description: videoDescription,
+        status: 'submitted',
+        submittedAt: new Date().toISOString()
       },
       attachments: videoFiles.map((file, index) => ({
         id: `${Date.now()}-${index}`,
@@ -1240,7 +1248,10 @@ const ProjectChatPage: React.FC = () => {
                           📋 構成案提出
                         </button>
                         <button
-                          onClick={() => setShowVideoForm(true)}
+                          onClick={() => {
+                            setVideoType('initial');
+                            setShowVideoForm(true);
+                          }}
                           className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-lg font-medium hover:bg-gray-600 transition-colors"
                         >
                           🎥 初稿動画
@@ -1259,6 +1270,17 @@ const ProjectChatPage: React.FC = () => {
                           className="px-3 py-1.5 bg-purple-100 text-purple-700 text-sm rounded-lg font-medium hover:bg-purple-200 transition-colors"
                         >
                           📋 修正稿構成案
+                        </button>
+                        <button
+                          onClick={() => {
+                            setVideoType('revised');
+                            setVideoFiles([]);
+                            setVideoDescription('');
+                            setShowVideoForm(true);
+                          }}
+                          className="px-3 py-1.5 bg-orange-100 text-orange-700 text-sm rounded-lg font-medium hover:bg-orange-200 transition-colors"
+                        >
+                          🎥 修正稿動画
                         </button>
                       </div>
                     </div>
@@ -2425,7 +2447,7 @@ const ProjectChatPage: React.FC = () => {
               className="bg-white rounded-2xl p-6 w-full max-w-xl max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">動画提出</h3>
+                <h3 className="text-xl font-bold text-gray-900">{videoType === 'initial' ? '初稿' : '修正稿'}動画提出</h3>
                 <button
                   onClick={() => setShowVideoForm(false)}
                   className="text-gray-500 hover:text-gray-700"
