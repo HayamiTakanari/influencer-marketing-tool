@@ -283,7 +283,8 @@ const DashboardPage: React.FC = () => {
                     <div className="bg-white border border-gray-200 p-6 text-center transition-all hover:shadow-lg" style={{
                       boxShadow: '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
                     }}>
-                      <div className="text-4xl">{action.icon}</div>
+                      <div className="text-3xl mb-3">{action.icon}</div>
+                      <h3 className="text-sm font-medium text-gray-900">{action.title}</h3>
                     </div>
                   </Link>
                 </motion.div>
