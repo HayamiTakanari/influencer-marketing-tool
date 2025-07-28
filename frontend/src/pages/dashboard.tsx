@@ -6,9 +6,16 @@ import Link from 'next/link';
 const DashboardPage: React.FC = () => {
   const [user, setUser] = useState<{ email: string; type: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
+  // マウント状態を設定
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
@@ -22,7 +29,7 @@ const DashboardPage: React.FC = () => {
       router.push('/login');
     }
     setLoading(false);
-  }, [router]);
+  }, [router, isMounted]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -35,11 +42,11 @@ const DashboardPage: React.FC = () => {
     router.push(path);
   };
 
-  if (loading) {
+  if (!isMounted || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
           <p className="text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -50,646 +57,320 @@ const DashboardPage: React.FC = () => {
     return null;
   }
 
+  // ユーザータイプに応じたダッシュボードデータ
+  const dashboardData = user.type === 'influencer' ? {
+    title: 'インフルエンサーダッシュボード',
+    subtitle: 'クリエイターとしての活動を管理しましょう',
+    cards: [
+      {
+        icon: '📬',
+        title: '新着オファー',
+        value: '3',
+        description: '未確認のプロジェクト機会',
+        link: '/opportunities',
+        linkText: '確認する',
+        gradient: 'from-emerald-500 to-teal-600'
+      },
+      {
+        icon: '💰',
+        title: '今月の収益',
+        value: '¥850,000',
+        description: '前月比 +12%',
+        link: '/revenue',
+        linkText: '詳細を見る',
+        gradient: 'from-teal-500 to-emerald-600'
+      },
+      {
+        icon: '⚡',
+        title: '要対応',
+        value: '5',
+        description: '返信待ちメッセージ',
+        link: '/chat',
+        linkText: '対応する',
+        gradient: 'from-emerald-600 to-green-600'
+      }
+    ],
+    quickActions: [
+      { title: 'プロフィール編集', href: '/profile', icon: '👤' },
+      { title: '応募履歴', href: '/my-applications', icon: '📝' },
+      { title: 'メッセージ', href: '/chat', icon: '💬' },
+      { title: '収益分析', href: '/analytics', icon: '📊' },
+      { title: 'レビュー管理', href: '/reviews', icon: '⭐' },
+      { title: '実績管理', href: '/achievements', icon: '🏆' }
+    ]
+  } : {
+    title: '企業ダッシュボード',
+    subtitle: 'インフルエンサーマーケティングを効率的に管理',
+    cards: [
+      {
+        icon: '📝',
+        title: '進行中のプロジェクト',
+        value: '5',
+        description: 'アクティブなキャンペーン',
+        link: '/projects',
+        linkText: '管理する',
+        gradient: 'from-emerald-500 to-teal-600'
+      },
+      {
+        icon: '💬',
+        title: 'プロジェクトチャット',
+        value: '12',
+        description: '進行中の会話',
+        link: '/chat',
+        linkText: 'チャットを見る',
+        gradient: 'from-teal-500 to-emerald-600'
+      },
+      {
+        icon: '👥',
+        title: 'インフルエンサー検索',
+        value: '∞',
+        description: '最適なパートナーを見つける',
+        link: '/search',
+        linkText: '検索する',
+        gradient: 'from-emerald-600 to-green-600'
+      }
+    ],
+    quickActions: [
+      { title: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
+      { title: 'インフルエンサー検索', href: '/search', icon: '🔍' },
+      { title: 'メッセージ', href: '/chat', icon: '💬' },
+      { title: '分析レポート', href: '/analytics', icon: '📊' },
+      { title: '支払い履歴', href: '/payments/history', icon: '💳' },
+      { title: '会社プロフィール', href: '/company-profile', icon: '🏢' }
+    ]
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">ダッシュボード</h1>
-              <p className="text-sm text-gray-600">
-                {user.type === 'influencer' ? 'インフルエンサー' : '企業'}アカウント
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user.email}</span>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-gray-600 hover:text-red-600 transition-colors"
-            >
-              ログアウト
-            </button>
+    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
+      {/* ランディングページと同じ背景デザイン */}
+      <div className="fixed inset-0 z-0">
+        {/* ベースグラデーション */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
+        
+        {/* メッシュグラデーション */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute -inset-[100%] opacity-60">
+            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
           </div>
         </div>
+        
+        {/* アーティスティックパターン */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="artistic-pattern-dashboard" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
+              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
+              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
+              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern-dashboard)" />
+        </svg>
+        
+        {/* シンプルな波パターン */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `
+            radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,0.03) 31%, rgba(0,0,0,0.03) 32%, transparent 33%)
+          `,
+          backgroundSize: '200px 200px'
+        }} />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* 重要な情報とクイックアクション */}
-        {user.type === 'influencer' ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
-          >
-            {/* 新着オファー */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-4xl">📬</div>
-                <span className="text-2xl font-bold">3</span>
+      {/* ナビゲーション */}
+      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center space-x-3"
+            >
+              <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">IM</span>
               </div>
-              <h3 className="text-lg font-semibold mb-1">新着オファー</h3>
-              <p className="text-blue-100 text-sm mb-4">未確認のプロジェクト機会</p>
-              <Link href="/opportunities" className="inline-flex items-center text-white hover:text-blue-100 transition-colors">
-                確認する →
-              </Link>
-            </div>
-
-            {/* 今月の収益 */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-4xl">💰</div>
-                <span className="text-2xl font-bold">¥850,000</span>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">InfluenceLink</h1>
+                <p className="text-sm text-gray-600">
+                  {user.type === 'influencer' ? 'インフルエンサー' : '企業'}ダッシュボード
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-1">今月の収益</h3>
-              <p className="text-green-100 text-sm mb-4">前月比 +12%</p>
-              <Link href="/revenue" className="inline-flex items-center text-white hover:text-green-100 transition-colors">
-                詳細を見る →
-              </Link>
-            </div>
-
-            {/* 未対応タスク */}
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-4xl">⚡</div>
-                <span className="text-2xl font-bold">5</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-1">要対応</h3>
-              <p className="text-purple-100 text-sm mb-4">返信待ちメッセージ</p>
-              <Link href="/chat" className="inline-flex items-center text-white hover:text-purple-100 transition-colors">
-                対応する →
-              </Link>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
-          >
-            {/* アクティブプロジェクト */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-4xl">📝</div>
-                <span className="text-2xl font-bold">5</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-1">進行中のプロジェクト</h3>
-              <p className="text-blue-100 text-sm mb-4">アクティブなキャンペーン</p>
-              <Link href="/projects" className="inline-flex items-center text-white hover:text-blue-100 transition-colors">
-                管理する →
-              </Link>
-            </div>
-
-            {/* プロジェクトチャット */}
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-4xl">💬</div>
-                <span className="text-2xl font-bold">2</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-1">アクティブチャット</h3>
-              <p className="text-purple-100 text-sm mb-4">進行中プロジェクトの会話</p>
-              <Link href="/chat" className="inline-flex items-center text-white hover:text-purple-100 transition-colors">
-                チャットを開く →
-              </Link>
-            </div>
-
-            {/* 支払い待ち */}
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-4xl">📄</div>
-                <span className="text-2xl font-bold">3</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-1">未払い請求書</h3>
-              <p className="text-orange-100 text-sm mb-4">支払い待ちの請求</p>
-              <Link href="/invoices/received" className="inline-flex items-center text-white hover:text-orange-100 transition-colors">
-                確認する →
-              </Link>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ウェルカムメッセージ（小さく） */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 mb-8 shadow-lg"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {user.type === 'influencer' ? 'インフルエンサーダッシュボード' : '企業ダッシュボード'}
-              </h2>
-              <p className="text-gray-600 mt-1">
-                {user.type === 'influencer' 
-                  ? 'ブランドからのオファーを確認し、収益を管理しましょう' 
-                  : 'インフルエンサーを探して、効果的なマーケティングを始めましょう'
-                }
-              </p>
-            </div>
-            <div className="text-5xl">
-              {user.type === 'influencer' ? '👑' : '🏢'}
+            </motion.div>
+            <div className="flex items-center space-x-4">
+              <span className="hidden md:inline text-gray-700">{user.email}</span>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-gray-100"
+              >
+                ログアウト
+              </button>
             </div>
           </div>
-        </motion.div>
-
-        {/* 企業向け：進行中プロジェクトクイックアクセス */}
-        {user.type !== 'influencer' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 mb-8 shadow-lg"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">進行中プロジェクト</h3>
-              <Link href="/projects" className="text-blue-500 hover:text-blue-600 text-sm font-medium">
-                すべて見る →
-              </Link>
-            </div>
-            
-            {/* 模擬的な進行中プロジェクト一覧 */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    PR
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">美容コスメ PR キャンペーン</div>
-                    <div className="text-sm text-gray-600">田中美咲 • 進行中</div>
-                  </div>
-                </div>
-                <Link href="/project-chat/1">
-                  <button className="relative px-3 py-1 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
-                    💬 チャット
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
-                      3
-                    </span>
-                  </button>
-                </Link>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    LF
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">ライフスタイルコンテンツ制作</div>
-                    <div className="text-sm text-gray-600">鈴木さやか • コンテ待ち</div>
-                  </div>
-                </div>
-                <Link href="/project-chat/2">
-                  <button className="relative px-3 py-1 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
-                    💬 チャット
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
-                      1
-                    </span>
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* 機能カード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {user.type === 'influencer' ? (
-            <>
-              <Link href="/profile">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📊</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">プロフィール管理</h3>
-                  <p className="text-gray-600">SNSアカウントの連携と実績の管理</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/opportunities">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📬</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクト機会</h3>
-                  <p className="text-gray-600">参加可能なプロジェクトを探す</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/my-applications">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.25 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📋</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">応募履歴</h3>
-                  <p className="text-gray-600">あなたの応募状況を確認</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/chat">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">💬</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトチャット</h3>
-                  <p className="text-gray-600">企業とのプロジェクト関連の会話</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/revenue">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">💰</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">収益ダッシュボード</h3>
-                  <p className="text-gray-600">収益状況と実績の確認</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/achievements">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">🏆</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">実績管理</h3>
-                  <p className="text-gray-600">過去の実績と成果を管理</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/service-pricing">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">💸</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">料金設定</h3>
-                  <p className="text-gray-600">サービス別の料金体系管理</p>
-                </motion.div>
-              </Link>
-
-
-              <Link href="/invoices">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.8 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📄</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">請求書管理</h3>
-                  <p className="text-gray-600">請求書の作成・送信・管理</p>
-                </motion.div>
-              </Link>
-            </>
-          ) : (
-            <>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-                onClick={() => handleNavigation('/search')}
-                className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-              >
-                <div className="text-4xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">インフルエンサー検索</h3>
-                <p className="text-gray-600">条件に合うインフルエンサーを探す</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.15 }}
-                onClick={() => handleNavigation('/company-profile')}
-                className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-              >
-                <div className="text-4xl mb-4">🏢</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">企業プロフィール</h3>
-                <p className="text-gray-600">会社情報とマーケティング設定</p>
-              </motion.div>
-
-              <Link href="/team-management">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.25 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">👥</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">チーム管理</h3>
-                  <p className="text-gray-600">メンバーの追加と権限管理</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/projects">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📝</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">進行中のプロジェクト</h3>
-                  <p className="text-gray-600">マーケティングプロジェクトを管理</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/applications">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.35 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📋</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">応募管理</h3>
-                  <p className="text-gray-600">プロジェクトへの応募を管理</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/chat">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">💬</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">チャット</h3>
-                  <p className="text-gray-600">インフルエンサーとの会話</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/payments/history">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">💳</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">支払い管理</h3>
-                  <p className="text-gray-600">支払い履歴と統計情報</p>
-                </motion.div>
-              </Link>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                onClick={() => handleNavigation('/analytics')}
-                className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-              >
-                <div className="text-4xl mb-4">📈</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">効果測定</h3>
-                <p className="text-gray-600">キャンペーンの成果を分析</p>
-              </motion.div>
-
-
-              <Link href="/project-schedule">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.8 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📅</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">スケジュール管理</h3>
-                  <p className="text-gray-600">プロジェクトの進行管理</p>
-                </motion.div>
-              </Link>
-
-              <Link href="/invoices/received">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.9 }}
-                  className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">📄</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">請求書管理</h3>
-                  <p className="text-gray-600">受け取った請求書の確認・支払い</p>
-                </motion.div>
-              </Link>
-            </>
-          )}
         </div>
+      </nav>
 
-        {/* 分析ダッシュボード */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-8 bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-900">パフォーマンス分析</h3>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>📊</span>
-              <span>リアルタイム更新</span>
-            </div>
-          </div>
-          
-          {/* 主要KPI */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
-                {user.type === 'influencer' ? '12' : '5'}
-              </div>
-              <div className="text-gray-600 text-sm">
-                {user.type === 'influencer' ? 'アクティブなオファー' : 'アクティブなキャンペーン'}
-              </div>
-              <div className="text-xs text-green-600 mt-1">+8% vs 先月</div>
-            </div>
-            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
-                {user.type === 'influencer' ? '¥850,000' : '¥1,200,000'}
-              </div>
-              <div className="text-gray-600 text-sm">
-                {user.type === 'influencer' ? '今月の収益' : '今月の支出'}
-              </div>
-              <div className="text-xs text-green-600 mt-1">+12% vs 先月</div>
-            </div>
-            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-              <div className="text-3xl font-bold text-green-600 mb-2">
-                {user.type === 'influencer' ? '98%' : '87%'}
-              </div>
-              <div className="text-gray-600 text-sm">
-                {user.type === 'influencer' ? '満足度' : '成功率'}
-              </div>
-              <div className="text-xs text-green-600 mt-1">+3% vs 先月</div>
-            </div>
-            <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
-              <div className="text-3xl font-bold text-orange-600 mb-2">
-                {user.type === 'influencer' ? '4.8' : '4.6'}
-              </div>
-              <div className="text-gray-600 text-sm">評価</div>
-              <div className="text-xs text-green-600 mt-1">+0.2 vs 先月</div>
-            </div>
-          </div>
+      {/* メインコンテンツ */}
+      <div className="pt-20 pb-12 px-4 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          {/* ヘッダーセクション */}
+          <motion.div
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              {dashboardData.title}
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              {dashboardData.subtitle}
+            </p>
+          </motion.div>
 
-          {/* 詳細分析セクション */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* エンゲージメント分析 */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {user.type === 'influencer' ? 'エンゲージメント分析' : 'キャンペーン効果'}
-                </h4>
-                <span className="text-2xl">📈</span>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
-                    {user.type === 'influencer' ? '平均エンゲージメント率' : '平均リーチ率'}
-                  </span>
-                  <span className="font-semibold text-green-600">
-                    {user.type === 'influencer' ? '3.2%' : '2.8%'}
-                  </span>
+          {/* 主要メトリクスカード */}
+          <motion.div
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+          >
+            {dashboardData.cards.map((card, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ y: -4 }}
+                className="group relative"
+              >
+                <div className="relative bg-white border border-gray-200 p-8 transition-all group overflow-hidden" style={{
+                  background: `
+                    linear-gradient(135deg, transparent 10px, white 10px),
+                    linear-gradient(-135deg, transparent 10px, white 10px),
+                    linear-gradient(45deg, transparent 10px, white 10px),
+                    linear-gradient(-45deg, transparent 10px, white 10px)
+                  `,
+                  backgroundPosition: 'top left, top right, bottom right, bottom left',
+                  backgroundSize: '50% 50%',
+                  backgroundRepeat: 'no-repeat',
+                  boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+                }}>
+                  {/* パターン背景 */}
+                  <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{
+                    backgroundImage: `
+                      radial-gradient(circle at 20% 20%, rgba(0,0,0,0.05) 1px, transparent 1px),
+                      radial-gradient(circle at 80% 80%, rgba(0,0,0,0.05) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '60px 60px, 80px 80px'
+                  }} />
+                  
+                  <div className="flex items-center justify-between mb-6 relative z-10">
+                    <div className="text-5xl">{card.icon}</div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-gray-900">{card.value}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="relative z-10">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{card.title}</h3>
+                    <p className="text-gray-600 mb-4">{card.description}</p>
+                    <Link href={card.link} className="inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium">
+                      {card.linkText} →
+                    </Link>
+                  </div>
+                  
+                  {/* ホバー時のアクセント */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" style={{ background: 'linear-gradient(90deg, #34d399, #14b8a6, #10b981, #059669)' }} />
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
-                    {user.type === 'influencer' ? '総インプレッション' : '総コンバージョン'}
-                  </span>
-                  <span className="font-semibold text-blue-600">
-                    {user.type === 'influencer' ? '1.2M' : '1,580'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
-                    {user.type === 'influencer' ? 'フォロワー増加' : 'ROI'}
-                  </span>
-                  <span className="font-semibold text-purple-600">
-                    {user.type === 'influencer' ? '+2,450' : '340%'}
-                  </span>
-                </div>
-              </div>
-            </div>
+              </motion.div>
+            ))}
+          </motion.div>
 
-            {/* パフォーマンストレンド */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {user.type === 'influencer' ? '収益トレンド' : '支出効率'}
-                </h4>
-                <span className="text-2xl">📊</span>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">先週比</span>
-                  <span className="font-semibold text-green-600">+15%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">先月比</span>
-                  <span className="font-semibold text-green-600">+22%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">予測（来月）</span>
-                  <span className="font-semibold text-blue-600">+18%</span>
-                </div>
-              </div>
+          {/* クイックアクション */}
+          <motion.div
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mb-16"
+          >
+            <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">クイックアクション</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {dashboardData.quickActions.map((action, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link href={action.href} className="block">
+                    <div className="bg-white border border-gray-200 p-6 text-center transition-all hover:shadow-lg" style={{
+                      boxShadow: '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
+                    }}>
+                      <div className="text-3xl mb-3">{action.icon}</div>
+                      <h3 className="text-sm font-medium text-gray-900">{action.title}</h3>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* プラットフォーム別分析 */}
-          {user.type === 'influencer' && (
-            <div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-gray-900">プラットフォーム別パフォーマンス</h4>
-                <span className="text-2xl">📱</span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-white rounded-lg">
-                  <div className="text-lg font-semibold text-pink-600">Instagram</div>
-                  <div className="text-sm text-gray-600">エンゲージ: 4.2%</div>
-                  <div className="text-xs text-green-600">収益: ¥320K</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded-lg">
-                  <div className="text-lg font-semibold text-red-600">YouTube</div>
-                  <div className="text-sm text-gray-600">エンゲージ: 2.8%</div>
-                  <div className="text-xs text-green-600">収益: ¥280K</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded-lg">
-                  <div className="text-lg font-semibold text-black">TikTok</div>
-                  <div className="text-sm text-gray-600">エンゲージ: 6.1%</div>
-                  <div className="text-xs text-green-600">収益: ¥180K</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded-lg">
-                  <div className="text-lg font-semibold text-blue-600">Twitter</div>
-                  <div className="text-sm text-gray-600">エンゲージ: 1.9%</div>
-                  <div className="text-xs text-green-600">収益: ¥70K</div>
-                </div>
-              </div>
+          {/* 最近の活動 */}
+          <motion.div
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="relative bg-white p-10 max-w-4xl mx-auto border-2 border-gray-900"
+            style={{ 
+              boxShadow: '10px 10px 0 rgba(0,0,0,0.12), 5px 5px 25px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.9)',
+              background: 'linear-gradient(45deg, #f9fafb 25%, transparent 25%), linear-gradient(-45deg, #f9fafb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f9fafb 75%), linear-gradient(-45deg, transparent 75%, #f9fafb 75%)',
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+            }}
+          >
+            <h3 className="text-2xl font-bold mb-6 text-gray-900 relative">
+              <span>最近の活動</span>
+              <div className="absolute -bottom-1 left-0 w-8 h-0.5 opacity-80" style={{ background: 'linear-gradient(90deg, #10b981, #34d399)' }} />
+            </h3>
+            <div className="space-y-4">
+              {user.type === 'influencer' ? (
+                <>
+                  <div className="flex items-center space-x-3 text-gray-700">
+                    <span className="text-green-500">✓</span>
+                    <span>新しいプロジェクトオファーを受信しました</span>
+                    <span className="text-sm text-gray-500">2時間前</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-gray-700">
+                    <span className="text-blue-500">📊</span>
+                    <span>先月の収益レポートが生成されました</span>
+                    <span className="text-sm text-gray-500">1日前</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-gray-700">
+                    <span className="text-purple-500">⭐</span>
+                    <span>新しいレビューが投稿されました（5.0★）</span>
+                    <span className="text-sm text-gray-500">3日前</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center space-x-3 text-gray-700">
+                    <span className="text-green-500">✓</span>
+                    <span>新しいプロジェクトが開始されました</span>
+                    <span className="text-sm text-gray-500">1時間前</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-gray-700">
+                    <span className="text-blue-500">💬</span>
+                    <span>インフルエンサーからメッセージが届きました</span>
+                    <span className="text-sm text-gray-500">4時間前</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-gray-700">
+                    <span className="text-purple-500">📊</span>
+                    <span>キャンペーン分析レポートが更新されました</span>
+                    <span className="text-sm text-gray-500">1日前</span>
+                  </div>
+                </>
+              )}
             </div>
-          )}
-
-          {/* 企業向け詳細分析 */}
-          {user.type === 'client' && (
-            <div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-gray-900">キャンペーン分析詳細</h4>
-                <span className="text-2xl">🎯</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-white rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 mb-1">2.4M</div>
-                  <div className="text-sm text-gray-600">総リーチ</div>
-                  <div className="text-xs text-green-600 mt-1">目標達成率: 120%</div>
-                </div>
-                <div className="text-center p-4 bg-white rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 mb-1">1,580</div>
-                  <div className="text-sm text-gray-600">コンバージョン</div>
-                  <div className="text-xs text-green-600 mt-1">CVR: 0.065%</div>
-                </div>
-                <div className="text-center p-4 bg-white rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600 mb-1">¥760</div>
-                  <div className="text-sm text-gray-600">CPA</div>
-                  <div className="text-xs text-green-600 mt-1">目標比: -15%</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        {/* 開発中メッセージ */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-8 bg-yellow-50/80 backdrop-blur-xl border border-yellow-200 rounded-2xl p-6 text-center"
-        >
-          <div className="text-4xl mb-4">🚧</div>
-          <h3 className="text-xl font-bold text-yellow-800 mb-2">開発中</h3>
-          <p className="text-yellow-700">
-            このダッシュボードは現在開発中です。各機能は順次実装予定です。
-          </p>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

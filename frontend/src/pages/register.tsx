@@ -24,16 +24,23 @@ const RegisterPage: React.FC = () => {
   const [passwordStrength, setPasswordStrength] = useState<any>(null);
   const [emailVerificationSent, setEmailVerificationSent] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
+
+  // マウント状態を設定
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // URLからメール認証トークンをチェック
   useEffect(() => {
+    if (!isMounted) return;
     const urlParams = new URLSearchParams(window.location.search);
     const emailToken = urlParams.get('emailToken');
     if (emailToken) {
       verifyEmailToken(emailToken);
     }
-  }, []);
+  }, [isMounted]);
 
   const verifyEmailToken = async (token: string) => {
     try {
@@ -193,6 +200,14 @@ const RegisterPage: React.FC = () => {
     }
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden flex items-center justify-center px-4">
       {/* ランディングページと同じ背景デザイン */}
@@ -243,7 +258,7 @@ const RegisterPage: React.FC = () => {
       <div className="max-w-4xl w-full relative z-10">
         {/* プログレスバー */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="mb-12"
@@ -301,14 +316,56 @@ const RegisterPage: React.FC = () => {
           {/* ステップ1: ユーザータイプ選択 */}
           {currentStep === 0 && (
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
+              {/* 直接的なテストボタン */}
+              <div className="mb-8 text-center">
+                <button
+                  onClick={() => {
+                    console.log('Direct test: Setting influencer and step 1');
+                    setUserType('influencer');
+                    setCurrentStep(1);
+                  }}
+                  className="bg-red-500 text-white px-6 py-3 rounded mr-4 hover:bg-red-600"
+                >
+                  直接: インフルエンサー
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('Direct test: Setting client and step 1');
+                    setUserType('client');
+                    setCurrentStep(1);
+                  }}
+                  className="bg-orange-500 text-white px-6 py-3 rounded hover:bg-orange-600"
+                >
+                  直接: 企業
+                </button>
+                <button
+                  onClick={() => {
+                    alert('クリック動作中！');
+                    console.log('Test: Current step:', currentStep, 'User type:', userType);
+                    console.log('Validate result:', validateCurrentStep());
+                  }}
+                  className="bg-purple-500 text-white px-6 py-3 rounded hover:bg-purple-600"
+                >
+                  状態確認
+                </button>
+                <button
+                  onClick={() => {
+                    alert('最もシンプルなテスト');
+                  }}
+                  className="bg-yellow-500 text-black px-6 py-3 rounded hover:bg-yellow-600 ml-2"
+                >
+                  アラートテスト
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* インフルエンサー登録 */}
                 <motion.div
-                  initial={{ opacity: 0, x: -50 }}
+                  initial={false}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                   whileHover={{ y: -4 }}
@@ -364,11 +421,18 @@ const RegisterPage: React.FC = () => {
                           安全な決済システム
                         </li>
                       </ul>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => { setUserType('influencer'); nextStep(); }}
-                        className="relative w-full text-white py-4 font-bold text-lg overflow-hidden group"
+                      <button
+                        onClick={(e) => { 
+                          e.stopPropagation();
+                          console.log('Influencer button clicked');
+                          setUserType('influencer'); 
+                          nextStep(); 
+                        }}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          console.log('Influencer button mouse down');
+                        }}
+                        className="relative w-full text-white py-4 font-bold text-lg overflow-hidden group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
                         style={{
                           clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
                           background: 'linear-gradient(135deg, #10b981, #059669, #047857)',
@@ -378,21 +442,18 @@ const RegisterPage: React.FC = () => {
                         <span className="relative z-10">
                           インフルエンサーとして登録
                         </span>
-                        <motion.div
-                          className="absolute inset-0"
+                        <div
+                          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           style={{ background: 'linear-gradient(135deg, #047857, #065f46, #064e3b)' }}
-                          initial={{ x: "-100%" }}
-                          whileHover={{ x: 0 }}
-                          transition={{ duration: 0.3 }}
                         />
-                      </motion.button>
+                      </button>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* クライアント登録 */}
                 <motion.div
-                  initial={{ opacity: 0, x: 50 }}
+                  initial={false}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                   whileHover={{ y: -4 }}
@@ -448,11 +509,18 @@ const RegisterPage: React.FC = () => {
                           契約・支払い管理
                         </li>
                       </ul>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => { setUserType('client'); nextStep(); }}
-                        className="relative w-full text-white py-4 font-bold text-lg overflow-hidden group"
+                      <button
+                        onClick={(e) => { 
+                          e.stopPropagation();
+                          console.log('Client button clicked');
+                          setUserType('client'); 
+                          nextStep(); 
+                        }}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          console.log('Client button mouse down');
+                        }}
+                        className="relative w-full text-white py-4 font-bold text-lg overflow-hidden group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform"
                         style={{
                           clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
                           background: 'linear-gradient(135deg, #10b981, #059669, #047857)',
@@ -462,14 +530,11 @@ const RegisterPage: React.FC = () => {
                         <span className="relative z-10">
                           企業・ブランドとして登録
                         </span>
-                        <motion.div
-                          className="absolute inset-0"
+                        <div
+                          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           style={{ background: 'linear-gradient(135deg, #047857, #065f46, #064e3b)' }}
-                          initial={{ x: "-100%" }}
-                          whileHover={{ x: 0 }}
-                          transition={{ duration: 0.3 }}
                         />
-                      </motion.button>
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -480,7 +545,7 @@ const RegisterPage: React.FC = () => {
           {/* ステップ2: 基本情報入力 */}
           {currentStep === 1 && (
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               className="max-w-2xl mx-auto"
@@ -729,7 +794,7 @@ const RegisterPage: React.FC = () => {
           {/* ステップ3: プラン選択 */}
           {currentStep === 2 && (
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
@@ -799,7 +864,7 @@ const RegisterPage: React.FC = () => {
           {/* ステップ4: 登録完了 */}
           {currentStep === 3 && (
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               className="max-w-2xl mx-auto text-center"
@@ -854,7 +919,7 @@ const RegisterPage: React.FC = () => {
           {/* ステップ5: メール認証待ち */}
           {currentStep === 4 && (
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               className="max-w-2xl mx-auto text-center"
@@ -935,7 +1000,7 @@ const RegisterPage: React.FC = () => {
 
         {/* ナビゲーションボタン */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="flex justify-between items-center mt-12"

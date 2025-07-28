@@ -86,7 +86,8 @@
       "Bash(/dev/null)",
       "WebFetch(domain:bitstar.tokyo)",
       "Bash(git rm:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "WebFetch(domain:influencer-marketing-tool-o23bc9443-hayamitakanaris-projects.vercel.app)"
     ],
     "deny": []
   }

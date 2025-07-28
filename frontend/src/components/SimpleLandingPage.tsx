@@ -130,7 +130,7 @@ const SimpleLandingPage: React.FC = () => {
                 >
                   <span className="relative z-10">まずは無料で始める</span>
                   <motion.div 
-                    className="absolute inset-0"
+                    className="absolute inset-0 pointer-events-none"
                     style={{ background: 'linear-gradient(135deg, #047857, #065f46, #064e3b)' }}
                     initial={{ x: "-100%" }}
                     whileHover={{ x: 0 }}
@@ -432,7 +432,7 @@ const SimpleLandingPage: React.FC = () => {
                     <span className="relative z-10">{plan.buttonText}</span>
                     {!plan.highlighted && (
                       <motion.div 
-                        className="absolute inset-0"
+                        className="absolute inset-0 pointer-events-none"
                         style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
                         initial={{ x: "-100%" }}
                         whileHover={{ x: 0 }}
@@ -441,7 +441,7 @@ const SimpleLandingPage: React.FC = () => {
                     )}
                     {!plan.highlighted && (
                       <motion.span 
-                        className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                        className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"
                       >
                         {plan.buttonText}
                       </motion.span>
@@ -495,7 +495,7 @@ const SimpleLandingPage: React.FC = () => {
               >
                 <span className="relative z-10">まずは無料で始める</span>
                 <motion.div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 pointer-events-none"
                   style={{ background: 'linear-gradient(135deg, #047857, #065f46, #0f766e)' }}
                   initial={{ y: "100%" }}
                   whileHover={{ y: 0 }}

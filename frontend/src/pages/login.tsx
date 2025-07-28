@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -8,9 +8,16 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
+  // マウント状態を設定
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('Login form submitted');
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -59,6 +66,7 @@ const LoginPage: React.FC = () => {
   };
 
   const fillTestAccount = (type: 'influencer' | 'client') => {
+    console.log('Fill test account clicked:', type);
     if (type === 'influencer') {
       setEmail('influencer@test.com');
       setPassword('test123');
@@ -90,11 +98,19 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
@@ -102,7 +118,7 @@ const LoginPage: React.FC = () => {
           {/* ヘッダー */}
           <div className="text-center mb-8">
             <motion.div
-              initial={{ scale: 0 }}
+              initial={false}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
@@ -116,7 +132,7 @@ const LoginPage: React.FC = () => {
           {/* エラーメッセージ */}
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
             >
@@ -170,35 +186,72 @@ const LoginPage: React.FC = () => {
           {/* テストアカウント */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-600 text-center mb-4">テスト用アカウント</p>
+            
+            {/* 直接的なテストボタン */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <button
+                onClick={() => {
+                  console.log('Direct test: Setting influencer email');
+                  setEmail('influencer@test.com');
+                  setPassword('test123');
+                  console.log('Set email to:', 'influencer@test.com');
+                }}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                直接: インフルエンサー
+              </button>
+              <button
+                onClick={() => {
+                  console.log('Direct test: Setting client email');
+                  setEmail('company@test.com');
+                  setPassword('test123');
+                  console.log('Set email to:', 'company@test.com');
+                }}
+                className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+              >
+                直接: 企業
+              </button>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => fillTestAccount('influencer')}
-                className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('Influencer test account clicked');
+                  fillTestAccount('influencer');
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  console.log('Influencer test account mouse down');
+                }}
+                className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 👑 インフルエンサー
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => fillTestAccount('client')}
-                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('Client test account clicked');
+                  fillTestAccount('client');
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  console.log('Client test account mouse down');
+                }}
+                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 🏢 企業
-              </motion.button>
+              </button>
             </div>
             
             {/* API テストボタン */}
             <div className="mt-4">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={testDirectAPI}
-                className="w-full px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-medium hover:bg-yellow-200 transition-colors"
+                className="w-full px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-medium hover:bg-yellow-200 transition-colors cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 🔧 API接続テスト
-              </motion.button>
+              </button>
             </div>
           </div>
 
@@ -218,7 +271,7 @@ const LoginPage: React.FC = () => {
 
         {/* 利用可能なテストアカウント一覧 */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-8 bg-gray-50/80 backdrop-blur-xl border border-gray-200 rounded-2xl p-6"

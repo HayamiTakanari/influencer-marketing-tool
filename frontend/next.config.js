@@ -1,4 +1,4 @@
-const { withSentryConfig } = require('@sentry/nextjs');
+// const { withSentryConfig } = require('@sentry/nextjs'); // Temporarily disabled
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -38,22 +38,21 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
           },
-          // Content Security Policy (updated for Sentry)
+          // Content Security Policy (temporarily relaxed for debugging)
           {
             key: 'Content-Security-Policy',
             value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://cdn.jsdelivr.net https://unpkg.com https://js.sentry-cdn.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+              "default-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https: http:",
+              "style-src 'self' 'unsafe-inline' https: http:",
               "img-src 'self' data: blob: https: http:",
-              "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
-              "connect-src 'self' https://api.cloudinary.com https://*.sentry.io wss: ws:",
-              "media-src 'self' https: data: blob:",
+              "font-src 'self' https: http: data:",
+              "connect-src 'self' https: http:",
+              "media-src 'self' https: http: data: blob:",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
-              "frame-ancestors 'none'",
-              "upgrade-insecure-requests"
+              "frame-ancestors 'none'"
             ].join('; ')
           },
           // Permissions Policy
@@ -127,7 +126,5 @@ const sentryWebpackPluginOptions = {
   }
 };
 
-// Export with Sentry configuration in production, regular config in development
-module.exports = process.env.NODE_ENV === 'production' 
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig;
+// Export regular config (Sentry temporarily disabled)
+module.exports = nextConfig;

@@ -11,10 +11,9 @@ const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     
-    // If we're on Vercel (production), use a mock API service
+    // If we're on Vercel (production), use the actual backend on Render
     if (hostname.includes('vercel.app')) {
-      // For now, use a mock backend service
-      return 'https://jsonplaceholder.typicode.com'; // Temporary fallback
+      return 'https://influencer-marketing-tool.onrender.com';
     }
   }
   
