@@ -213,36 +213,52 @@ const ProjectChatPage: React.FC = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      try {
-        const userData = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
-        
-        if (!userData || !token) {
-          router.push('/login');
-          return;
-        }
+      const initializeData = async () => {
+        try {
+          const userData = localStorage.getItem('user');
+          const token = localStorage.getItem('token');
+          
+          if (!userData || !token) {
+            router.push('/login');
+            return;
+          }
 
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
 
-        if (projectId && typeof projectId === 'string') {
-          fetchProjectData();
-          fetchMessages();
-        } else if (router.isReady && !projectId) {
-          setError('プロジェクトIDが指定されていません。');
+          if (projectId && typeof projectId === 'string') {
+            setLoading(true);
+            setError('');
+            
+            try {
+              // Both functions run in parallel
+              await Promise.all([
+                fetchProjectData(),
+                fetchMessages()
+              ]);
+            } catch (err: any) {
+              console.error('Error loading data:', err);
+              setError('データの読み込みに失敗しました。ページを再読み込みしてください。');
+            } finally {
+              setLoading(false);
+            }
+          } else if (router.isReady && !projectId) {
+            setError('プロジェクトIDが指定されていません。');
+            setLoading(false);
+          }
+        } catch (err: any) {
+          console.error('Error in useEffect:', err);
+          setError('初期化に失敗しました。');
           setLoading(false);
         }
-      } catch (err: any) {
-        console.error('Error in useEffect:', err);
-        setError('初期化に失敗しました。');
-        setLoading(false);
-      }
+      };
+      
+      initializeData();
     }
   }, [router, router.isReady, projectId]);
 
   const fetchProjectData = async () => {
     try {
-      setLoading(true);
       // Mock project data - 実際の環境ではAPIから取得
       const mockProject: Project = {
         id: projectId as string,
@@ -375,9 +391,7 @@ const ProjectChatPage: React.FC = () => {
       setProject(mockProject);
     } catch (err: any) {
       console.error('Error fetching project:', err);
-      setError('プロジェクト情報の取得に失敗しました。');
-    } finally {
-      setLoading(false);
+      throw new Error('プロジェクト情報の取得に失敗しました。');
     }
   };
 
@@ -476,7 +490,7 @@ const ProjectChatPage: React.FC = () => {
       setMessages(mockMessages);
     } catch (err: any) {
       console.error('Error fetching messages:', err);
-      setError('メッセージの取得に失敗しました。');
+      throw new Error('メッセージの取得に失敗しました。');
     }
   };
 
