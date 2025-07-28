@@ -1113,37 +1113,59 @@ const AnalyticsPage: React.FC = () => {
                 </div>
                 
                 {/* プロジェクト別詳細数値 */}
-                {selectedProject !== 'all' && (
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-bold text-blue-900 mb-3">選択中プロジェクトの詳細数値</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <p className="text-blue-600 font-medium">総リーチ数</p>
-                        <p className="text-xl font-bold text-blue-900">
-                          {formatNumber(Math.floor(Math.random() * 500000) + 100000)}
-                        </p>
+                {selectedProject !== 'all' && (() => {
+                  const project = projects.find(p => p.id === selectedProject);
+                  if (!project) return null;
+                  
+                  return (
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="font-bold text-blue-900 mb-3">選択中プロジェクトの詳細数値</h4>
+                      <div className="mb-4 p-3 bg-white rounded border">
+                        <h5 className="font-semibold text-gray-800 mb-2">{project.title}</h5>
+                        <div className="text-sm text-gray-600">
+                          <span className="mr-4">期間: {formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
+                          <span className="mr-4">予算: {formatCurrency(project.budget)}</span>
+                          <span className="px-2 py-1 bg-gray-100 rounded text-xs">
+                            {project.status === 'ACTIVE' ? 'アクティブ' : 
+                             project.status === 'COMPLETED' ? '完了' : 
+                             project.status === 'PLANNING' ? '企画中' : project.status}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-blue-600 font-medium">エンゲージメント数</p>
-                        <p className="text-xl font-bold text-blue-900">
-                          {formatNumber(Math.floor(Math.random() * 50000) + 10000)}
-                        </p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-blue-600 font-medium">総リーチ数</p>
+                          <p className="text-xl font-bold text-blue-900">
+                            {formatNumber(project.reach || 0)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-blue-600 font-medium">エンゲージメント数</p>
+                          <p className="text-xl font-bold text-blue-900">
+                            {formatNumber(project.engagement || 0)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-blue-600 font-medium">コンバージョン数</p>
+                          <p className="text-xl font-bold text-blue-900">
+                            {formatNumber(project.conversions || 0)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-blue-600 font-medium">ROI</p>
+                          <p className="text-xl font-bold text-blue-900">
+                            {project.roi || 0}%
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-blue-600 font-medium">コンバージョン率</p>
-                        <p className="text-xl font-bold text-blue-900">
-                          {(Math.random() * 5 + 1).toFixed(2)}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-blue-600 font-medium">ROI</p>
-                        <p className="text-xl font-bold text-blue-900">
-                          {(Math.random() * 300 + 150).toFixed(0)}%
-                        </p>
-                      </div>
+                      {project.status === 'PLANNING' && (
+                        <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
+                          ⚠️ このプロジェクトはまだ企画段階のため、パフォーマンス数値は利用できません
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )}
           </div>

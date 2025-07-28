@@ -299,9 +299,19 @@ export const searchInfluencers = async (filters: any = {}) => {
         priceMax: (actualIndex % 10 + 1) * 50000,
         gender: ['男性', '女性'][actualIndex % 2],
         age: 20 + (actualIndex % 25),
-        topHashtags: actualIndex % 2 === 0 
-          ? ['美容', 'コスメ', 'スキンケア', 'メイク', 'ファッション', 'OOTD']
-          : ['グルメ', '食べ歩き', '旅行', '観光', 'カフェ', 'インスタ映え'],
+        topHashtags: (() => {
+          const hashtagSets = [
+            ['美容', 'コスメ', 'スキンケア'],
+            ['グルメ', '食べ歩き', 'カフェ'],
+            ['旅行', '観光', 'インスタ映え'],
+            ['ファッション', 'OOTD', 'コーデ'],
+            ['フィットネス', '筋トレ', 'ヘルシー'],
+            ['ライフスタイル', '日常', 'おうち時間'],
+            ['テクノロジー', 'ガジェット', 'レビュー'],
+            ['料理', 'レシピ', 'おうちごはん']
+          ];
+          return hashtagSets[actualIndex % hashtagSets.length];
+        })(),
         socialAccounts: [
           {
             platform: 'Instagram',
@@ -449,9 +459,19 @@ export const searchInfluencers = async (filters: any = {}) => {
         priceMax: (actualIndex % 10 + 1) * 50000,
         gender: ['男性', '女性'][actualIndex % 2],
         age: 20 + (actualIndex % 25),
-        topHashtags: actualIndex % 2 === 0 
-          ? ['美容', 'コスメ', 'スキンケア', 'メイク', 'ファッション', 'OOTD']
-          : ['グルメ', '食べ歩き', '旅行', '観光', 'カフェ', 'インスタ映え'],
+        topHashtags: (() => {
+          const hashtagSets = [
+            ['美容', 'コスメ', 'スキンケア'],
+            ['グルメ', '食べ歩き', 'カフェ'],
+            ['旅行', '観光', 'インスタ映え'],
+            ['ファッション', 'OOTD', 'コーデ'],
+            ['フィットネス', '筋トレ', 'ヘルシー'],
+            ['ライフスタイル', '日常', 'おうち時間'],
+            ['テクノロジー', 'ガジェット', 'レビュー'],
+            ['料理', 'レシピ', 'おうちごはん']
+          ];
+          return hashtagSets[actualIndex % hashtagSets.length];
+        })(),
         socialAccounts: [
           {
             platform: 'Instagram',
@@ -2683,6 +2703,84 @@ export const generateInvoiceFromProject = async (projectId: string): Promise<Inv
     console.error('Error generating invoice from project:', error);
     throw error;
   }
+};
+
+// アナリティクス用プロジェクト一覧取得
+export const getProjects = async () => {
+  console.log('getProjects called for analytics');
+  
+  // アナリティクス用のモックプロジェクトデータ
+  const mockProjects = {
+    projects: [
+      {
+        id: 'project-1',
+        title: '新商品コスメPRキャンペーン',
+        category: '美容・化粧品',
+        status: 'ACTIVE',
+        budget: 300000,
+        startDate: '2024-01-15',
+        endDate: '2024-02-15',
+        reach: 450000,
+        engagement: 35000,
+        conversions: 1250,
+        roi: 220
+      },
+      {
+        id: 'project-2', 
+        title: 'カフェ新店舗オープン告知',
+        category: 'グルメ',
+        status: 'COMPLETED',
+        budget: 150000,
+        startDate: '2024-01-01',
+        endDate: '2024-01-31',
+        reach: 280000,
+        engagement: 22000,
+        conversions: 890,
+        roi: 180
+      },
+      {
+        id: 'project-3',
+        title: 'フィットネスアプリ体験キャンペーン',
+        category: 'フィットネス',
+        status: 'ACTIVE',
+        budget: 500000,
+        startDate: '2024-01-20',
+        endDate: '2024-03-20',
+        reach: 620000,
+        engagement: 48000,
+        conversions: 2100,
+        roi: 350
+      },
+      {
+        id: 'project-4',
+        title: '旅行サービス春のキャンペーン',
+        category: '旅行・観光',
+        status: 'PLANNING',
+        budget: 800000,
+        startDate: '2024-03-01',
+        endDate: '2024-04-30',
+        reach: 0,
+        engagement: 0,
+        conversions: 0,
+        roi: 0
+      },
+      {
+        id: 'project-5',
+        title: 'ファッションブランド新作発表',
+        category: 'ファッション',
+        status: 'ACTIVE',
+        budget: 600000,
+        startDate: '2024-01-10',
+        endDate: '2024-02-28',
+        reach: 720000,
+        engagement: 54000,
+        conversions: 1800,
+        roi: 280
+      }
+    ]
+  };
+
+  return mockProjects;
 };
 
 export default api;
