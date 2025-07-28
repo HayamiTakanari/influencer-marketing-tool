@@ -86,6 +86,67 @@ const SearchPage: React.FC = () => {
     router.push('/');
   };
 
+  const handleExportCSV = () => {
+    if (influencers.length === 0) {
+      alert('出力するデータがありません');
+      return;
+    }
+
+    // CSVヘッダー
+    const headers = [
+      'ID',
+      'インフルエンサー名',
+      '都道府県',
+      'カテゴリー',
+      'ハッシュタグ',
+      'Instagram',
+      'TikTok',
+      'YouTube',
+      'X',
+      '最低料金',
+      '最高料金'
+    ];
+
+    // CSVデータを生成
+    const csvData = influencers.map(influencer => {
+      const instagramAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'Instagram');
+      const tiktokAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'TikTok');
+      const youtubeAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'YouTube');
+      const xAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'X');
+
+      return [
+        influencer.id,
+        `"${influencer.displayName || ''}"`,
+        `"${influencer.prefecture || ''}"`,
+        `"${influencer.categories?.join(', ') || ''}"`,
+        `"${influencer.topHashtags?.slice(0, 3).map((tag: string) => `#${tag}`).join(', ') || ''}"`,
+        instagramAccount ? `${instagramAccount.followerCount?.toLocaleString()}(${instagramAccount.engagementRate || 0}%)` : '-',
+        tiktokAccount ? `${tiktokAccount.followerCount?.toLocaleString()}(${tiktokAccount.engagementRate || 0}%)` : '-',
+        youtubeAccount ? `${youtubeAccount.followerCount?.toLocaleString()}(${youtubeAccount.engagementRate || 0}%)` : '-',
+        xAccount ? `${xAccount.followerCount?.toLocaleString()}(${xAccount.engagementRate || 0}%)` : '-',
+        influencer.priceMin?.toLocaleString() || '',
+        influencer.priceMax?.toLocaleString() || ''
+      ];
+    });
+
+    // CSV文字列を作成
+    const csvContent = [headers.join(','), ...csvData.map(row => row.join(','))].join('\n');
+    
+    // BOMを追加してExcelで文字化けを防ぐ
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // ファイルをダウンロード
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `influencers_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (!user) return null;
 
   return (
@@ -289,6 +350,16 @@ const SearchPage: React.FC = () => {
                   {pagination.total.toLocaleString()}件中 {((pagination.page - 1) * pagination.limit + 1).toLocaleString()}-{Math.min(pagination.page * pagination.limit, pagination.total).toLocaleString()}件を表示
                 </p>
               )}
+            </div>
+            <div>
+              <Button
+                onClick={handleExportCSV}
+                variant="outline"
+                size="sm"
+                icon={<span>📊</span>}
+              >
+                CSV出力
+              </Button>
             </div>
           </div>
 
