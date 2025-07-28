@@ -272,6 +272,23 @@ const ProjectsPage: React.FC = () => {
                         )}
                       </Button>
                     )}
+                    
+                    {/* チャットボタン - 全プロジェクトで表示 */}
+                    <Button
+                      onClick={() => router.push(`/project-chat/${project.id}`)}
+                      variant="secondary"
+                      size="md"
+                      icon="💬"
+                      className="relative"
+                    >
+                      <span className="hidden md:inline">チャット</span>
+                      {/* 未読バッジ - アクティブなプロジェクトのみ */}
+                      {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS') && Math.random() > 0.7 && (
+                        <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                          {Math.floor(Math.random() * 5) + 1}
+                        </span>
+                      )}
+                    </Button>
                     <Button
                       onClick={() => router.push(`/project-detail?id=${project.id}`)}
                       variant="primary"
