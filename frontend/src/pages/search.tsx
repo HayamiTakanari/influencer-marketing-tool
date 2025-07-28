@@ -336,6 +336,17 @@ const SearchPage: React.FC = () => {
                         ))}
                       </div>
 
+                      {/* ハッシュタグ（使用頻度順に3つ） */}
+                      {influencer.topHashtags && influencer.topHashtags.length > 0 && (
+                        <div className="flex gap-2 mb-3">
+                          {influencer.topHashtags.slice(0, 3).map((hashtag: string, i: number) => (
+                            <span key={i} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                              #{hashtag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
                       {/* SNS情報 */}
                       <div className="grid grid-cols-2 gap-2 text-xs mb-4">
                         {['Instagram', 'TikTok', 'YouTube', 'X'].map(platform => {
