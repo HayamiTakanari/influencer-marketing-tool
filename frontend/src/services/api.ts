@@ -361,6 +361,19 @@ export const searchInfluencers = async (filters: any = {}) => {
             priceMax: (i % 10 + 1) * 50000,
             gender: ['男性', '女性'][i % 2],
             age: 20 + (i % 25),
+            topHashtags: (() => {
+              const hashtagSets = [
+                ['美容', 'コスメ', 'スキンケア'],
+                ['グルメ', '食べ歩き', 'カフェ'],
+                ['旅行', '観光', 'インスタ映え'],
+                ['ファッション', 'OOTD', 'コーデ'],
+                ['フィットネス', '筋トレ', 'ヘルシー'],
+                ['ライフスタイル', '日常', 'おうち時間'],
+                ['テクノロジー', 'ガジェット', 'レビュー'],
+                ['料理', 'レシピ', 'おうちごはん']
+              ];
+              return hashtagSets[i % hashtagSets.length];
+            })(),
             socialAccounts: mockInfluencers[0].socialAccounts
           });
         }

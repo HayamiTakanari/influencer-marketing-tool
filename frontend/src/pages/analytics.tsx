@@ -98,19 +98,40 @@ const AnalyticsPage: React.FC = () => {
     }
   };
 
+  const getMemoKey = () => {
+    return `${selectedProject}_${selectedPeriod}`;
+  };
+
   const saveMemo = () => {
     if (!currentMemo.trim()) return;
     
-    const memoKey = `${selectedProject}_${selectedPeriod}`;
-    const newMemos = { ...memos, [memoKey]: currentMemo };
+    const memoKey = getMemoKey();
+    const timestamp = new Date().toISOString();
+    const newMemos = { 
+      ...memos, 
+      [memoKey]: {
+        content: currentMemo,
+        timestamp,
+        projectId: selectedProject,
+        period: selectedPeriod,
+        projectTitle: selectedProject === 'all' ? 'すべてのプロジェクト' : 
+          projects.find(p => p.id === selectedProject)?.title || 'プロジェクト名不明'
+      }
+    };
     setMemos(newMemos);
     localStorage.setItem('analytics-memos', JSON.stringify(newMemos));
     setCurrentMemo('');
   };
 
   const getCurrentMemo = () => {
-    const memoKey = `${selectedProject}_${selectedPeriod}`;
-    return memos[memoKey] || '';
+    const memoKey = getMemoKey();
+    const memoData = memos[memoKey];
+    return memoData?.content || '';
+  };
+
+  const getCurrentMemoData = () => {
+    const memoKey = getMemoKey();
+    return memos[memoKey];
   };
 
   const fetchAnalyticsData = async () => {
@@ -1242,12 +1263,27 @@ const AnalyticsPage: React.FC = () => {
             <h3 className="text-lg font-bold text-gray-900">分析メモ</h3>
             
             {/* 現在のメモ表示 */}
-            {getCurrentMemo() && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 className="font-medium text-yellow-800 mb-2">保存済みメモ</h4>
-                <p className="text-yellow-700 whitespace-pre-wrap">{getCurrentMemo()}</p>
-              </div>
-            )}
+            {getCurrentMemo() && (() => {
+              const memoData = getCurrentMemoData();
+              return (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-medium text-yellow-800">保存済みメモ</h4>
+                    {memoData?.timestamp && (
+                      <span className="text-xs text-yellow-600">
+                        {new Date(memoData.timestamp).toLocaleString('ja-JP')}
+                      </span>
+                    )}
+                  </div>
+                  {memoData?.projectTitle && (
+                    <div className="text-xs text-yellow-600 mb-2">
+                      プロジェクト: {memoData.projectTitle} | 期間: {getPeriodText(memoData.period || selectedPeriod)}
+                    </div>
+                  )}
+                  <p className="text-yellow-700 whitespace-pre-wrap">{getCurrentMemo()}</p>
+                </div>
+              );
+            })()}
             
             {/* メモ入力 */}
             <div className="space-y-3">
@@ -1290,35 +1326,56 @@ const AnalyticsPage: React.FC = () => {
             {/* 全メモ一覧 */}
             {Object.keys(memos).length > 0 && (
               <div className="mt-6">
-                <h4 className="font-medium text-gray-900 mb-3">すべてのメモ</h4>
+                <h4 className="font-medium text-gray-900 mb-3">すべてのメモ ({Object.keys(memos).length}件)</h4>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {Object.entries(memos).map(([key, memo]) => {
-                    const [projectId, period] = key.split('_');
-                    const projectName = projectId === 'all' ? 'すべてのプロジェクト' : 
-                      projects.find(p => p.id === projectId)?.title || `プロジェクト${projectId}`;
-                    
-                    return (
-                      <div key={key} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="text-xs text-gray-600">
-                            {projectName} - {getPeriodText(period)}
+                  {Object.entries(memos)
+                    .sort(([,a], [,b]) => {
+                      // 新しいメモデータ形式と古い形式に対応
+                      const aTime = typeof a === 'object' && a.timestamp ? new Date(a.timestamp).getTime() : 0;
+                      const bTime = typeof b === 'object' && b.timestamp ? new Date(b.timestamp).getTime() : 0;
+                      return bTime - aTime; // 新しい順
+                    })
+                    .map(([key, memoData]) => {
+                      // 新しいメモデータ形式と古い形式に対応
+                      const isNewFormat = typeof memoData === 'object' && memoData.content;
+                      const content = isNewFormat ? memoData.content : memoData;
+                      const timestamp = isNewFormat ? memoData.timestamp : null;
+                      const projectTitle = isNewFormat ? memoData.projectTitle : null;
+                      const period = isNewFormat ? memoData.period : key.split('_')[1];
+                      
+                      const [projectId] = key.split('_');
+                      const fallbackProjectName = projectId === 'all' ? 'すべてのプロジェクト' : 
+                        projects.find(p => p.id === projectId)?.title || `プロジェクト${projectId}`;
+                      
+                      return (
+                        <div key={key} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="text-xs text-gray-600">
+                              <div className="font-medium">
+                                {projectTitle || fallbackProjectName} - {getPeriodText(period)}
+                              </div>
+                              {timestamp && (
+                                <div className="text-gray-500 mt-1">
+                                  {new Date(timestamp).toLocaleString('ja-JP')}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newMemos = { ...memos };
+                                delete newMemos[key];
+                                setMemos(newMemos);
+                                localStorage.setItem('analytics-memos', JSON.stringify(newMemos));
+                              }}
+                              className="text-red-500 hover:text-red-700 text-xs ml-2 px-2 py-1 hover:bg-red-50 rounded"
+                            >
+                              削除
+                            </button>
                           </div>
-                          <button
-                            onClick={() => {
-                              const newMemos = { ...memos };
-                              delete newMemos[key];
-                              setMemos(newMemos);
-                              localStorage.setItem('analytics-memos', JSON.stringify(newMemos));
-                            }}
-                            className="text-red-500 hover:text-red-700 text-xs"
-                          >
-                            削除
-                          </button>
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{content}</p>
                         </div>
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{memo}</p>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </div>
             )}
