@@ -113,7 +113,6 @@ const DashboardPage: React.FC = () => {
     ],
     quickActions: [
       { title: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
-      { title: 'インフルエンサー検索', href: '/search', icon: '🔍' },
       { title: '分析レポート', href: '/analytics', icon: '📊' },
       { title: '支払い履歴', href: '/payments/history', icon: '💳' },
       { title: '会社プロフィール', href: '/company-profile', icon: '🏢' }
@@ -273,7 +272,7 @@ const DashboardPage: React.FC = () => {
             className="mb-16"
           >
             <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">クイックアクション</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
               {dashboardData.quickActions.map((action, index) => (
                 <motion.div
                   key={index}
