@@ -213,23 +213,32 @@ const ProjectChatPage: React.FC = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-      
-      if (!userData || !token) {
-        router.push('/login');
-        return;
-      }
+      try {
+        const userData = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        
+        if (!userData || !token) {
+          router.push('/login');
+          return;
+        }
 
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
 
-      if (projectId) {
-        fetchProjectData();
-        fetchMessages();
+        if (projectId && typeof projectId === 'string') {
+          fetchProjectData();
+          fetchMessages();
+        } else if (router.isReady && !projectId) {
+          setError('プロジェクトIDが指定されていません。');
+          setLoading(false);
+        }
+      } catch (err: any) {
+        console.error('Error in useEffect:', err);
+        setError('初期化に失敗しました。');
+        setLoading(false);
       }
     }
-  }, [router, projectId]);
+  }, [router, router.isReady, projectId]);
 
   const fetchProjectData = async () => {
     try {
@@ -467,6 +476,7 @@ const ProjectChatPage: React.FC = () => {
       setMessages(mockMessages);
     } catch (err: any) {
       console.error('Error fetching messages:', err);
+      setError('メッセージの取得に失敗しました。');
     }
   };
 
@@ -1086,6 +1096,42 @@ const ProjectChatPage: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">プロジェクトを読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            再読み込み
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">📋</div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトが見つかりません</h3>
+          <p className="text-gray-600 mb-4">指定されたプロジェクトは存在しないか、アクセス権限がありません。</p>
+          <button
+            onClick={() => router.push('/projects')}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            プロジェクト一覧に戻る
+          </button>
         </div>
       </div>
     );
