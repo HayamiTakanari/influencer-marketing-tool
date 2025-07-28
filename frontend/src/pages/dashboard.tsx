@@ -72,20 +72,19 @@ const DashboardPage: React.FC = () => {
         gradient: 'from-emerald-500 to-teal-600'
       },
       {
-        icon: '💰',
-        title: '今月の収益',
-        value: '¥850,000',
-        description: '前月比 +12%',
-        link: '/revenue',
-        linkText: '詳細を見る',
-        gradient: 'from-teal-500 to-emerald-600'
+        icon: '📝',
+        title: '進行中のプロジェクト',
+        value: '2',
+        description: 'アクティブなキャンペーン',
+        link: '/projects',
+        linkText: '管理する',
+        gradient: 'from-blue-500 to-indigo-600'
       },
     ],
     quickActions: [
       { title: 'プロフィール編集', href: '/profile', icon: '👤' },
       { title: '応募履歴', href: '/my-applications', icon: '📝' },
-      { title: '収益分析', href: '/analytics', icon: '📊' },
-      { title: 'レビュー管理', href: '/reviews', icon: '⭐' },
+      { title: '今月の収益', href: '/revenue', icon: '💰' },
       { title: '実績管理', href: '/achievements', icon: '🏆' }
     ]
   } : {
@@ -113,7 +112,6 @@ const DashboardPage: React.FC = () => {
     ],
     quickActions: [
       { title: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
-      { title: '分析レポート', href: '/analytics', icon: '📊' },
       { title: '支払い履歴', href: '/payments/history', icon: '💳' },
       { title: '会社プロフィール', href: '/company-profile', icon: '🏢' }
     ]

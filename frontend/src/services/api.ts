@@ -1477,7 +1477,7 @@ const generateMockScheduleData = (projectId: string) => {
     {
       id: `phase-${projectId}-3`,
       type: 'DRAFT_CREATION',
-      title: '初稿コンテ作成',
+      title: '初稿構成案作成',
       description: '初稿コンテンツの作成期間',
       startDate: new Date(baseDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
       endDate: new Date(baseDate.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString(),
@@ -1489,7 +1489,7 @@ const generateMockScheduleData = (projectId: string) => {
     {
       id: `phase-${projectId}-4`,
       type: 'DRAFT_SUBMISSION',
-      title: '初稿コンテ提出',
+      title: '初稿構成案提出',
       description: '初稿コンテンツの提出日',
       startDate: new Date(baseDate.getTime() + 9 * 24 * 60 * 60 * 1000).toISOString(),
       endDate: null,
@@ -2258,46 +2258,6 @@ export const getComparisonData = async (period: string = 'month') => {
   return response.data;
 };
 
-// Reviews
-export const createReview = async (data: { projectId: string; rating: number; comment?: string; isPublic?: boolean }) => {
-  const response = await api.post('/reviews', data);
-  return response.data;
-};
-
-export const getReviewsForUser = async (userId: string, page: number = 1, limit: number = 20, rating?: number) => {
-  const params: any = { page, limit };
-  if (rating) params.rating = rating;
-  
-  const response = await api.get(`/reviews/user/${userId}`, { params });
-  return response.data;
-};
-
-export const getMyReviews = async (type: 'given' | 'received' = 'received', page: number = 1, limit: number = 20) => {
-  const response = await api.get('/reviews/my-reviews', { 
-    params: { type, page, limit } 
-  });
-  return response.data;
-};
-
-export const getReviewableProjects = async () => {
-  const response = await api.get('/reviews/reviewable-projects');
-  return response.data;
-};
-
-export const updateReview = async (reviewId: string, data: { rating?: number; comment?: string; isPublic?: boolean }) => {
-  const response = await api.put(`/reviews/${reviewId}`, data);
-  return response.data;
-};
-
-export const deleteReview = async (reviewId: string) => {
-  const response = await api.delete(`/reviews/${reviewId}`);
-  return response.data;
-};
-
-export const getRatingStats = async (userId: string) => {
-  const response = await api.get(`/reviews/user/${userId}/stats`);
-  return response.data;
-};
 
 // 請求書関連のAPI関数
 import { Invoice, InvoiceCreateRequest, InvoiceUpdateRequest, InvoiceListResponse, InvoiceStatus } from '../types';

@@ -73,8 +73,8 @@ const ProjectsPage: React.FC = () => {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       
-      // 企業ユーザーのみアクセス可能
-      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
+      // 企業ユーザーとインフルエンサーの両方がアクセス可能
+      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY' && parsedUser.role !== 'INFLUENCER') {
         router.push('/dashboard');
         return;
       }
@@ -83,13 +83,64 @@ const ProjectsPage: React.FC = () => {
     } else {
       router.push('/login');
     }
-  }, [router]);
+  }, [router, user]);
 
   const fetchProjects = async () => {
     try {
-      const { getMyProjects } = await import('../../services/api');
-      const result = await getMyProjects();
-      setProjects(result.projects || []);
+      if (user?.role === 'INFLUENCER') {
+        // インフルエンサー用のモックデータ
+        const mockInfluencerProjects: Project[] = [
+          {
+            id: '1',
+            title: '新商品コスメのPRキャンペーン',
+            description: '春の新作コスメを紹介していただけるインフルエンサーを募集しています',
+            category: '美容',
+            budget: 500000,
+            status: 'IN_PROGRESS',
+            targetPlatforms: ['Instagram', 'YouTube'],
+            targetPrefecture: '東京都',
+            targetAgeMin: 20,
+            targetAgeMax: 35,
+            targetFollowerMin: 10000,
+            targetFollowerMax: 100000,
+            startDate: '2024-03-01',
+            endDate: '2024-04-30',
+            createdAt: '2024-02-15T10:00:00Z',
+            applicationsCount: 0,
+            matchedInfluencer: {
+              id: 'influencer1',
+              displayName: 'あなた',
+            },
+          },
+          {
+            id: '2',
+            title: 'ファッションブランド春コレクション',
+            description: '春の新作ファッションアイテムを着用していただける方を募集',
+            category: 'ファッション',
+            budget: 300000,
+            status: 'IN_PROGRESS',
+            targetPlatforms: ['Instagram', 'TikTok'],
+            targetPrefecture: '全国',
+            targetAgeMin: 18,
+            targetAgeMax: 30,
+            targetFollowerMin: 5000,
+            targetFollowerMax: 50000,
+            startDate: '2024-03-15',
+            endDate: '2024-05-15',
+            createdAt: '2024-02-20T10:00:00Z',
+            applicationsCount: 0,
+            matchedInfluencer: {
+              id: 'influencer1',
+              displayName: 'あなた',
+            },
+          },
+        ];
+        setProjects(mockInfluencerProjects);
+      } else {
+        const { getMyProjects } = await import('../../services/api');
+        const result = await getMyProjects();
+        setProjects(result.projects || []);
+      }
     } catch (err: any) {
       console.error('Error fetching projects:', err);
       setError('プロジェクトの取得に失敗しました。');
@@ -154,21 +205,23 @@ const ProjectsPage: React.FC = () => {
 
   return (
     <PageLayout
-      title="プロジェクト管理"
-      subtitle="あなたのインフルエンサーマーケティングプロジェクトを一元管理"
+      title={user?.role === 'INFLUENCER' ? "進行中のプロジェクト" : "プロジェクト管理"}
+      subtitle={user?.role === 'INFLUENCER' ? "参加中のプロジェクトを確認" : "あなたのインフルエンサーマーケティングプロジェクトを一元管理"}
       userEmail={user?.email}
       onLogout={handleLogout}
     >
-      <div className="mb-8 flex justify-end">
-        <Button
-          onClick={() => router.push('/projects/create')}
-          variant="primary"
-          size="lg"
-          icon="+"
-        >
-          新規プロジェクト作成
-        </Button>
-      </div>
+      {user?.role !== 'INFLUENCER' && (
+        <div className="mb-8 flex justify-end">
+          <Button
+            onClick={() => router.push('/projects/create')}
+            variant="primary"
+            size="lg"
+            icon="+"
+          >
+            新規プロジェクト作成
+          </Button>
+        </div>
+      )}
       {/* 検索・フィルター */}
       <Card className="mb-8" padding="lg">
         <div className="flex flex-col lg:flex-row gap-4">
@@ -219,15 +272,19 @@ const ProjectsPage: React.FC = () => {
             <div className="text-6xl mb-4">📋</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトが見つかりません</h3>
             <p className="text-gray-600 mb-4">
-              {statusFilter === 'all' ? '新しいプロジェクトを作成してみましょう。' : '条件に合うプロジェクトがありません。'}
+              {user?.role === 'INFLUENCER' 
+                ? '現在進行中のプロジェクトはありません。' 
+                : (statusFilter === 'all' ? '新しいプロジェクトを作成してみましょう。' : '条件に合うプロジェクトがありません。')}
             </p>
-            <Button
-              onClick={() => router.push('/projects/create')}
-              variant="primary"
-              size="lg"
-            >
-              新しいプロジェクトを作成
-            </Button>
+            {user?.role !== 'INFLUENCER' && (
+              <Button
+                onClick={() => router.push('/projects/create')}
+                variant="primary"
+                size="lg"
+              >
+                新しいプロジェクトを作成
+              </Button>
+            )}
           </Card>
         ) : (
           filteredProjects.map((project, index) => (

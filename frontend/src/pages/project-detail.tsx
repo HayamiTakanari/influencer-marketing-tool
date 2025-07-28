@@ -560,26 +560,15 @@ const ProjectDetailPage: React.FC = () => {
               {/* マッチング成立時のメッセージボタン */}
               {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS' || project.status === 'COMPLETED') && project.matchedInfluencer && (
                 <div className="flex space-x-2">
-                  <Link href={`/chat?project=${project.id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors shadow-lg flex items-center space-x-2"
-                    >
-                      <span>💬</span>
-                      <span>メッセージ</span>
-                    </motion.button>
-                  </Link>
-                  <Link href={`/project-submissions/${project.id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors shadow-lg flex items-center space-x-2"
-                    >
-                      <span>📹</span>
-                      <span>動画投稿・管理</span>
-                    </motion.button>
-                  </Link>
+                  <motion.button
+                    onClick={() => router.push(`/project-chat/${project.id}`)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors shadow-lg flex items-center space-x-2"
+                  >
+                    <span>💬</span>
+                    <span>チャット</span>
+                  </motion.button>
                 </div>
               )}
               <div className="text-2xl font-bold text-green-600">{formatPrice(project.budget)}</div>
@@ -645,16 +634,12 @@ const ProjectDetailPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Link href={`/chat?project=${project.id}`}>
-                    <button className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors">
-                      💬 メッセージ
-                    </button>
-                  </Link>
-                  <Link href={`/project-submissions/${project.id}`}>
-                    <button className="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors">
-                      📹 動画投稿
-                    </button>
-                  </Link>
+                  <button 
+                    onClick={() => router.push(`/project-chat/${project.id}`)}
+                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    💬 チャット
+                  </button>
                 </div>
               </div>
             </div>

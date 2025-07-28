@@ -7,11 +7,11 @@ import GanttChart from '../components/GanttChart';
 type PhaseType = 
   | 'FORMAL_REQUEST'         // 正式依頼
   | 'PRODUCT_RECEIPT'        // 商品受領
-  | 'DRAFT_CONTE_CREATION'   // 初稿コンテ作成
-  | 'DRAFT_CONTE_SUBMIT'     // 初稿コンテ提出
-  | 'CONTE_FEEDBACK'         // 字コンテ戻し
-  | 'CONTE_REVISION'         // コンテ修正
-  | 'CONTE_FINALIZE'         // 修正稿コンテFIX
+  | 'DRAFT_CONTE_CREATION'   // 初稿構成案作成
+  | 'DRAFT_CONTE_SUBMIT'     // 初稿構成案提出
+  | 'CONTE_FEEDBACK'         // 字構成案戻し
+  | 'CONTE_REVISION'         // 構成案修正
+  | 'CONTE_FINALIZE'         // 修正稿構成案FIX
   | 'SHOOTING'               // 撮影
   | 'DRAFT_VIDEO_SUBMIT'     // 初稿動画提出
   | 'VIDEO_FEEDBACK'         // 初稿動画戻し
@@ -53,11 +53,11 @@ interface Project {
 const PHASE_CONFIG: Record<PhaseType, { title: string; description: string; color: string; icon: string; isDateRange: boolean }> = {
   FORMAL_REQUEST: { title: '正式依頼', description: 'プロジェクトの正式依頼日', color: 'bg-blue-500', icon: '📄', isDateRange: false },
   PRODUCT_RECEIPT: { title: '商品受領', description: 'PR商品の受領日', color: 'bg-green-500', icon: '📦', isDateRange: false },
-  DRAFT_CONTE_CREATION: { title: '初稿コンテ作成', description: '初稿コンテンツの企画・作成期間', color: 'bg-purple-500', icon: '✏️', isDateRange: true },
-  DRAFT_CONTE_SUBMIT: { title: '初稿コンテ提出', description: '初稿コンテンツの提出日', color: 'bg-indigo-500', icon: '📝', isDateRange: false },
-  CONTE_FEEDBACK: { title: '字コンテ戻し', description: 'コンテンツに対するフィードバック期間', color: 'bg-yellow-500', icon: '💬', isDateRange: true },
-  CONTE_REVISION: { title: 'コンテ修正', description: 'コンテンツの修正・改善期間', color: 'bg-orange-500', icon: '🔄', isDateRange: true },
-  CONTE_FINALIZE: { title: '修正稿コンテFIX', description: '修正稿コンテンツの確定日', color: 'bg-red-500', icon: '✅', isDateRange: false },
+  DRAFT_CONTE_CREATION: { title: '初稿構成案作成', description: '初稿コンテンツの企画・作成期間', color: 'bg-purple-500', icon: '✏️', isDateRange: true },
+  DRAFT_CONTE_SUBMIT: { title: '初稿構成案提出', description: '初稿コンテンツの提出日', color: 'bg-indigo-500', icon: '📝', isDateRange: false },
+  CONTE_FEEDBACK: { title: '字構成案戻し', description: 'コンテンツに対するフィードバック期間', color: 'bg-yellow-500', icon: '💬', isDateRange: true },
+  CONTE_REVISION: { title: '構成案修正', description: 'コンテンツの修正・改善期間', color: 'bg-orange-500', icon: '🔄', isDateRange: true },
+  CONTE_FINALIZE: { title: '修正稿構成案FIX', description: '修正稿コンテンツの確定日', color: 'bg-red-500', icon: '✅', isDateRange: false },
   SHOOTING: { title: '撮影', description: 'コンテンツ撮影期間', color: 'bg-pink-500', icon: '🎥', isDateRange: true },
   DRAFT_VIDEO_SUBMIT: { title: '初稿動画提出', description: '編集した初稿動画の提出日', color: 'bg-teal-500', icon: '🎬', isDateRange: false },
   VIDEO_FEEDBACK: { title: '初稿動画戻し', description: '初稿動画に対するフィードバック期間', color: 'bg-cyan-500', icon: '📹', isDateRange: true },

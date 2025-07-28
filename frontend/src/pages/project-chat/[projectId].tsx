@@ -165,7 +165,7 @@ const ProjectChatPage: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
   const [proposedDate, setProposedDate] = useState('');
   
-  // コンテ提出関連
+  // 構成案提出関連
   const [showConteForm, setShowConteForm] = useState(false);
   const [conteType, setConteType] = useState<'initial' | 'revised'>('initial');
   const [conteFormat, setConteFormat] = useState<'original' | 'document'>('original');
@@ -192,7 +192,7 @@ const ProjectChatPage: React.FC = () => {
   const [videoSubmitFiles, setVideoSubmitFiles] = useState<File[]>([]);
   const [videoSubmitDescription, setVideoSubmitDescription] = useState('');
   
-  // コンテ修正指摘関連
+  // 構成案修正指摘関連
   const [showConteRevisionForm, setShowConteRevisionForm] = useState(false);
   const [selectedConteForRevision, setSelectedConteForRevision] = useState<any>(null);
   const [revisionData, setRevisionData] = useState({
@@ -254,7 +254,7 @@ const ProjectChatPage: React.FC = () => {
           displayName: '美容系インフルエンサー 田中美咲'
         },
         progress: {
-          currentPhase: 'コンテ修正',
+          currentPhase: '構成案修正',
           overallProgress: 47,
           milestones: [
             {
@@ -271,32 +271,32 @@ const ProjectChatPage: React.FC = () => {
             },
             {
               id: '3',
-              title: '初稿コンテ作成',
+              title: '初稿構成案作成',
               status: 'completed',
               completedAt: '2024-01-18T10:30:00Z'
             },
             {
               id: '4',
-              title: '初稿コンテ提出',
+              title: '初稿構成案提出',
               status: 'completed',
               completedAt: '2024-01-18T16:30:00Z'
             },
             {
               id: '5',
-              title: '初稿コンテ戻し',
+              title: '初稿構成案戻し',
               status: 'completed',
               completedAt: '2024-01-20T11:15:00Z'
             },
             {
               id: '6',
-              title: 'コンテ修正',
+              title: '構成案修正',
               status: 'in_progress',
               dueDate: '2024-01-25T23:59:59Z',
               dueDateStatus: 'agreed'
             },
             {
               id: '7',
-              title: '修正稿コンテFIX',
+              title: '修正稿構成案FIX',
               status: 'pending',
               dueDate: '2024-01-26T17:00:00Z',
               dueDateStatus: 'agreed'
@@ -359,8 +359,8 @@ const ProjectChatPage: React.FC = () => {
           ],
           nextAction: {
             id: 'action-1',
-            title: 'コンテ修正作業',
-            description: 'クライアントからのフィードバックを反映してコンテを修正し、修正稿を提出してください',
+            title: '構成案修正作業',
+            description: 'クライアントからのフィードバックを反映して構成案を修正し、修正稿を提出してください',
             dueDate: '2024-01-25T23:59:59Z',
             assignee: 'influencer',
             priority: 'high',
@@ -395,7 +395,7 @@ const ProjectChatPage: React.FC = () => {
         },
         {
           id: '2',
-          content: 'こちらこそよろしくお願いします！さっそくコンテを作成させていただきます。',
+          content: 'こちらこそよろしくお願いします！さっそく構成案を作成させていただきます。',
           createdAt: '2024-01-15T10:30:00Z',
           senderId: 'influencer-1',
           messageType: 'text',
@@ -556,7 +556,7 @@ const ProjectChatPage: React.FC = () => {
     // TODO: Send video to server
   };
   
-  // コンテ提出機能
+  // 構成案提出機能
   const handleConteFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
@@ -613,7 +613,7 @@ const ProjectChatPage: React.FC = () => {
     
     const conteMessage: Message = {
       id: Date.now().toString(),
-      content: `${conteType === 'initial' ? '初稿' : '修正稿'}コンテを提出しました`,
+      content: `${conteType === 'initial' ? '初稿' : '修正稿'}構成案を提出しました`,
       createdAt: new Date().toISOString(),
       senderId: user.id,
       messageType: conteType === 'initial' ? 'conte' : 'revised_conte',
@@ -720,10 +720,10 @@ const ProjectChatPage: React.FC = () => {
     // TODO: Send video to server
   };
   
-  // コンテ修正指摘機能
+  // 構成案修正指摘機能
   const handleOpenConteRevision = (conteMessage: any) => {
     if (!conteMessage.conteData || conteMessage.conteData.format !== 'original') {
-      alert('オリジナルフォーマットのコンテのみ修正指摘できます。');
+      alert('オリジナルフォーマットの構成案のみ修正指摘できます。');
       return;
     }
     
@@ -776,7 +776,7 @@ const ProjectChatPage: React.FC = () => {
     
     const revisionMessage = {
       id: Date.now().toString(),
-      content: 'コンテの詳細な修正指摘をしました',
+      content: '構成案の詳細な修正指摘をしました',
       createdAt: new Date().toISOString(),
       senderId: user.id,
       messageType: 'conte_revision_request' as const,
@@ -840,7 +840,7 @@ const ProjectChatPage: React.FC = () => {
         submissions.push({
           id: message.id,
           type: 'conte',
-          title: `${message.messageType === 'conte' ? '初稿' : '修正稿'}コンテ`,
+          title: `${message.messageType === 'conte' ? '初稿' : '修正稿'}構成案`,
           submittedAt: message.createdAt,
           data: message.conteData,
           message: message
@@ -936,7 +936,7 @@ const ProjectChatPage: React.FC = () => {
   const handleAIContentCheck = async (message: Message) => {
     if (!project || !user || user.role !== 'CLIENT') return;
     
-    // コンテメッセージかどうかをチェック
+    // 構成案メッセージかどうかをチェック
     const isConteMessage = message.messageType === 'conte' || 
                           (message.content && (message.content.includes('テーマ') || 
                                                message.content.includes('シーン') || 
@@ -964,7 +964,7 @@ const ProjectChatPage: React.FC = () => {
         targetPlatforms: project.targetPlatforms || ['INSTAGRAM']
       };
       
-      // メッセージ内容から直接コンテ情報を抽出
+      // メッセージ内容から直接構成案情報を抽出
       const checkResult = await checkConteAlignment(projectInfo, message.content);
       
       // 結果を状態に保存
@@ -1235,7 +1235,7 @@ const ProjectChatPage: React.FC = () => {
                           }}
                           className="px-3 py-1.5 bg-purple-500 text-white text-sm rounded-lg font-medium hover:bg-purple-600 transition-colors"
                         >
-                          📋 コンテ提出
+                          📋 構成案提出
                         </button>
                         <button
                           onClick={() => {
@@ -1265,7 +1265,7 @@ const ProjectChatPage: React.FC = () => {
                           }}
                           className="px-3 py-1.5 bg-purple-100 text-purple-700 text-sm rounded-lg font-medium hover:bg-purple-200 transition-colors"
                         >
-                          📋 修正稿コンテ
+                          📋 修正稿構成案
                         </button>
                         <button
                           onClick={() => {
@@ -1291,7 +1291,7 @@ const ProjectChatPage: React.FC = () => {
                           setConteType('revised');
                           const revisionMessage = {
                             id: Date.now().toString(),
-                            content: 'コンテの修正をお願いします。',
+                            content: '構成案の修正をお願いします。',
                             createdAt: new Date().toISOString(),
                             senderId: user.id,
                             messageType: 'text' as const,
@@ -1305,7 +1305,7 @@ const ProjectChatPage: React.FC = () => {
                         }}
                         className="px-3 py-1.5 bg-orange-500 text-white text-sm rounded-lg font-medium hover:bg-orange-600 transition-colors"
                       >
-                        📝 コンテ修正依頼
+                        📝 構成案修正依頼
                       </button>
                       <button
                         onClick={() => {
@@ -1671,11 +1671,11 @@ const ProjectChatPage: React.FC = () => {
                     </div>
                   )}
                   
-                  {/* コンテ提出メッセージ */}
+                  {/* 構成案提出メッセージ */}
                   {(message.messageType === 'conte' || message.messageType === 'revised_conte') && message.conteData && (
                     <div className="space-y-2">
                       <p className="text-sm font-semibold">
-                        📋 {message.messageType === 'conte' ? '初稿' : '修正稿'}コンテを提出しました
+                        📋 {message.messageType === 'conte' ? '初稿' : '修正稿'}構成案を提出しました
                       </p>
                       <div className="text-xs space-y-2 bg-purple-50 rounded p-3">
                         {message.conteData.format === 'original' ? (
@@ -1874,11 +1874,11 @@ const ProjectChatPage: React.FC = () => {
                     </div>
                   )}
                   
-                  {/* コンテ修正指摘メッセージ */}
+                  {/* 構成案修正指摘メッセージ */}
                   {message.messageType === 'conte_revision_request' && message.conteRevisionData && (
                     <div className="space-y-3">
                       <p className="text-sm font-semibold text-orange-700">
-                        🔍 コンテの詳細な修正指摘
+                        🔍 構成案の詳細な修正指摘
                       </p>
                       <div className="text-xs space-y-3 bg-orange-50 rounded p-4 border border-orange-200">
                         
@@ -2159,7 +2159,7 @@ const ProjectChatPage: React.FC = () => {
       </div>
 
 
-      {/* コンテ提出モーダル */}
+      {/* 構成案提出モーダル */}
       <AnimatePresence>
         {showConteForm && (
           <motion.div
@@ -2176,7 +2176,7 @@ const ProjectChatPage: React.FC = () => {
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900">
-                  {conteType === 'initial' ? '初稿' : '修正稿'}コンテ提出
+                  {conteType === 'initial' ? '初稿' : '修正稿'}構成案提出
                 </h3>
                 <button
                   onClick={() => setShowConteForm(false)}
@@ -2190,7 +2190,7 @@ const ProjectChatPage: React.FC = () => {
 
               {/* フォーマット選択 */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">コンテフォーマット</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">構成案フォーマット</label>
                 <div className="flex space-x-4">
                   <label className="flex items-center">
                     <input
@@ -2381,7 +2381,7 @@ const ProjectChatPage: React.FC = () => {
               {conteFormat === 'document' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">コンテファイル</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">構成案ファイル</label>
                     <input
                       type="file"
                       onChange={handleConteFileUpload}
@@ -2421,7 +2421,7 @@ const ProjectChatPage: React.FC = () => {
                       onChange={(e) => setConteDescription(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={3}
-                      placeholder="コンテの説明や補足事項を入力してください"
+                      placeholder="構成案の説明や補足事項を入力してください"
                     />
                   </div>
                 </div>
@@ -2675,7 +2675,7 @@ const ProjectChatPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* コンテ修正指摘モーダル */}
+      {/* 構成案修正指摘モーダル */}
       <AnimatePresence>
         {showConteRevisionForm && selectedConteForRevision && (
           <motion.div
@@ -2692,7 +2692,7 @@ const ProjectChatPage: React.FC = () => {
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900">
-                  コンテの詳細な修正指摘
+                  構成案の詳細な修正指摘
                 </h3>
                 <button
                   onClick={() => setShowConteRevisionForm(false)}
@@ -2712,7 +2712,7 @@ const ProjectChatPage: React.FC = () => {
                   onChange={(e) => setRevisionData(prev => ({...prev, overallFeedback: e.target.value}))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   rows={3}
-                  placeholder="コンテ全体に対するフィードバックを記入してください"
+                  placeholder="構成案全体に対するフィードバックを記入してください"
                 />
               </div>
 
@@ -2964,7 +2964,7 @@ const ProjectChatPage: React.FC = () => {
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    コンテ
+                    構成案
                   </button>
                   <button
                     onClick={() => setSubmissionFilter('videos')}
@@ -3011,7 +3011,7 @@ const ProjectChatPage: React.FC = () => {
                               submission.type === 'conte' ? 'bg-purple-100 text-purple-700' :
                               'bg-green-100 text-green-700'
                             }`}>
-                              {submission.type === 'conte' ? 'コンテ' : '動画'}
+                              {submission.type === 'conte' ? '構成案' : '動画'}
                             </span>
                           </div>
                         </div>
@@ -3081,11 +3081,11 @@ const ProjectChatPage: React.FC = () => {
               {/* 提出物の詳細内容 */}
               <div className="space-y-4">
 
-                {/* コンテ詳細 */}
+                {/* 構成案詳細 */}
                 {selectedSubmission.type === 'conte' && selectedSubmission.data && (
                   <div className="space-y-3">
                     <div className="bg-purple-50 rounded p-4">
-                      <h4 className="font-semibold text-purple-800 mb-2">📋 コンテ詳細</h4>
+                      <h4 className="font-semibold text-purple-800 mb-2">📋 構成案詳細</h4>
                       {selectedSubmission.data.format === 'original' ? (
                         <div className="space-y-2 text-sm">
                           <div><strong>テーマ:</strong> {selectedSubmission.data.overallTheme}</div>
