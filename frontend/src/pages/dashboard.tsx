@@ -2,12 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { WorkingStatus } from '../types';
 
 const DashboardPage: React.FC = () => {
-  const [user, setUser] = useState<{ email: string; type: string } | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const router = useRouter();
+
+  const workingStatusOptions = [
+    { value: WorkingStatus.AVAILABLE, label: '対応可能', color: 'bg-green-100 text-green-800', icon: '✅' },
+    { value: WorkingStatus.BUSY, label: '多忙', color: 'bg-yellow-100 text-yellow-800', icon: '⏰' },
+    { value: WorkingStatus.UNAVAILABLE, label: '対応不可', color: 'bg-red-100 text-red-800', icon: '❌' },
+    { value: WorkingStatus.BREAK, label: '休暇中', color: 'bg-blue-100 text-blue-800', icon: '🏖️' }
+  ];
+
+  const getWorkingStatusInfo = (status: WorkingStatus) => {
+    return workingStatusOptions.find(option => option.value === status) || workingStatusOptions[0];
+  };
 
   // マウント状態を設定
   useEffect(() => {
@@ -21,10 +34,7 @@ const DashboardPage: React.FC = () => {
     
     if (userData && token) {
       const parsedUser = JSON.parse(userData);
-      setUser({
-        email: parsedUser.email,
-        type: parsedUser.role === 'INFLUENCER' ? 'influencer' : 'client'
-      });
+      setUser(parsedUser);
     } else {
       router.push('/login');
     }
@@ -40,6 +50,37 @@ const DashboardPage: React.FC = () => {
   const handleNavigation = (path: string) => {
     console.log('Navigating to:', path);
     router.push(path);
+  };
+
+  const handleWorkingStatusChange = async (newStatus: WorkingStatus) => {
+    if (!user || user.role !== 'INFLUENCER') return;
+    
+    setUpdatingStatus(true);
+    
+    try {
+      // TODO: 実際のAPI呼び出しで稼働状況を更新
+      // const { updateWorkingStatus } = await import('../services/api');
+      // await updateWorkingStatus({ workingStatus: newStatus });
+      
+      // モック処理
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // ユーザー情報を更新
+      const updatedUser = {
+        ...user,
+        workingStatus: newStatus,
+        workingStatusUpdatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      
+    } catch (error) {
+      console.error('Error updating working status:', error);
+      alert('稼働状況の更新に失敗しました。');
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   if (!isMounted || loading) {
@@ -58,7 +99,7 @@ const DashboardPage: React.FC = () => {
   }
 
   // ユーザータイプに応じたダッシュボードデータ
-  const dashboardData = user.type === 'influencer' ? {
+  const dashboardData = user.role === 'INFLUENCER' ? {
     title: 'インフルエンサーダッシュボード',
     subtitle: 'クリエイターとしての活動を管理しましょう',
     cards: [
@@ -108,10 +149,20 @@ const DashboardPage: React.FC = () => {
         link: '/search',
         linkText: '検索する',
         gradient: 'from-emerald-600 to-green-600'
+      },
+      {
+        icon: '❤️',
+        title: 'お気に入り',
+        value: user?.favoriteInfluencers?.length?.toString() || '0',
+        description: '登録したインフルエンサー',
+        link: '/favorites',
+        linkText: '管理する',
+        gradient: 'from-pink-500 to-red-500'
       }
     ],
     quickActions: [
       { title: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
+      { title: 'お気に入り', href: '/favorites', icon: '❤️' },
       { title: '支払い履歴', href: '/payments/history', icon: '💳' },
       { title: '会社プロフィール', href: '/company-profile', icon: '🏢' }
     ]
@@ -171,11 +222,52 @@ const DashboardPage: React.FC = () => {
               <div>
                 <h1 className="text-xl font-bold text-gray-900">InfluenceLink</h1>
                 <p className="text-sm text-gray-600">
-                  {user.type === 'influencer' ? 'インフルエンサー' : '企業'}ダッシュボード
+                  {user.role === 'INFLUENCER' ? 'インフルエンサー' : '企業'}ダッシュボード
                 </p>
               </div>
             </motion.div>
             <div className="flex items-center space-x-4">
+              {user.role === 'INFLUENCER' && (
+                <div className="flex items-center space-x-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getWorkingStatusInfo(user.workingStatus || WorkingStatus.AVAILABLE).color}`}>
+                    {getWorkingStatusInfo(user.workingStatus || WorkingStatus.AVAILABLE).icon} {getWorkingStatusInfo(user.workingStatus || WorkingStatus.AVAILABLE).label}
+                  </span>
+                  <div className="relative group">
+                    <button className="p-2 text-gray-600 hover:text-gray-800 transition-colors rounded-lg hover:bg-gray-100">
+                      ⚙️
+                    </button>
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                      <div className="p-2">
+                        <div className="text-xs text-gray-500 mb-2">稼働状況を変更</div>
+                        {workingStatusOptions.map(option => (
+                          <button
+                            key={option.value}
+                            onClick={() => handleWorkingStatusChange(option.value)}
+                            disabled={updatingStatus || user.workingStatus === option.value}
+                            className={`w-full flex items-center space-x-2 px-3 py-2 text-sm rounded hover:bg-gray-50 transition-colors ${
+                              user.workingStatus === option.value ? 'bg-gray-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <span>{option.icon}</span>
+                            <span>{option.label}</span>
+                            {updatingStatus && user.workingStatus === option.value && (
+                              <span className="ml-auto">⏳</span>
+                            )}
+                          </button>
+                        ))}
+                        <div className="border-t mt-2 pt-2">
+                          <button
+                            onClick={() => router.push('/profile?tab=working')}
+                            className="w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 rounded transition-colors text-left"
+                          >
+                            詳細設定 →
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <span className="hidden md:inline text-gray-700">{user.email}</span>
               <button
                 onClick={handleLogout}
@@ -289,6 +381,57 @@ const DashboardPage: React.FC = () => {
               ))}
             </div>
           </motion.div>
+
+          {/* フッターメニュー */}
+          <motion.footer
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-20 border-t border-gray-200 bg-gray-50 py-8"
+          >
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-600">
+                  <button
+                    onClick={() => router.push('/faq')}
+                    className="hover:text-gray-800 transition-colors"
+                  >
+                    よくある質問
+                  </button>
+                  <button
+                    onClick={() => router.push('/feedback')}
+                    className="hover:text-gray-800 transition-colors"
+                  >
+                    ご要望・フィードバック
+                  </button>
+                  <button
+                    onClick={() => router.push('/terms')}
+                    className="hover:text-gray-800 transition-colors"
+                  >
+                    利用規約
+                  </button>
+                  <button
+                    onClick={() => router.push('/privacy')}
+                    className="hover:text-gray-800 transition-colors"
+                  >
+                    プライバシーポリシー
+                  </button>
+                  <button
+                    onClick={() => router.push('/commercial-law')}
+                    className="hover:text-gray-800 transition-colors"
+                  >
+                    特定商取引法
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Version 1.2.3
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-200 text-center text-xs text-gray-500">
+                © 2024 InfluenceLink. All rights reserved.
+              </div>
+            </div>
+          </motion.footer>
 
         </div>
       </div>

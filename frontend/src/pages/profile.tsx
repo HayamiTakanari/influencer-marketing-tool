@@ -6,6 +6,7 @@ import PageLayout from '../components/shared/PageLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
 import { validateInfluencerInvoiceInfo } from '../utils/invoiceValidation';
+import { WorkingStatus } from '../types';
 
 interface SocialAccount {
   id: string;
@@ -52,7 +53,7 @@ const ProfilePage: React.FC = () => {
   const [error, setError] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [syncingAccountId, setSyncingAccountId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'portfolio' | 'invoice'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'portfolio' | 'invoice' | 'working'>('basic');
   const [showSocialForm, setShowSocialForm] = useState(false);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -101,6 +102,11 @@ const ProfilePage: React.FC = () => {
     accountName: ''
   });
 
+  const [workingFormData, setWorkingFormData] = useState({
+    workingStatus: WorkingStatus.AVAILABLE,
+    workingStatusMessage: ''
+  });
+
   const categories = [
     '美容', 'ファッション', 'ライフスタイル', '料理', '旅行', 
     'フィットネス', 'テクノロジー', 'エンタメ', 'ビジネス', 'その他'
@@ -118,6 +124,17 @@ const ProfilePage: React.FC = () => {
 
   const platforms = ['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER'];
 
+  const workingStatusOptions = [
+    { value: WorkingStatus.AVAILABLE, label: '対応可能', color: 'bg-green-100 text-green-800', icon: '✅' },
+    { value: WorkingStatus.BUSY, label: '多忙', color: 'bg-yellow-100 text-yellow-800', icon: '⏰' },
+    { value: WorkingStatus.UNAVAILABLE, label: '対応不可', color: 'bg-red-100 text-red-800', icon: '❌' },
+    { value: WorkingStatus.BREAK, label: '休暇中', color: 'bg-blue-100 text-blue-800', icon: '🏖️' }
+  ];
+
+  const getWorkingStatusInfo = (status: WorkingStatus) => {
+    return workingStatusOptions.find(option => option.value === status) || workingStatusOptions[0];
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -134,8 +151,8 @@ const ProfilePage: React.FC = () => {
       
       // URLパラメータでタブを切り替え
       const { tab } = router.query;
-      if (tab && ['basic', 'social', 'portfolio', 'invoice'].includes(tab as string)) {
-        setActiveTab(tab as 'basic' | 'social' | 'portfolio' | 'invoice');
+      if (tab && ['basic', 'social', 'portfolio', 'invoice', 'working'].includes(tab as string)) {
+        setActiveTab(tab as 'basic' | 'social' | 'portfolio' | 'invoice' | 'working');
       }
       
       fetchProfile();
@@ -163,6 +180,11 @@ const ProfilePage: React.FC = () => {
           gender: result.gender || '',
           phoneNumber: result.phoneNumber || '',
           address: result.address || ''
+        });
+
+        setWorkingFormData({
+          workingStatus: result.workingStatus || WorkingStatus.AVAILABLE,
+          workingStatusMessage: result.workingStatusMessage || ''
         });
       }
     } catch (err: any) {
@@ -364,6 +386,51 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleWorkingStatusSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    
+    try {
+      // TODO: 実際のAPI呼び出しで稼働状況を更新
+      // const { updateWorkingStatus } = await import('../services/api');
+      // await updateWorkingStatus(workingFormData);
+      
+      // モック処理
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // プロフィール情報を更新
+      if (profile) {
+        const updatedProfile = {
+          ...profile,
+          workingStatus: workingFormData.workingStatus,
+          workingStatusMessage: workingFormData.workingStatusMessage,
+          workingStatusUpdatedAt: new Date().toISOString()
+        };
+        setProfile(updatedProfile);
+        
+        // ローカルストレージのユーザー情報も更新
+        if (user) {
+          const updatedUser = {
+            ...user,
+            workingStatus: workingFormData.workingStatus,
+            workingStatusMessage: workingFormData.workingStatusMessage,
+            workingStatusUpdatedAt: new Date().toISOString()
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          setUser(updatedUser);
+        }
+      }
+      
+      alert('稼働状況を更新しました！');
+    } catch (err: any) {
+      console.error('Error updating working status:', err);
+      setError('稼働状況の更新に失敗しました。');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleInvoiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -478,7 +545,10 @@ const ProfilePage: React.FC = () => {
                 { key: 'basic', label: '基本情報', icon: '👤' },
                 { key: 'social', label: 'SNSアカウント', icon: '📱' },
                 { key: 'portfolio', label: 'ポートフォリオ', icon: '📊' },
-                ...(user?.role === 'INFLUENCER' ? [{ key: 'invoice', label: 'インボイス情報', icon: '📜' }] : [])
+                ...(user?.role === 'INFLUENCER' ? [
+                  { key: 'invoice', label: 'インボイス情報', icon: '📜' },
+                  { key: 'working', label: '稼働状況', icon: '⚡' }
+                ] : [])
               ].map(tab => (
                 <motion.button
                   key={tab.key}
@@ -1292,6 +1362,126 @@ const ProfilePage: React.FC = () => {
                   className="w-full"
                 >
                   インボイス情報を保存
+                </Button>
+              </form>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* 稼働状況タブ */}
+        {activeTab === 'working' && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">稼働状況設定</h2>
+                <div className="flex items-center space-x-2">
+                  {profile?.workingStatus && (
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getWorkingStatusInfo(profile.workingStatus).color}`}>
+                      {getWorkingStatusInfo(profile.workingStatus).icon} {getWorkingStatusInfo(profile.workingStatus).label}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <span className="text-blue-600 text-xl">💡</span>
+                  <div>
+                    <h3 className="font-semibold text-blue-800 mb-1">稼働状況について</h3>
+                    <p className="text-blue-700 text-sm">
+                      稼働状況を設定することで、企業側に現在の対応可能状況をお知らせできます。<br />
+                      「対応不可」や「休暇中」に設定すると、新しいプロジェクトの提案が制限される場合があります。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleWorkingStatusSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-3">
+                    現在の稼働状況 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {workingStatusOptions.map(option => (
+                      <motion.label
+                        key={option.value}
+                        whileHover={{ scale: 1.02 }}
+                        className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                          workingFormData.workingStatus === option.value
+                            ? 'border-emerald-500 bg-emerald-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            name="workingStatus"
+                            value={option.value}
+                            checked={workingFormData.workingStatus === option.value}
+                            onChange={(e) => setWorkingFormData({
+                              ...workingFormData,
+                              workingStatus: e.target.value as WorkingStatus
+                            })}
+                            className="text-emerald-500 focus:ring-emerald-500"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <span className="text-2xl">{option.icon}</span>
+                            <div>
+                              <div className="font-semibold text-gray-900">{option.label}</div>
+                              <div className="text-sm text-gray-600">
+                                {option.value === WorkingStatus.AVAILABLE && '新しいプロジェクトの相談を受け付けています'}
+                                {option.value === WorkingStatus.BUSY && '忙しいですが、条件次第で対応可能です'}
+                                {option.value === WorkingStatus.UNAVAILABLE && '現在新しいプロジェクトは受け付けていません'}
+                                {option.value === WorkingStatus.BREAK && '休暇中のため、しばらく対応できません'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-3">
+                    稼働状況メッセージ（任意）
+                  </label>
+                  <textarea
+                    value={workingFormData.workingStatusMessage}
+                    onChange={(e) => setWorkingFormData({
+                      ...workingFormData,
+                      workingStatusMessage: e.target.value
+                    })}
+                    placeholder="稼働状況の詳細や期間などを企業側に伝えたい場合は、こちらに入力してください。&#10;例：「5月末まで繁忙期のため、6月以降の案件でしたら対応可能です」"
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                    maxLength={500}
+                  />
+                  <div className="text-right text-sm text-gray-500 mt-1">
+                    {workingFormData.workingStatusMessage.length}/500文字
+                  </div>
+                </div>
+
+                {profile?.workingStatusUpdatedAt && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm text-gray-600">
+                      最終更新日時: {new Date(profile.workingStatusUpdatedAt).toLocaleString('ja-JP')}
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  loading={saving}
+                  size="xl"
+                  className="w-full"
+                >
+                  稼働状況を更新
                 </Button>
               </form>
             </Card>

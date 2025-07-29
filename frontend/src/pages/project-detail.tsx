@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { checkAndRedirectForInvoice } from '../utils/invoiceValidation';
+import { checkAndRedirectForNDA } from '../utils/ndaValidation';
 
 interface Application {
   id: string;
@@ -87,6 +88,20 @@ const ProjectDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'applications'>('overview');
+
+  // 成約状態を判定する関数
+  const isContractEstablished = (project: ProjectDetails, currentUser: any): boolean => {
+    if (!project || !currentUser) return false;
+    
+    // インフルエンサーの場合、自分がマッチングされており、かつプロジェクトが進行中以上の状態
+    if (currentUser.role === 'INFLUENCER') {
+      return project.matchedInfluencer?.id === currentUser.id && 
+             (project.status === 'IN_PROGRESS' || project.status === 'COMPLETED');
+    }
+    
+    // 企業の場合は常に表示
+    return true;
+  };
   const [filters, setFilters] = useState({
     minFollowers: 0,
     maxFollowers: 1000000,
@@ -563,6 +578,10 @@ const ProjectDetailPage: React.FC = () => {
                 <div className="flex space-x-2">
                   <motion.button
                     onClick={() => {
+                      // NDAチェック（企業・インフルエンサー両方）
+                      if (!checkAndRedirectForNDA(user, router)) {
+                        return;
+                      }
                       // インフルエンサーの場合はインボイス情報チェック
                       if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
                         return;
@@ -643,6 +662,10 @@ const ProjectDetailPage: React.FC = () => {
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => {
+                      // NDAチェック（企業・インフルエンサー両方）
+                      if (!checkAndRedirectForNDA(user, router)) {
+                        return;
+                      }
                       // インフルエンサーの場合はインボイス情報チェック
                       if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
                         return;
@@ -762,8 +785,21 @@ const ProjectDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 広告主・ブランド情報 */}
-            {(project.advertiserName || project.brandName || project.productName) && (
+            {/* 広告主・ブランド情報 - 成約後のみ表示 */}
+            {!isContractEstablished(project, user) && user?.role === 'INFLUENCER' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-3xl p-8 shadow-xl">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🔒</div>
+                  <h3 className="text-xl font-bold text-yellow-800 mb-2">広告主情報</h3>
+                  <p className="text-yellow-700">
+                    広告主・ブランドの詳細情報は、プロジェクト成約後に表示されます。<br />
+                    まずは案件内容をご確認いただき、ご興味があれば応募してください。
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {isContractEstablished(project, user) && (project.advertiserName || project.brandName || project.productName) && (
               <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">広告主・ブランド情報</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

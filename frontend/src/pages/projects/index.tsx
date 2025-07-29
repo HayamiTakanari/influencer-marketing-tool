@@ -6,6 +6,7 @@ import PageLayout from '../../components/shared/PageLayout';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
 import { checkAndRedirectForInvoice } from '../../utils/invoiceValidation';
+import { checkAndRedirectForNDA } from '../../utils/ndaValidation';
 
 interface AssignedInfluencer {
   id: string;
@@ -46,6 +47,11 @@ interface Project {
     avatar?: string;
   };
   projectDetails?: ProjectDetails;
+  // 企業情報
+  client?: {
+    companyName: string;
+    contactName?: string;
+  };
 }
 
 const ProjectsPage: React.FC = () => {
@@ -56,6 +62,20 @@ const ProjectsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+
+  // 成約状態を判定する関数
+  const isContractEstablished = (project: Project, currentUser: any): boolean => {
+    if (!project || !currentUser) return false;
+    
+    // インフルエンサーの場合、自分がマッチングされており、かつプロジェクトが進行中以上の状態
+    if (currentUser.role === 'INFLUENCER') {
+      return project.matchedInfluencer?.id === currentUser.id && 
+             (project.status === 'IN_PROGRESS' || project.status === 'COMPLETED');
+    }
+    
+    // 企業の場合は常に表示
+    return true;
+  };
 
   const statusOptions = [
     { value: 'all', label: 'すべて', color: 'bg-gray-100 text-gray-800' },
@@ -115,6 +135,10 @@ const ProjectsPage: React.FC = () => {
               id: 'influencer1',
               displayName: 'あなた',
             },
+            client: {
+              companyName: '株式会社ビューティーラボ',
+              contactName: '田中様'
+            },
           },
           {
             id: '2',
@@ -122,7 +146,7 @@ const ProjectsPage: React.FC = () => {
             description: '春の新作ファッションアイテムを着用していただける方を募集',
             category: 'ファッション',
             budget: 300000,
-            status: 'IN_PROGRESS',
+            status: 'MATCHED',
             targetPlatforms: ['Instagram', 'TikTok'],
             targetPrefecture: '全国',
             targetAgeMin: 18,
@@ -136,6 +160,10 @@ const ProjectsPage: React.FC = () => {
             matchedInfluencer: {
               id: 'influencer1',
               displayName: 'あなた',
+            },
+            client: {
+              companyName: 'ファッション株式会社',
+              contactName: '佐藤様'
             },
           },
         ];
@@ -308,6 +336,28 @@ const ProjectsPage: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-gray-600 mb-2">{project.description}</p>
+                    
+                    {/* 企業情報の表示制御 */}
+                    {isContractEstablished(project, user) && project.client && (
+                      <div className="mb-2">
+                        <div className="inline-flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full">
+                          <span className="text-blue-600 text-sm">🏢</span>
+                          <span className="text-blue-700 text-sm font-medium">{project.client.companyName}</span>
+                          {project.client.contactName && (
+                            <span className="text-blue-600 text-sm">({project.client.contactName})</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!isContractEstablished(project, user) && user?.role === 'INFLUENCER' && (
+                      <div className="mb-2">
+                        <div className="inline-flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
+                          <span className="text-gray-500 text-sm">🔒</span>
+                          <span className="text-gray-600 text-sm">企業情報は成約後に表示されます</span>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span>📅 {formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
                       <span>💰 {formatPrice(project.budget)}</span>
@@ -320,6 +370,10 @@ const ProjectsPage: React.FC = () => {
                     {/* チャットボタン - 全プロジェクトで表示 */}
                     <Button
                       onClick={() => {
+                        // NDAチェック（企業・インフルエンサー両方）
+                        if (!checkAndRedirectForNDA(user, router)) {
+                          return;
+                        }
                         // インフルエンサーの場合はインボイス情報チェック
                         if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
                           return;
@@ -340,7 +394,13 @@ const ProjectsPage: React.FC = () => {
                       )}
                     </Button>
                     <Button
-                      onClick={() => router.push(`/project-detail?id=${project.id}`)}
+                      onClick={() => {
+                        // NDAチェック（企業・インフルエンサー両方）
+                        if (!checkAndRedirectForNDA(user, router)) {
+                          return;
+                        }
+                        router.push(`/project-detail?id=${project.id}`);
+                      }}
                       variant="primary"
                       size="md"
                     >

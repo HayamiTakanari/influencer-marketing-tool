@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import Select from 'react-select';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { searchInfluencers, getCategories, getPrefectures } from '../services/api';
-import { Influencer, Platform, Gender } from '../types';
+import { Influencer, Platform, Gender, WorkingStatus } from '../types';
 
 interface SearchFilters {
   query: string;
@@ -27,6 +27,19 @@ const InfluencerSearch: React.FC = () => {
   const [page, setPage] = useState(1);
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [hasMore, setHasMore] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [favoriteInfluencers, setFavoriteInfluencers] = useState<string[]>([]);
+  const [updatingFavorite, setUpdatingFavorite] = useState<string | null>(null);
+
+  const getWorkingStatusInfo = (status?: WorkingStatus) => {
+    const statusMap = {
+      [WorkingStatus.AVAILABLE]: { label: '対応可能', color: 'bg-green-100 text-green-800', icon: '✅' },
+      [WorkingStatus.BUSY]: { label: '多忙', color: 'bg-yellow-100 text-yellow-800', icon: '⏰' },
+      [WorkingStatus.UNAVAILABLE]: { label: '対応不可', color: 'bg-red-100 text-red-800', icon: '❌' },
+      [WorkingStatus.BREAK]: { label: '休暇中', color: 'bg-blue-100 text-blue-800', icon: '🏖️' }
+    };
+    return statusMap[status || WorkingStatus.AVAILABLE] || statusMap[WorkingStatus.AVAILABLE];
+  };
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -43,6 +56,20 @@ const InfluencerSearch: React.FC = () => {
     queryFn: () => searchInfluencers({ ...filters, page }),
     enabled: true,
   });
+
+  // ユーザー情報とお気に入りリストの取得
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      
+      // 企業ユーザーの場合のみお気に入りリストを取得
+      if (parsedUser.role === 'CLIENT' || parsedUser.role === 'COMPANY') {
+        setFavoriteInfluencers(parsedUser.favoriteInfluencers || []);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (searchResult) {
@@ -63,6 +90,49 @@ const InfluencerSearch: React.FC = () => {
   const loadMore = () => {
     if (hasMore && !isLoading) {
       setPage(prev => prev + 1);
+    }
+  };
+
+  const toggleFavorite = async (influencerId: string) => {
+    if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) return;
+    
+    setUpdatingFavorite(influencerId);
+    
+    try {
+      const isFavorited = favoriteInfluencers.includes(influencerId);
+      let updatedFavorites;
+      
+      if (isFavorited) {
+        // お気に入りから削除
+        updatedFavorites = favoriteInfluencers.filter(id => id !== influencerId);
+      } else {
+        // お気に入りに追加
+        updatedFavorites = [...favoriteInfluencers, influencerId];
+      }
+      
+      // TODO: 実際のAPI呼び出し
+      // const { updateFavorites } = await import('../services/api');
+      // await updateFavorites(updatedFavorites);
+      
+      // モック処理
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // ローカル状態を更新
+      setFavoriteInfluencers(updatedFavorites);
+      
+      // ローカルストレージのユーザー情報も更新
+      const updatedUser = {
+        ...user,
+        favoriteInfluencers: updatedFavorites
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+      alert('お気に入りの更新に失敗しました。');
+    } finally {
+      setUpdatingFavorite(null);
     }
   };
 
@@ -301,7 +371,14 @@ const InfluencerSearch: React.FC = () => {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
               {influencers.map((influencer) => (
-                <InfluencerCard key={influencer.id} influencer={influencer} />
+                <InfluencerCard 
+                  key={influencer.id} 
+                  influencer={influencer}
+                  isFavorited={favoriteInfluencers.includes(influencer.id)}
+                  onToggleFavorite={toggleFavorite}
+                  isUpdating={updatingFavorite === influencer.id}
+                  showFavoriteButton={user?.role === 'CLIENT' || user?.role === 'COMPANY'}
+                />
               ))}
             </div>
           </InfiniteScroll>
@@ -311,7 +388,13 @@ const InfluencerSearch: React.FC = () => {
   );
 };
 
-const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) => {
+const InfluencerCard: React.FC<{ 
+  influencer: Influencer; 
+  isFavorited: boolean; 
+  onToggleFavorite: (id: string) => void; 
+  isUpdating: boolean;
+  showFavoriteButton: boolean;
+}> = ({ influencer, isFavorited, onToggleFavorite, isUpdating, showFavoriteButton }) => {
   const getPlatformIcon = (platform: Platform) => {
     switch (platform) {
       case 'INSTAGRAM':
@@ -335,11 +418,40 @@ const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) =>
             {influencer.displayName.charAt(0)}
           </span>
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {influencer.displayName}
-          </h3>
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {influencer.displayName}
+            </h3>
+            <div className="flex items-center space-x-2">
+              {showFavoriteButton && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(influencer.id);
+                  }}
+                  disabled={isUpdating}
+                  className={`p-2 rounded-full transition-colors ${
+                    isFavorited 
+                      ? 'text-red-500 hover:text-red-600 bg-red-50' 
+                      : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                  } ${isUpdating ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                  title={isFavorited ? 'お気に入りから削除' : 'お気に入りに追加'}
+                >
+                  {isUpdating ? '⏳' : (isFavorited ? '❤️' : '🤍')}
+                </button>
+              )}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getWorkingStatusInfo(influencer.workingStatus).color}`}>
+                {getWorkingStatusInfo(influencer.workingStatus).icon} {getWorkingStatusInfo(influencer.workingStatus).label}
+              </span>
+            </div>
+          </div>
           <p className="text-sm text-gray-600">{influencer.prefecture}</p>
+          {influencer.workingStatusMessage && influencer.workingStatus !== WorkingStatus.AVAILABLE && (
+            <p className="text-xs text-gray-500 mt-1 italic">
+              {influencer.workingStatusMessage}
+            </p>
+          )}
         </div>
       </div>
 
@@ -378,8 +490,23 @@ const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) =>
         <div className="text-sm text-gray-600">
           ¥{influencer.priceMin?.toLocaleString()} - ¥{influencer.priceMax?.toLocaleString()}
         </div>
-        <button className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
-          詳細を見る
+        <button 
+          className={`px-4 py-2 text-sm rounded-md transition-colors ${
+            influencer.workingStatus === WorkingStatus.UNAVAILABLE || influencer.workingStatus === WorkingStatus.BREAK
+              ? 'bg-gray-400 text-gray-300 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
+          disabled={influencer.workingStatus === WorkingStatus.UNAVAILABLE || influencer.workingStatus === WorkingStatus.BREAK}
+          title={
+            influencer.workingStatus === WorkingStatus.UNAVAILABLE || influencer.workingStatus === WorkingStatus.BREAK
+              ? 'このインフルエンサーは現在対応不可です'
+              : '詳細を見る'
+          }
+        >
+          {influencer.workingStatus === WorkingStatus.UNAVAILABLE || influencer.workingStatus === WorkingStatus.BREAK
+            ? '対応不可'
+            : '詳細を見る'
+          }
         </button>
       </div>
     </div>

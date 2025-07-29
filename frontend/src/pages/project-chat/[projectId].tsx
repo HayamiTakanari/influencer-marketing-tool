@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { checkConteAlignment, AIContentCheckResult, ProjectInfo, ConteInfo } from '../../services/ai-content-check';
 import { checkYakujihoViolations, YakujihoCheckResult } from '../../services/yakujiho-checker';
 import { YakujihoHighlightedText, YakujihoCheckSummary } from '../../components/YakujihoHighlightedText';
+import { checkAndRedirectForNDA } from '../../utils/ndaValidation';
 
 interface Message {
   id: string;
@@ -162,6 +163,20 @@ const ProjectChatPage: React.FC = () => {
   const [showVideoForm, setShowVideoForm] = useState(false);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [videoDescription, setVideoDescription] = useState('');
+
+  // 成約状態を判定する関数
+  const isContractEstablished = (project: Project, currentUser: any): boolean => {
+    if (!project || !currentUser) return false;
+    
+    // インフルエンサーの場合、自分がマッチングされており、かつプロジェクトが進行中以上の状態
+    if (currentUser.role === 'INFLUENCER') {
+      return project.matchedInfluencer?.id === currentUser.id && 
+             (project.status === 'IN_PROGRESS' || project.status === 'COMPLETED');
+    }
+    
+    // 企業の場合は常に表示
+    return true;
+  };
   const [videoType, setVideoType] = useState<'initial' | 'revised'>('initial');
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
   const [proposedDate, setProposedDate] = useState('');
@@ -229,6 +244,11 @@ const ProjectChatPage: React.FC = () => {
 
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
+
+        // NDAチェック（企業・インフルエンサー両方）
+        if (!checkAndRedirectForNDA(parsedUser, router)) {
+          return;
+        }
 
         if (projectId && typeof projectId === 'string') {
           setLoading(true);
@@ -1210,7 +1230,14 @@ const ProjectChatPage: React.FC = () => {
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 mb-2">{project.title}</h2>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>企業: {project.client.companyName}</span>
+                    {/* 企業情報の表示制御 */}
+                    {isContractEstablished(project, user) ? (
+                      <span>企業: {project.client.companyName}</span>
+                    ) : user?.role === 'INFLUENCER' ? (
+                      <span>企業: 成約後に表示</span>
+                    ) : (
+                      <span>企業: {project.client.companyName}</span>
+                    )}
                     <span>•</span>
                     <span>インフルエンサー: {project.matchedInfluencer.displayName}</span>
                   </div>
