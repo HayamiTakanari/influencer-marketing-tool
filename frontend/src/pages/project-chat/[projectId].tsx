@@ -12,7 +12,7 @@ interface Message {
   content: string;
   createdAt: string;
   senderId: string;
-  messageType: 'text' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request';
+  messageType: 'text' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request' | 'direct_comment';
   sender: {
     id: string;
     role: 'CLIENT' | 'INFLUENCER';
@@ -100,6 +100,13 @@ interface Message {
       suggestion?: string;
     }[];
     confidence: number; // 0-100
+  };
+  directCommentData?: {
+    targetMessageId: string;
+    targetType: 'theme' | 'scene' | 'keyMessage' | 'duration';
+    targetId?: string;
+    targetContent: string;
+    comment: string;
   };
 }
 
@@ -213,6 +220,16 @@ const ProjectChatPage: React.FC = () => {
     themeRevision: null as any,
     durationRevision: null as any
   });
+
+  // 直接コメント機能
+  const [showDirectCommentForm, setShowDirectCommentForm] = useState(false);
+  const [directCommentTarget, setDirectCommentTarget] = useState<{
+    messageId: string;
+    targetType: 'theme' | 'scene' | 'keyMessage' | 'duration';
+    targetId?: string;
+    targetContent: string;
+  } | null>(null);
+  const [directComment, setDirectComment] = useState('');
   
   // 提出物一覧サイドパネル関連
   const [showSubmissionPanel, setShowSubmissionPanel] = useState(false);
@@ -924,6 +941,57 @@ const ProjectChatPage: React.FC = () => {
     const diffTime = deadline.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  // 直接コメント機能
+  const handleOpenDirectComment = (messageId: string, targetType: 'theme' | 'scene' | 'keyMessage' | 'duration', targetContent: string, targetId?: string) => {
+    setDirectCommentTarget({
+      messageId,
+      targetType,
+      targetId,
+      targetContent
+    });
+    setDirectComment('');
+    setShowDirectCommentForm(true);
+  };
+
+  const handleSubmitDirectComment = () => {
+    if (!directCommentTarget || !directComment.trim()) return;
+
+    const commentMessage: Message = {
+      id: Date.now().toString(),
+      content: `【${getTargetTypeLabel(directCommentTarget.targetType)}へのコメント】\n"${directCommentTarget.targetContent}"\n\n💬 ${directComment}`,
+      createdAt: new Date().toISOString(),
+      senderId: user.id,
+      messageType: 'direct_comment',
+      sender: {
+        id: user.id,
+        role: user.role,
+        displayName: user.role === 'CLIENT' ? project?.client.displayName || 'クライアント' : project?.matchedInfluencer.displayName || 'インフルエンサー'
+      },
+      directCommentData: {
+        targetMessageId: directCommentTarget.messageId,
+        targetType: directCommentTarget.targetType,
+        targetId: directCommentTarget.targetId,
+        targetContent: directCommentTarget.targetContent,
+        comment: directComment
+      }
+    };
+
+    setMessages(prev => [...prev, commentMessage]);
+    setShowDirectCommentForm(false);
+    setDirectCommentTarget(null);
+    setDirectComment('');
+  };
+
+  const getTargetTypeLabel = (type: string) => {
+    switch (type) {
+      case 'theme': return 'テーマ';
+      case 'scene': return 'シーン';
+      case 'keyMessage': return 'キーメッセージ';
+      case 'duration': return '動画の長さ';
+      default: return '項目';
+    }
   };
   
   // AIコンテンツチェック関数
@@ -1704,19 +1772,91 @@ const ProjectChatPage: React.FC = () => {
                                     className="mb-3"
                                   />
                                   
-                                  {/* ハイライト付きコンテンツ表示 */}
-                                  <div className="bg-white rounded p-3 border">
-                                    <YakujihoHighlightedText 
-                                      text={message.content}
-                                      violations={yakujihoResult.violations}
-                                      className="text-sm leading-relaxed"
-                                    />
-                                  </div>
-                                  
-                                  {/* 基本情報 */}
-                                  <div className="mt-3 pt-2 border-t border-purple-200 space-y-1">
-                                    <div><strong>目標時間:</strong> {message.conteData.targetDuration}秒</div>
-                                    <div><strong>シーン数:</strong> {message.conteData.scenes.length}シーン</div>
+                                  {/* 構成案詳細表示（コメント機能付き） */}
+                                  <div className="bg-white rounded p-3 border space-y-3">
+                                    {/* テーマ */}
+                                    <div className="flex items-start justify-between group">
+                                      <div className="flex-1">
+                                        <div className="text-xs font-semibold text-gray-600 mb-1">テーマ</div>
+                                        <div className="text-sm">{message.conteData.overallTheme}</div>
+                                      </div>
+                                      {user?.role === 'CLIENT' && (
+                                        <button
+                                          onClick={() => handleOpenDirectComment(message.id, 'theme', message.conteData.overallTheme)}
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
+                                          title="この項目にコメント"
+                                        >
+                                          💬
+                                        </button>
+                                      )}
+                                    </div>
+                                    
+                                    {/* 動画の長さ */}
+                                    <div className="flex items-start justify-between group">
+                                      <div className="flex-1">
+                                        <div className="text-xs font-semibold text-gray-600 mb-1">動画の長さ</div>
+                                        <div className="text-sm">{message.conteData.targetDuration}秒</div>
+                                      </div>
+                                      {user?.role === 'CLIENT' && (
+                                        <button
+                                          onClick={() => handleOpenDirectComment(message.id, 'duration', `${message.conteData.targetDuration}秒`)}
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
+                                          title="この項目にコメント"
+                                        >
+                                          💬
+                                        </button>
+                                      )}
+                                    </div>
+                                    
+                                    {/* シーン */}
+                                    <div>
+                                      <div className="text-xs font-semibold text-gray-600 mb-2">シーン構成</div>
+                                      <div className="space-y-2">
+                                        {message.conteData.scenes?.map((scene: any) => (
+                                          <div key={scene.id} className="flex items-start justify-between group bg-gray-50 rounded p-2">
+                                            <div className="flex-1">
+                                              <div className="text-xs font-medium text-gray-700 mb-1">シーン{scene.sceneNumber}</div>
+                                              <div className="text-sm">{scene.description}</div>
+                                              <div className="text-xs text-gray-500 mt-1">
+                                                {scene.duration}秒 / {scene.cameraAngle}
+                                              </div>
+                                            </div>
+                                            {user?.role === 'CLIENT' && (
+                                              <button
+                                                onClick={() => handleOpenDirectComment(message.id, 'scene', scene.description, scene.id)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
+                                                title="この項目にコメント"
+                                              >
+                                                💬
+                                              </button>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    
+                                    {/* キーメッセージ */}
+                                    <div>
+                                      <div className="text-xs font-semibold text-gray-600 mb-2">キーメッセージ</div>
+                                      <div className="space-y-1">
+                                        {message.conteData.keyMessages?.map((keyMessage: string, index: number) => (
+                                          <div key={index} className="flex items-start justify-between group bg-gray-50 rounded p-2">
+                                            <div className="flex-1">
+                                              <div className="text-sm">{keyMessage}</div>
+                                            </div>
+                                            {user?.role === 'CLIENT' && (
+                                              <button
+                                                onClick={() => handleOpenDirectComment(message.id, 'keyMessage', keyMessage, index.toString())}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
+                                                title="この項目にコメント"
+                                              >
+                                                💬
+                                              </button>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
                                 </>
                               );
@@ -1886,6 +2026,27 @@ const ProjectChatPage: React.FC = () => {
                     </div>
                   )}
                   
+                  {/* 直接コメントメッセージ */}
+                  {message.messageType === 'direct_comment' && message.directCommentData && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-blue-700">
+                        💬 {getTargetTypeLabel(message.directCommentData.targetType)}へのコメント
+                      </p>
+                      <div className="text-xs space-y-2 bg-blue-50 rounded p-3 border border-blue-200">
+                        {/* 引用部分 */}
+                        <div className="bg-white rounded p-2 border-l-4 border-blue-300">
+                          <div className="text-xs text-gray-600 mb-1">引用</div>
+                          <div className="text-gray-700">{message.directCommentData.targetContent}</div>
+                        </div>
+                        {/* コメント内容 */}
+                        <div className="bg-white rounded p-2">
+                          <div className="text-xs text-gray-600 mb-1">コメント</div>
+                          <div className="text-gray-700">{message.directCommentData.comment}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* 構成案修正指摘メッセージ */}
                   {message.messageType === 'conte_revision_request' && message.conteRevisionData && (
                     <div className="space-y-3">
@@ -2556,6 +2717,75 @@ const ProjectChatPage: React.FC = () => {
         )}
       </AnimatePresence>
 
+
+      {/* 直接コメントモーダル */}
+      <AnimatePresence>
+        {showDirectCommentForm && directCommentTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {getTargetTypeLabel(directCommentTarget.targetType)}にコメント
+                </h3>
+                <button
+                  onClick={() => setShowDirectCommentForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* 引用部分 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">対象項目</label>
+                <div className="bg-gray-50 rounded p-3 border-l-4 border-blue-300">
+                  <div className="text-sm text-gray-700">{directCommentTarget.targetContent}</div>
+                </div>
+              </div>
+
+              {/* コメント入力 */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">コメント内容</label>
+                <textarea
+                  value={directComment}
+                  onChange={(e) => setDirectComment(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
+                  placeholder="この項目について具体的にコメントしてください..."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowDirectCommentForm(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleSubmitDirectComment}
+                  disabled={!directComment.trim()}
+                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  コメントを送信
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 構成案修正指摘モーダル */}
       <AnimatePresence>
