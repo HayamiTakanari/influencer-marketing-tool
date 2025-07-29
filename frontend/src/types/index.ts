@@ -164,6 +164,14 @@ export interface Message {
     id: string;
     role: UserRole;
   };
+  messageType?: 'text' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request' | 'direct_comment';
+  directCommentData?: {
+    targetMessageId: string;
+    targetType: 'theme' | 'scene' | 'keyMessage' | 'duration';
+    targetId?: string;
+    targetContent: string;
+    comment: string;
+  };
 }
 
 export interface Transaction {
