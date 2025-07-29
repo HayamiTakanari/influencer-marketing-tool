@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
 import Select from 'react-select';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { searchInfluencers, getCategories, getPrefectures } from '../services/api';
@@ -395,6 +396,7 @@ const InfluencerCard: React.FC<{
   isUpdating: boolean;
   showFavoriteButton: boolean;
 }> = ({ influencer, isFavorited, onToggleFavorite, isUpdating, showFavoriteButton }) => {
+  const router = useRouter();
   const getPlatformIcon = (platform: Platform) => {
     switch (platform) {
       case 'INSTAGRAM':
@@ -491,6 +493,7 @@ const InfluencerCard: React.FC<{
           ¥{influencer.priceMin?.toLocaleString()} - ¥{influencer.priceMax?.toLocaleString()}
         </div>
         <button 
+          onClick={() => router.push(`/influencer/${influencer.id}`)}
           className={`px-4 py-2 text-sm rounded-md transition-colors ${
             influencer.workingStatus === WorkingStatus.UNAVAILABLE || influencer.workingStatus === WorkingStatus.BREAK
               ? 'bg-gray-400 text-gray-300 cursor-not-allowed'

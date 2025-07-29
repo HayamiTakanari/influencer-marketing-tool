@@ -641,7 +641,18 @@ const OpportunitiesPage: React.FC = () => {
             
             <h2 className="text-2xl font-bold mb-4 text-center">プロジェクトに応募</h2>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">{selectedProject.title}</h3>
-            <p className="text-gray-600 mb-6">{selectedProject.client.companyName}</p>
+            <p className="text-gray-600 mb-4">{selectedProject.client.companyName}</p>
+            
+            {/* 応募後のフローについて */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start space-x-2">
+                <span className="text-green-600">✅</span>
+                <div className="text-sm text-green-800">
+                  <p className="font-semibold mb-1">応募後のフローについて</p>
+                  <p>応募が承認されると、企業側とのチャット機能が利用可能になります。詳細な打ち合わせはチャットで行えます。</p>
+                </div>
+              </div>
+            </div>
             
             <form onSubmit={handleApplyToProject} className="space-y-4">
               <div>

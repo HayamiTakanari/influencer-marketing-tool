@@ -67,9 +67,7 @@ const InfluencerDetailPage: React.FC = () => {
   const [influencer, setInfluencer] = useState<InfluencerDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showContactForm, setShowContactForm] = useState(false);
-  const [contactMessage, setContactMessage] = useState('');
-  const [contactLoading, setContactLoading] = useState(false);
+  // コンタクト機能は削除されました
   const router = useRouter();
   const { id } = router.query;
 
@@ -108,26 +106,7 @@ const InfluencerDetailPage: React.FC = () => {
     }
   };
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setContactLoading(true);
-    
-    try {
-      // TODO: 本来はこのインフルエンサーとのチャットルームを作成してメッセージを送信する
-      // 今回は簡単にチャットページに移動してコンタクトを促す
-      localStorage.setItem('pendingContactMessage', JSON.stringify({
-        influencerId: influencer?.id,
-        message: contactMessage
-      }));
-      
-      router.push('/chat');
-    } catch (err: any) {
-      console.error('Contact error:', err);
-      alert('メッセージの送信に失敗しました。');
-    } finally {
-      setContactLoading(false);
-    }
-  };
+  // handleContactSubmit 関数は削除されました
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ja-JP', {
@@ -402,24 +381,33 @@ const InfluencerDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => router.push('/chat')}
-                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-                >
-                  💬 チャットする
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowContactForm(true)}
-                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-                >
-                  📧 コンタクトフォーム
-                </motion.button>
+              {/* コンタクト方法について */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mt-6">
+                <h3 className="font-semibold text-blue-900 mb-2 flex items-center">
+                  <span className="mr-2">💡</span>
+                  このインフルエンサーとのコンタクト方法
+                </h3>
+                <div className="space-y-3 text-blue-800">
+                  <p className="text-sm">
+                    インフルエンサーとの直接的なチャット・コンタクトは、プロジェクトベースでのみ可能です。
+                  </p>
+                  <ol className="list-decimal list-inside text-sm space-y-2 ml-4">
+                    <li>まずプロジェクトを作成してください</li>
+                    <li>作成したプロジェクトに適したインフルエンサーをリストアップ</li>
+                    <li>インフルエンサーが新着オファーから応募</li>
+                    <li>応募があった時点でチャット機能が利用可能になります</li>
+                  </ol>
+                  <div className="mt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => router.push('/projects/create')}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      プロジェクトを作成する →
+                    </motion.button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -739,51 +727,7 @@ const InfluencerDetailPage: React.FC = () => {
         )}
       </div>
 
-      {/* コンタクトフォーム */}
-      {showContactForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full relative"
-          >
-            <button
-              onClick={() => setShowContactForm(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
-            
-            <h2 className="text-2xl font-bold mb-6 text-center">コンタクトメッセージ</h2>
-            
-            <form onSubmit={handleContactSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {influencer.displayName}さんへのメッセージ
-                </label>
-                <textarea
-                  value={contactMessage}
-                  onChange={(e) => setContactMessage(e.target.value)}
-                  required
-                  rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="コラボレーションの内容や期待する成果について詳しく記載してください..."
-                />
-              </div>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={contactLoading}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {contactLoading ? 'メッセージ送信中...' : 'メッセージを送信'}
-              </motion.button>
-            </form>
-          </motion.div>
-        </div>
-      )}
+      {/* コンタクトフォームは削除されました */}
     </div>
   );
 };
