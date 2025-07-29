@@ -1784,7 +1784,7 @@ const ProjectChatPage: React.FC = () => {
                                         <button
                                           onClick={() => handleOpenDirectComment(message.id, 'theme', message.conteData.overallTheme)}
                                           className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
-                                          title="この項目にコメント"
+                                          title="この項目にコメントする"
                                         >
                                           💬
                                         </button>
@@ -1801,7 +1801,7 @@ const ProjectChatPage: React.FC = () => {
                                         <button
                                           onClick={() => handleOpenDirectComment(message.id, 'duration', `${message.conteData.targetDuration}秒`)}
                                           className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
-                                          title="この項目にコメント"
+                                          title="この項目にコメントする"
                                         >
                                           💬
                                         </button>
@@ -1825,7 +1825,7 @@ const ProjectChatPage: React.FC = () => {
                                               <button
                                                 onClick={() => handleOpenDirectComment(message.id, 'scene', scene.description, scene.id)}
                                                 className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
-                                                title="この項目にコメント"
+                                                title="この項目にコメントする"
                                               >
                                                 💬
                                               </button>
@@ -1848,7 +1848,7 @@ const ProjectChatPage: React.FC = () => {
                                               <button
                                                 onClick={() => handleOpenDirectComment(message.id, 'keyMessage', keyMessage, index.toString())}
                                                 className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-blue-500 hover:text-blue-700"
-                                                title="この項目にコメント"
+                                                title="この項目にコメントする"
                                               >
                                                 💬
                                               </button>
