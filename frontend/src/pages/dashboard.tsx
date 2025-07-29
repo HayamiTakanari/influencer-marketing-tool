@@ -151,18 +151,18 @@ const DashboardPage: React.FC = () => {
         gradient: 'from-emerald-600 to-green-600'
       },
       {
-        icon: '❤️',
+        icon: '⭐',
         title: 'お気に入り',
         value: user?.favoriteInfluencers?.length?.toString() || '0',
         description: '登録したインフルエンサー',
         link: '/favorites',
         linkText: '管理する',
-        gradient: 'from-pink-500 to-red-500'
+        gradient: 'from-yellow-500 to-orange-500'
       }
     ],
     quickActions: [
       { title: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
-      { title: 'お気に入り', href: '/favorites', icon: '❤️' },
+      { title: 'お気に入り', href: '/favorites', icon: '⭐' },
       { title: '支払い履歴', href: '/payments/history', icon: '💳' },
       { title: '会社プロフィール', href: '/company-profile', icon: '🏢' }
     ]

@@ -433,12 +433,12 @@ const InfluencerCard: React.FC<{
                   disabled={isUpdating}
                   className={`p-2 rounded-full transition-colors ${
                     isFavorited 
-                      ? 'text-red-500 hover:text-red-600 bg-red-50' 
-                      : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                      ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50' 
+                      : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50'
                   } ${isUpdating ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                   title={isFavorited ? 'お気に入りから削除' : 'お気に入りに追加'}
                 >
-                  {isUpdating ? '⏳' : (isFavorited ? '❤️' : '🤍')}
+                  {isUpdating ? '⏳' : (isFavorited ? '⭐' : '☆')}
                 </button>
               )}
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getWorkingStatusInfo(influencer.workingStatus).color}`}>

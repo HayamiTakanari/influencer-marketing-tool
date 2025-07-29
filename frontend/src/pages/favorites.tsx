@@ -197,7 +197,7 @@ const FavoritesPage: React.FC = () => {
       >
         {favoriteInfluencers.length === 0 ? (
           <Card className="text-center py-16">
-            <div className="text-6xl mb-4">❤️</div>
+            <div className="text-6xl mb-4">⭐</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">お気に入りインフルエンサーがありません</h3>
             <p className="text-gray-600 mb-6">
               インフルエンサー検索から気になるクリエイターをお気に入りに追加してみましょう。
@@ -239,10 +239,10 @@ const FavoritesPage: React.FC = () => {
                     <button
                       onClick={() => removeFavorite(influencer.id)}
                       disabled={updatingFavorite === influencer.id}
-                      className="absolute top-4 right-4 p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                      className="absolute top-4 right-4 p-2 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-full transition-colors"
                       title="お気に入りから削除"
                     >
-                      {updatingFavorite === influencer.id ? '⏳' : '❤️'}
+                      {updatingFavorite === influencer.id ? '⏳' : '⭐'}
                     </button>
 
                     <div className="flex items-center space-x-4 mb-4">
