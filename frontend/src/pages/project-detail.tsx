@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { checkAndRedirectForInvoice } from '../utils/invoiceValidation';
 
 interface Application {
   id: string;
@@ -561,7 +562,13 @@ const ProjectDetailPage: React.FC = () => {
               {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS' || project.status === 'COMPLETED') && project.matchedInfluencer && (
                 <div className="flex space-x-2">
                   <motion.button
-                    onClick={() => router.push(`/project-chat/${project.id}`)}
+                    onClick={() => {
+                      // インフルエンサーの場合はインボイス情報チェック
+                      if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
+                        return;
+                      }
+                      router.push(`/project-chat/${project.id}`);
+                    }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="px-4 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors shadow-lg flex items-center space-x-2"
@@ -635,7 +642,13 @@ const ProjectDetailPage: React.FC = () => {
                 </div>
                 <div className="flex space-x-2">
                   <button 
-                    onClick={() => router.push(`/project-chat/${project.id}`)}
+                    onClick={() => {
+                      // インフルエンサーの場合はインボイス情報チェック
+                      if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
+                        return;
+                      }
+                      router.push(`/project-chat/${project.id}`);
+                    }}
                     className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
                   >
                     💬 チャット

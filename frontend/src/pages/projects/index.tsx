@@ -5,6 +5,7 @@ import Link from 'next/link';
 import PageLayout from '../../components/shared/PageLayout';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
+import { checkAndRedirectForInvoice } from '../../utils/invoiceValidation';
 
 interface AssignedInfluencer {
   id: string;
@@ -318,7 +319,13 @@ const ProjectsPage: React.FC = () => {
                     
                     {/* チャットボタン - 全プロジェクトで表示 */}
                     <Button
-                      onClick={() => router.push(`/project-chat/${project.id}`)}
+                      onClick={() => {
+                        // インフルエンサーの場合はインボイス情報チェック
+                        if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
+                          return;
+                        }
+                        router.push(`/project-chat/${project.id}`);
+                      }}
                       variant="secondary"
                       size="md"
                       icon="💬"

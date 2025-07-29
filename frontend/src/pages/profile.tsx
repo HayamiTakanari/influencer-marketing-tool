@@ -5,6 +5,7 @@ import Link from 'next/link';
 import PageLayout from '../components/shared/PageLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
+import { validateInfluencerInvoiceInfo } from '../utils/invoiceValidation';
 
 interface SocialAccount {
   id: string;
@@ -51,7 +52,7 @@ const ProfilePage: React.FC = () => {
   const [error, setError] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [syncingAccountId, setSyncingAccountId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'portfolio'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'portfolio' | 'invoice'>('basic');
   const [showSocialForm, setShowSocialForm] = useState(false);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -87,6 +88,19 @@ const ProfilePage: React.FC = () => {
     platform: ''
   });
 
+  const [invoiceFormData, setInvoiceFormData] = useState({
+    companyName: '',
+    registrationNumber: '',
+    postalCode: '',
+    address: '',
+    phoneNumber: '',
+    bankName: '',
+    branchName: '',
+    accountType: '普通',
+    accountNumber: '',
+    accountName: ''
+  });
+
   const categories = [
     '美容', 'ファッション', 'ライフスタイル', '料理', '旅行', 
     'フィットネス', 'テクノロジー', 'エンタメ', 'ビジネス', 'その他'
@@ -118,11 +132,17 @@ const ProfilePage: React.FC = () => {
         return;
       }
       
+      // URLパラメータでタブを切り替え
+      const { tab } = router.query;
+      if (tab && ['basic', 'social', 'portfolio', 'invoice'].includes(tab as string)) {
+        setActiveTab(tab as 'basic' | 'social' | 'portfolio' | 'invoice');
+      }
+      
       fetchProfile();
     } else {
       router.push('/login');
     }
-  }, [router]);
+  }, [router, router.query]);
 
   const fetchProfile = async () => {
     try {
@@ -344,6 +364,62 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleInvoiceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    
+    try {
+      // フォームデータの検証
+      const requiredFields = ['companyName', 'address', 'phoneNumber', 'bankName', 'branchName', 'accountNumber', 'accountName'];
+      const missingFields = requiredFields.filter(field => !invoiceFormData[field as keyof typeof invoiceFormData]?.toString().trim());
+      
+      if (missingFields.length > 0) {
+        alert('以下の必須項目を入力してください。');
+        return;
+      }
+      
+      // TODO: 実際のAPI呼び出しでインボイス情報を保存
+      // const { updateInvoiceInfo } = await import('../services/api');
+      // await updateInvoiceInfo(invoiceFormData);
+      
+      // モック処理
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // ユーザー情報を更新
+      const updatedUser = {
+        ...user,
+        hasInvoiceInfo: true,
+        invoiceInfo: {
+          companyName: invoiceFormData.companyName,
+          registrationNumber: invoiceFormData.registrationNumber,
+          postalCode: invoiceFormData.postalCode,
+          address: invoiceFormData.address,
+          phoneNumber: invoiceFormData.phoneNumber,
+          bankInfo: {
+            bankName: invoiceFormData.bankName,
+            branchName: invoiceFormData.branchName,
+            accountType: invoiceFormData.accountType,
+            accountNumber: invoiceFormData.accountNumber,
+            accountName: invoiceFormData.accountName
+          }
+        }
+      };
+      
+      // localStorageとstateを更新
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      
+      alert('インボイス情報が正常に保存されました。');
+      
+    } catch (err: any) {
+      console.error('Error saving invoice info:', err);
+      setError('インボイス情報の保存に失敗しました。');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ja-JP', {
       style: 'currency',
@@ -401,7 +477,8 @@ const ProfilePage: React.FC = () => {
               {[
                 { key: 'basic', label: '基本情報', icon: '👤' },
                 { key: 'social', label: 'SNSアカウント', icon: '📱' },
-                { key: 'portfolio', label: 'ポートフォリオ', icon: '📊' }
+                { key: 'portfolio', label: 'ポートフォリオ', icon: '📊' },
+                ...(user?.role === 'INFLUENCER' ? [{ key: 'invoice', label: 'インボイス情報', icon: '📜' }] : [])
               ].map(tab => (
                 <motion.button
                   key={tab.key}
@@ -1041,6 +1118,185 @@ const ProfilePage: React.FC = () => {
           </motion.div>
         </div>
       )}
+
+        {/* インボイス情報タブ */}
+        {activeTab === 'invoice' && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">インボイス情報</h2>
+                <div className="flex items-center space-x-2">
+                  {(() => {
+                    const validation = validateInfluencerInvoiceInfo({ ...user, hasInvoiceInfo: true, invoiceInfo: invoiceFormData });
+                    return (
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        validation.isValid 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {validation.isValid ? '登録済み' : '未登録'}
+                      </span>
+                    );
+                  })()} 
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <span className="text-yellow-600 text-xl">⚠️</span>
+                  <div>
+                    <h3 className="font-semibold text-yellow-800 mb-1">インボイス情報の登録が必須です</h3>
+                    <p className="text-yellow-700 text-sm">
+                      プロジェクトのチャット機能を利用するためには、インボイス情報の登録が必要です。以下の情報を正確に入力してください。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleInvoiceSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">会社名/屋号 *</label>
+                    <input
+                      type="text"
+                      value={invoiceFormData.companyName}
+                      onChange={(e) => setInvoiceFormData({...invoiceFormData, companyName: e.target.value})}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="例: 株式会社サンプル / サンプル屋"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">適格請求書発行事業者登録番号</label>
+                    <input
+                      type="text"
+                      value={invoiceFormData.registrationNumber}
+                      onChange={(e) => setInvoiceFormData({...invoiceFormData, registrationNumber: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="T123456789012"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">郵便番号</label>
+                    <input
+                      type="text"
+                      value={invoiceFormData.postalCode}
+                      onChange={(e) => setInvoiceFormData({...invoiceFormData, postalCode: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="123-4567"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">住所 *</label>
+                    <input
+                      type="text"
+                      value={invoiceFormData.address}
+                      onChange={(e) => setInvoiceFormData({...invoiceFormData, address: e.target.value})}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="東京都渋谷区..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">電話番号 *</label>
+                    <input
+                      type="tel"
+                      value={invoiceFormData.phoneNumber}
+                      onChange={(e) => setInvoiceFormData({...invoiceFormData, phoneNumber: e.target.value})}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="03-1234-5678"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">銀行口座情報</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">銀行名 *</label>
+                      <input
+                        type="text"
+                        value={invoiceFormData.bankName}
+                        onChange={(e) => setInvoiceFormData({...invoiceFormData, bankName: e.target.value})}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="例: 三菱UFJ銀行"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">支店名 *</label>
+                      <input
+                        type="text"
+                        value={invoiceFormData.branchName}
+                        onChange={(e) => setInvoiceFormData({...invoiceFormData, branchName: e.target.value})}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="例: 渋谷支店"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">口座種別 *</label>
+                      <select
+                        value={invoiceFormData.accountType}
+                        onChange={(e) => setInvoiceFormData({...invoiceFormData, accountType: e.target.value})}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      >
+                        <option value="普通">普通</option>
+                        <option value="当座">当座</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">口座番号 *</label>
+                      <input
+                        type="text"
+                        value={invoiceFormData.accountNumber}
+                        onChange={(e) => setInvoiceFormData({...invoiceFormData, accountNumber: e.target.value})}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="1234567"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">口座名義 *</label>
+                      <input
+                        type="text"
+                        value={invoiceFormData.accountName}
+                        onChange={(e) => setInvoiceFormData({...invoiceFormData, accountName: e.target.value})}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="タナカ タロウ"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  loading={saving}
+                  size="xl"
+                  className="w-full"
+                >
+                  インボイス情報を保存
+                </Button>
+              </form>
+            </Card>
+          </motion.div>
+        )}
     </PageLayout>
   );
 };

@@ -64,12 +64,27 @@ export interface Influencer {
   priceMin?: number;
   priceMax?: number;
   isRegistered: boolean;
+  hasInvoiceInfo: boolean;  // インボイス情報登録状況
   lastUpdated: string;
   createdAt: string;
   updatedAt: string;
   user: User;
   socialAccounts: SocialAccount[];
   portfolio: Portfolio[];
+  invoiceInfo?: {
+    companyName?: string;    // 会社名/屋号
+    registrationNumber?: string;  // 適格請求書発行事業者登録番号
+    postalCode?: string;     // 郵便番号
+    address?: string;        // 住所
+    phoneNumber?: string;    // 電話番号
+    bankInfo?: {
+      bankName: string;      // 銀行名
+      branchName: string;    // 支店名
+      accountType: string;   // 口座種別
+      accountNumber: string; // 口座番号
+      accountName: string;   // 口座名義
+    };
+  };
 }
 
 export interface SocialAccount {
