@@ -29,24 +29,16 @@ export const verifySNSConnections = async (
 
     // インフルエンサーのみチェック
     if (user?.role === 'INFLUENCER' && user.influencer) {
-      // 必要なプラットフォーム
-      const requiredPlatforms = ['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER'];
-      
       // 連携済みのプラットフォーム
       const connectedPlatforms = user.influencer.socialAccounts
         .filter(account => account.isConnected)
         .map(account => account.platform);
 
-      // 未連携のプラットフォームを確認
-      const missingPlatforms = requiredPlatforms.filter(
-        platform => !connectedPlatforms.includes(platform as any)
-      );
-
-      if (missingPlatforms.length > 0) {
+      // 少なくとも1つのSNSアカウントが連携されているかチェック
+      if (connectedPlatforms.length === 0) {
         return res.status(403).json({
           error: 'SNSアカウントの連携が必要です',
-          missingPlatforms,
-          message: `以下のプラットフォームの連携が必要です: ${missingPlatforms.join(', ')}`,
+          message: '案件に応募するには、少なくとも1つのSNSアカウントを連携してください',
         });
       }
     }

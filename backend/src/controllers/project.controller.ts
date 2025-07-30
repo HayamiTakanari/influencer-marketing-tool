@@ -72,6 +72,22 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
       where.targetPrefecture = query.prefecture;
     }
 
+    // インフルエンサーが連携しているプラットフォームを取得
+    const connectedPlatforms = influencer.socialAccounts
+      .filter(acc => acc.isConnected)
+      .map(acc => acc.platform);
+
+    // 連携しているプラットフォームを使用する案件のみ表示
+    if (connectedPlatforms.length > 0) {
+      where.OR = [
+        { targetPlatforms: { isEmpty: true } }, // プラットフォーム指定なしの案件
+        { targetPlatforms: { hasSome: connectedPlatforms } } // 連携済みプラットフォームを含む案件
+      ];
+    } else {
+      // 連携していない場合はプラットフォーム指定なしの案件のみ
+      where.targetPlatforms = { isEmpty: true };
+    }
+
     const [projects, total] = await Promise.all([
       prisma.project.findMany({
         where,
@@ -124,11 +140,13 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
         matchesProfile = false;
       }
       
-      // Check platform requirements
+      // Check platform requirements - インフルエンサーが連携していないSNSを使用する案件は除外
       if (project.targetPlatforms.length > 0) {
-        const influencerPlatforms = influencer.socialAccounts.map(acc => acc.platform);
+        const connectedPlatforms = influencer.socialAccounts
+          .filter(acc => acc.isConnected)
+          .map(acc => acc.platform);
         const hasMatchingPlatform = project.targetPlatforms.some(platform => 
-          influencerPlatforms.includes(platform)
+          connectedPlatforms.includes(platform)
         );
         if (!hasMatchingPlatform) {
           matchesProfile = false;
