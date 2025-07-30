@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { FaInstagram, FaYoutube, FaTiktok, FaTwitter, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import PageLayout from '../components/shared/PageLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
 import { validateInfluencerInvoiceInfo } from '../utils/invoiceValidation';
-import { WorkingStatus } from '../types';
+import { WorkingStatus, Platform } from '../types';
+import api from '../services/api';
 
 interface SocialAccount {
   id: string;
@@ -16,6 +18,8 @@ interface SocialAccount {
   followerCount: number;
   engagementRate: number;
   isVerified: boolean;
+  isConnected?: boolean;
+  lastSynced?: string;
 }
 
 interface Portfolio {
@@ -57,6 +61,9 @@ const ProfilePage: React.FC = () => {
   const [showSocialForm, setShowSocialForm] = useState(false);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [oauthConnectionStatus, setOauthConnectionStatus] = useState<any[]>([]);
+  const [connecting, setConnecting] = useState<Platform | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -161,11 +168,51 @@ const ProfilePage: React.FC = () => {
     }
   }, [router, router.query]);
 
+  // OAuthコールバック処理
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const { code, state, platform } = router.query;
+      
+      if (code && state && platform) {
+        try {
+          const response = await api.post(`/api/oauth/callback/${platform}`, {
+            code,
+            state,
+          });
+
+          if (response.data.success) {
+            setMessage({
+              type: 'success',
+              text: `${platform}の連携が完了しました！`,
+            });
+            fetchOAuthConnectionStatus();
+            fetchProfile(); // プロファイルも再取得
+          }
+        } catch (error: any) {
+          setMessage({
+            type: 'error',
+            text: error.response?.data?.error || '連携中にエラーが発生しました',
+          });
+        }
+        
+        // URLからパラメータを削除
+        router.replace('/profile?tab=social');
+      }
+    };
+
+    handleOAuthCallback();
+  }, [router.query]);
+
   const fetchProfile = async () => {
     try {
       const { getMyProfile } = await import('../services/api');
       const result = await getMyProfile();
       setProfile(result);
+      
+      // OAuth状態も取得
+      if (user?.role === 'INFLUENCER') {
+        fetchOAuthConnectionStatus();
+      }
       
       // フォームデータを設定
       if (result) {
@@ -192,6 +239,91 @@ const ProfilePage: React.FC = () => {
       setError('プロフィールの取得に失敗しました。');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // OAuth連携状態を取得
+  const fetchOAuthConnectionStatus = async () => {
+    try {
+      const response = await api.get('/api/oauth/status');
+      setOauthConnectionStatus(response.data.connectionStatus || []);
+    } catch (error) {
+      console.error('Failed to fetch OAuth status:', error);
+    }
+  };
+
+  // OAuth連携開始
+  const handleOAuthConnect = async (platform: Platform) => {
+    setConnecting(platform);
+    setMessage(null);
+
+    try {
+      const response = await api.get(`/api/oauth/auth/${platform.toLowerCase()}`);
+      
+      if (response.data.authUrl) {
+        // OAuth認証ページへリダイレクト
+        window.location.href = response.data.authUrl;
+      }
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.error || '認証の開始に失敗しました',
+      });
+      setConnecting(null);
+    }
+  };
+
+  // OAuth連携解除
+  const handleOAuthDisconnect = async (platform: Platform) => {
+    if (!confirm(`${platform}の連携を解除してもよろしいですか？`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/api/oauth/disconnect/${platform.toLowerCase()}`);
+      setMessage({
+        type: 'success',
+        text: `${platform}の連携を解除しました`,
+      });
+      fetchOAuthConnectionStatus();
+      fetchProfile(); // プロファイルも再取得
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.error || '連携解除に失敗しました',
+      });
+    }
+  };
+
+  // SNSプラットフォームのアイコンを取得
+  const getSNSPlatformIcon = (platform: Platform) => {
+    switch (platform) {
+      case Platform.INSTAGRAM:
+        return <FaInstagram className="text-2xl" />;
+      case Platform.YOUTUBE:
+        return <FaYoutube className="text-2xl" />;
+      case Platform.TIKTOK:
+        return <FaTiktok className="text-2xl" />;
+      case Platform.TWITTER:
+        return <FaTwitter className="text-2xl" />;
+      default:
+        return null;
+    }
+  };
+
+  // SNSプラットフォームの色を取得
+  const getSNSPlatformColor = (platform: Platform) => {
+    switch (platform) {
+      case Platform.INSTAGRAM:
+        return 'bg-gradient-to-r from-purple-500 to-pink-500';
+      case Platform.YOUTUBE:
+        return 'bg-red-600';
+      case Platform.TIKTOK:
+        return 'bg-black';
+      case Platform.TWITTER:
+        return 'bg-blue-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
@@ -769,7 +901,115 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* OAuth連携セクション */}
+              {user?.role === 'INFLUENCER' && (
+                <>
+                  {/* 案件応募の条件説明 */}
+                  <div className={`mb-6 p-4 rounded-lg ${
+                    oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length 
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    <div className="flex items-start">
+                      {oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length ? (
+                        <FaCheckCircle className="text-green-500 text-xl mr-3 mt-1" />
+                      ) : (
+                        <FaTimesCircle className="text-yellow-600 text-xl mr-3 mt-1" />
+                      )}
+                      <div>
+                        <p className={`font-semibold ${
+                          oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length 
+                            ? 'text-green-800' 
+                            : 'text-yellow-800'
+                        }`}>
+                          {oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length 
+                            ? '全てのSNSアカウントが連携済みです' 
+                            : 'SNSアカウントの連携が必要です'
+                          }
+                        </p>
+                        <p className={`text-sm mt-1 ${
+                          oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length 
+                            ? 'text-green-700' 
+                            : 'text-yellow-700'
+                        }`}>
+                          案件に応募するには、全てのSNSアカウントを連携する必要があります。
+                          現在 {oauthConnectionStatus.filter(s => s.isConnected).length}/{Object.values(Platform).length} 連携済み
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* メッセージ表示 */}
+                  {message && (
+                    <div className={`mb-6 p-4 rounded-lg ${
+                      message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                    }`}>
+                      {message.text}
+                    </div>
+                  )}
+
+                  {/* OAuth連携プラットフォーム一覧 */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">OAuth連携</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.values(Platform).map((platform) => {
+                        const status = oauthConnectionStatus.find(s => s.platform === platform);
+                        const isConnected = status?.isConnected || false;
+
+                        return (
+                          <div key={platform} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className={`p-2 rounded-lg text-white ${getSNSPlatformColor(platform)}`}>
+                                  {getSNSPlatformIcon(platform)}
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-800">{platform}</h4>
+                                  {isConnected && status ? (
+                                    <div className="text-sm text-gray-600">
+                                      <p>@{status.username}</p>
+                                      <p>フォロワー: {status.followerCount?.toLocaleString() || 0}</p>
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-gray-500">未連携</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                {isConnected ? (
+                                  <button
+                                    onClick={() => handleOAuthDisconnect(platform)}
+                                    className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50 transition-colors"
+                                  >
+                                    解除
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleOAuthConnect(platform)}
+                                    disabled={connecting === platform}
+                                    className={`px-3 py-1 text-sm text-white rounded transition-colors ${
+                                      connecting === platform
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    }`}
+                                  >
+                                    {connecting === platform ? '接続中...' : '連携'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* 既存のSNSアカウント */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">登録済みアカウント</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {profile?.socialAccounts?.map((account, index) => (
                   <motion.div
                     key={account.id}
@@ -866,6 +1106,8 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
               )}
+                </div>
+              </div>
             </Card>
           </motion.div>
         )}

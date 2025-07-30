@@ -1,5 +1,6 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth';
+import { verifySNSConnections } from '../middleware/sns-verification';
 import {
   getAvailableProjects,
   applyToProject,
@@ -29,8 +30,8 @@ router.use(authenticate);
 // Get available projects (for influencers)
 router.get('/available', getAvailableProjects);
 
-// Apply to a project (for influencers)
-router.post('/apply', applyToProject);
+// Apply to a project (for influencers) - SNS連携必須
+router.post('/apply', verifySNSConnections, applyToProject);
 
 // Get my applications (for influencers)
 router.get('/my-applications', getMyApplications);

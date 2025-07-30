@@ -319,7 +319,16 @@ const OpportunitiesPage: React.FC = () => {
       await fetchOpportunities();
     } catch (err: any) {
       console.error('Error applying to project:', err);
-      alert('応募に失敗しました。');
+      
+      // SNS連携エラーのチェック
+      if (err.response?.status === 403 && err.response?.data?.missingPlatforms) {
+        const missingPlatforms = err.response.data.missingPlatforms.join(', ');
+        if (confirm(`SNSアカウントの連携が必要です。\n未連携: ${missingPlatforms}\n\n連携ページに移動しますか？`)) {
+          window.location.href = '/profile/sns-connect';
+        }
+      } else {
+        alert(err.response?.data?.error || '応募に失敗しました。');
+      }
     } finally {
       setSubmitting(false);
     }

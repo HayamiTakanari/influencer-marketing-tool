@@ -32,6 +32,7 @@ import servicePricingRoutes from './routes/servicePricing.routes';
 import bulkInquiryRoutes from './routes/bulkInquiry.routes';
 import scheduleRoutes from './routes/schedule.routes';
 import securityRoutes from './routes/security.routes';
+import oauthRoutes from './routes/oauth';
 
 dotenv.config();
 
@@ -123,6 +124,7 @@ app.use('/api/service-pricing', servicePricingRoutes);
 app.use('/api/bulk-inquiries', bulkInquiryRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/security', securityRoutes);
+app.use('/api/oauth', oauthRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
