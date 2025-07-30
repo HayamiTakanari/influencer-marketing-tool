@@ -47,6 +47,9 @@ interface ProfileData {
   isRegistered: boolean;
   socialAccounts: SocialAccount[];
   portfolio: Portfolio[];
+  workingStatus?: WorkingStatus;
+  workingStatusMessage?: string;
+  workingStatusUpdatedAt?: string;
 }
 
 const ProfilePage: React.FC = () => {
@@ -637,6 +640,12 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   if (loading) {
     return (
       <PageLayout title="プロフィール管理" subtitle="読み込み中..." showNavigation={false}>
@@ -649,12 +658,6 @@ const ProfilePage: React.FC = () => {
       </PageLayout>
     );
   }
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
 
   return (
     <PageLayout
@@ -1106,7 +1109,6 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
               )}
-                </div>
               </div>
             </Card>
           </motion.div>
