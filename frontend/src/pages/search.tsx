@@ -31,19 +31,12 @@ const SearchPage: React.FC = () => {
     { name: 'インフルエンサー検索', href: '/search', icon: '🔍' },
     { name: 'プロジェクト', href: '/projects', icon: '📝', badge: 5 },
     { name: 'お気に入り', href: '/favorites', icon: '⭐', badge: favoriteInfluencers.length },
-    { name: 'チャット', href: '/chat', icon: '💬' },
     { name: '支払い履歴', href: '/payments/history', icon: '💳' },
     { name: '請求書', href: '/invoices', icon: '📋' },
     { name: '会社プロフィール', href: '/company-profile', icon: '🏢' },
     { name: 'チーム管理', href: '/team-management', icon: '👥' }
   ];
 
-  const quickActionsItems = [
-    { name: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
-    { name: 'お知らせ', href: '/notifications', icon: '🔔' },
-    { name: 'フィードバック', href: '/feedback', icon: '📝' },
-    { name: 'FAQ', href: '/faq', icon: '❓' }
-  ];
 
   // 検索フィルター
   const [filters, setFilters] = useState({
@@ -315,33 +308,6 @@ const SearchPage: React.FC = () => {
               ))}
             </nav>
 
-            {!sidebarCollapsed && (
-              <>
-                {/* セパレーター */}
-                <div className="my-6 px-6">
-                  <div className="border-t border-gray-200" />
-                </div>
-
-                {/* クイックアクション */}
-                <div className="px-3">
-                  <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                    クイックアクション
-                  </h3>
-                  <nav className="space-y-1">
-                    {quickActionsItems.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-lg transition-all hover:bg-gray-100 hover:text-gray-900"
-                      >
-                        <span className="text-lg mr-3">{item.icon}</span>
-                        <span>{item.name}</span>
-                      </Link>
-                    ))}
-                  </nav>
-                </div>
-              </>
-            )}
           </div>
 
           {/* ユーザー情報とログアウト */}
