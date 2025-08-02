@@ -168,6 +168,12 @@ const DashboardPage: React.FC = () => {
     ]
   };
 
+  // 企業ユーザーの場合は専用ダッシュボードを表示
+  if (user.role === 'CLIENT' || user.role === 'COMPANY') {
+    const CompanyDashboard = require('../components/CompanyDashboard').default;
+    return <CompanyDashboard />;
+  }
+
   return (
     <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
       {/* ランディングページと同じ背景デザイン */}
