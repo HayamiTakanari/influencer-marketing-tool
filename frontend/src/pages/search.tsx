@@ -485,77 +485,174 @@ const SearchPage: React.FC = () => {
 
             {/* 検索結果 */}
             {influencers.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {influencers.map((influencer) => (
-                  <Card key={influencer.id} className="overflow-hidden">
-                    <div className="p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                          <span className="text-lg font-bold text-gray-600">
-                            {influencer.displayName?.charAt(0) || '?'}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {influencer.displayName || 'Unknown'}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {influencer.prefecture}
-                          </p>
-                        </div>
+              <div className="space-y-4">
+                {/* ヘッダー */}
+                <Card className="bg-gray-50">
+                  <div className="p-4">
+                    <div className="grid grid-cols-12 gap-4 items-center">
+                      <div className="col-span-3">
+                        <h4 className="text-sm font-semibold text-gray-700">インフルエンサー</h4>
                       </div>
-
-                      {influencer.categories && influencer.categories.length > 0 && (
-                        <div className="mb-3">
-                          <div className="flex flex-wrap gap-1">
-                            {influencer.categories.slice(0, 3).map((category: string, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-block px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full"
-                              >
-                                {category}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {influencer.socialAccounts && influencer.socialAccounts.length > 0 && (
-                        <div className="mb-4 space-y-2">
-                          {influencer.socialAccounts.slice(0, 2).map((account: any, index: number) => (
-                            <div key={index} className="flex items-center justify-between text-sm">
-                              <span className="text-gray-600">{account.platform}</span>
-                              <span className="font-medium">
-                                {account.followerCount?.toLocaleString()} 
-                                <span className="text-gray-500 ml-1">
-                                  ({account.engagementRate || 0}%)
-                                </span>
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {(influencer.priceMin || influencer.priceMax) && (
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-600">料金目安</p>
-                          <p className="font-semibold text-gray-900">
-                            {influencer.priceMin?.toLocaleString()}円 - {influencer.priceMax?.toLocaleString()}円
-                          </p>
-                        </div>
-                      )}
-
-                      <div className="flex space-x-2">
-                        <Button size="sm" className="flex-1">
-                          詳細を見る
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          ⭐
-                        </Button>
+                      <div className="col-span-2 text-center">
+                        <h4 className="text-sm font-semibold text-gray-700">Instagram</h4>
+                        <p className="text-xs text-gray-500">フォロワー / エンゲージメント</p>
+                      </div>
+                      <div className="col-span-2 text-center">
+                        <h4 className="text-sm font-semibold text-gray-700">TikTok</h4>
+                        <p className="text-xs text-gray-500">フォロワー / エンゲージメント</p>
+                      </div>
+                      <div className="col-span-2 text-center">
+                        <h4 className="text-sm font-semibold text-gray-700">YouTube</h4>
+                        <p className="text-xs text-gray-500">フォロワー / エンゲージメント</p>
+                      </div>
+                      <div className="col-span-2 text-center">
+                        <h4 className="text-sm font-semibold text-gray-700">X</h4>
+                        <p className="text-xs text-gray-500">フォロワー / エンゲージメント</p>
+                      </div>
+                      <div className="col-span-1 text-center">
+                        <h4 className="text-sm font-semibold text-gray-700">アクション</h4>
                       </div>
                     </div>
-                  </Card>
-                ))}
+                  </div>
+                </Card>
+
+                {influencers.map((influencer) => {
+                  const instagramAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'Instagram');
+                  const tiktokAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'TikTok');
+                  const youtubeAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'YouTube');
+                  const xAccount = influencer.socialAccounts?.find((acc: any) => acc.platform === 'X');
+
+                  return (
+                    <Card key={influencer.id} className="overflow-hidden">
+                      <div className="p-6">
+                        <div className="grid grid-cols-12 gap-4 items-center">
+                          {/* プロフィール情報 */}
+                          <div className="col-span-3">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-lg font-bold text-gray-600">
+                                  {influencer.displayName?.charAt(0) || '?'}
+                                </span>
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="text-sm font-semibold text-gray-900 truncate">
+                                  {influencer.displayName || 'Unknown'}
+                                </h3>
+                                <p className="text-xs text-gray-500">
+                                  {influencer.prefecture}
+                                </p>
+                                {influencer.categories && influencer.categories.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {influencer.categories.slice(0, 2).map((category: string, index: number) => (
+                                      <span
+                                        key={index}
+                                        className="inline-block px-1.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full"
+                                      >
+                                        {category}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Instagram */}
+                          <div className="col-span-2 text-center">
+                            {instagramAccount ? (
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {instagramAccount.followerCount?.toLocaleString() || '-'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {instagramAccount.engagementRate ? `${instagramAccount.engagementRate}%` : '-'}
+                                </div>
+                                <div className="text-xs text-gray-400">Instagram</div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-400">-</div>
+                            )}
+                          </div>
+
+                          {/* TikTok */}
+                          <div className="col-span-2 text-center">
+                            {tiktokAccount ? (
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {tiktokAccount.followerCount?.toLocaleString() || '-'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {tiktokAccount.engagementRate ? `${tiktokAccount.engagementRate}%` : '-'}
+                                </div>
+                                <div className="text-xs text-gray-400">TikTok</div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-400">-</div>
+                            )}
+                          </div>
+
+                          {/* YouTube */}
+                          <div className="col-span-2 text-center">
+                            {youtubeAccount ? (
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {youtubeAccount.followerCount?.toLocaleString() || '-'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {youtubeAccount.engagementRate ? `${youtubeAccount.engagementRate}%` : '-'}
+                                </div>
+                                <div className="text-xs text-gray-400">YouTube</div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-400">-</div>
+                            )}
+                          </div>
+
+                          {/* X (Twitter) */}
+                          <div className="col-span-2 text-center">
+                            {xAccount ? (
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {xAccount.followerCount?.toLocaleString() || '-'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {xAccount.engagementRate ? `${xAccount.engagementRate}%` : '-'}
+                                </div>
+                                <div className="text-xs text-gray-400">X</div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-400">-</div>
+                            )}
+                          </div>
+
+                          {/* アクション */}
+                          <div className="col-span-1 text-right">
+                            <div className="flex flex-col space-y-2">
+                              <Button size="sm" className="text-xs px-2 py-1">
+                                詳細
+                              </Button>
+                              <Button size="sm" variant="outline" className="text-xs px-2 py-1">
+                                ⭐
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 料金情報（下部に表示） */}
+                        {(influencer.priceMin || influencer.priceMax) && (
+                          <div className="mt-4 pt-4 border-t border-gray-100">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-600">料金目安:</span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {influencer.priceMin?.toLocaleString()}円 - {influencer.priceMax?.toLocaleString()}円
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
             )}
 
