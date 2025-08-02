@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import BackButton from '../components/BackButton';
+import Sidebar from '../components/shared/Sidebar';
 
 interface CompanyProfile {
   id: string;
@@ -164,11 +165,26 @@ const CompanyProfilePage: React.FC = () => {
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      {/* サイドバー */}
+      <Sidebar 
+        user={user} 
+        favoriteCount={0} 
+        onLogout={handleLogout} 
+      />
+
+      {/* メインコンテンツエリア */}
+      <div className="ml-80">
+        {/* ヘッダー */}
+        <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold">IM</span>
@@ -507,6 +523,7 @@ const CompanyProfilePage: React.FC = () => {
             </div>
           </div>
         </motion.div>
+        </div>
       </div>
     </div>
   );

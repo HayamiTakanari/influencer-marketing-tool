@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
+import Sidebar from '../components/shared/Sidebar';
 import { 
   getInvoices, 
   deleteInvoice, 
@@ -144,9 +145,24 @@ const InvoicesPage: React.FC = () => {
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* サイドバー */}
+      <Sidebar 
+        user={user} 
+        favoriteCount={0} 
+        onLogout={handleLogout} 
+      />
+
+      {/* メインコンテンツエリア */}
+      <div className="ml-80">
+        <div className="max-w-7xl mx-auto px-4 py-8">
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-4">
@@ -401,6 +417,7 @@ const InvoicesPage: React.FC = () => {
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

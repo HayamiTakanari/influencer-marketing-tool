@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../components/shared/PageLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
+import Sidebar from '../components/shared/Sidebar';
 import { Influencer, WorkingStatus } from '../types';
 
 const FavoritesPage: React.FC = () => {
@@ -184,12 +185,27 @@ const FavoritesPage: React.FC = () => {
   }
 
   return (
-    <PageLayout
-      title="お気に入りインフルエンサー"
-      subtitle="登録したお気に入りのインフルエンサーを管理"
-      userEmail={user?.email}
-      onLogout={handleLogout}
-    >
+    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
+      {/* 背景デザイン */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
+      </div>
+
+      {/* サイドバー */}
+      <Sidebar 
+        user={user} 
+        favoriteCount={favoriteInfluencers.length} 
+        onLogout={handleLogout} 
+      />
+
+      {/* メインコンテンツエリア */}
+      <div className="ml-80 relative z-10">
+        <PageLayout
+          title="お気に入りインフルエンサー"
+          subtitle="登録したお気に入りのインフルエンサーを管理"
+          userEmail={user?.email}
+          onLogout={handleLogout}
+        >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -322,7 +338,9 @@ const FavoritesPage: React.FC = () => {
           </>
         )}
       </motion.div>
-    </PageLayout>
+        </PageLayout>
+      </div>
+    </div>
   );
 };
 
