@@ -142,9 +142,19 @@ const InvoicesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden flex items-center justify-center">
+        <div className="fixed inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
+          <div className="absolute inset-0 opacity-40">
+            <div className="absolute -inset-[100%] opacity-60">
+              <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
+              <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
+              <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
+            </div>
+          </div>
+        </div>
+        <div className="text-center relative z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -277,30 +287,44 @@ const InvoicesPage: React.FC = () => {
                 boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
               }}
             >
-              <div className="flex flex-wrap gap-4">
-                <button
+              <div className="flex flex-wrap gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedStatus('')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`px-6 py-3 rounded-xl font-medium transition-all shadow-sm ${
                     selectedStatus === '' 
-                      ? 'bg-blue-600 text-white' 
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  すべて
-                </button>
-                {Object.entries(statusLabels).map(([status, label]) => (
-                  <button
-                    key={status}
-                    onClick={() => setSelectedStatus(status as InvoiceStatus)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      selectedStatus === status 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+                  📊 すべて
+                </motion.button>
+                {Object.entries(statusLabels).map(([status, label]) => {
+                  const icons = {
+                    [InvoiceStatus.DRAFT]: '📝',
+                    [InvoiceStatus.SENT]: '📤',
+                    [InvoiceStatus.PAID]: '✅',
+                    [InvoiceStatus.OVERDUE]: '⚠️',
+                    [InvoiceStatus.CANCELLED]: '❌',
+                  };
+                  
+                  return (
+                    <motion.button
+                      key={status}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setSelectedStatus(status as InvoiceStatus)}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all shadow-sm ${
+                        selectedStatus === status 
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {icons[status as InvoiceStatus]} {label}
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
 
@@ -316,78 +340,98 @@ const InvoicesPage: React.FC = () => {
                     boxShadow: '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
                   }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-4 mb-2">
-                        <h3 className="text-lg font-bold text-gray-900">{invoice.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[invoice.status]}`}>
-                          {statusLabels[invoice.status]}
-                        </span>
-                        <span className="text-sm text-gray-500">#{invoice.invoiceNumber}</span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium">クライアント:</span> {invoice.client.companyName}
-                        </div>
-                        <div>
-                          <span className="font-medium">発行日:</span> {formatDate(invoice.issueDate)}
-                        </div>
-                        <div>
-                          <span className="font-medium">支払期限:</span> {formatDate(invoice.dueDate)}
-                        </div>
-                        <div>
-                          <span className="font-medium">金額:</span> 
-                          <span className="text-lg font-bold text-green-600 ml-1">
-                            {formatPrice(invoice.totalAmount)}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                        <h3 className="text-xl font-bold text-gray-900">{invoice.title}</h3>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[invoice.status]}`}>
+                            {statusLabels[invoice.status]}
                           </span>
+                          <span className="text-sm text-gray-500 font-mono">#{invoice.invoiceNumber}</span>
                         </div>
                       </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">クライアント</div>
+                          <div className="font-medium text-gray-900">{invoice.client.companyName}</div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">発行日</div>
+                          <div className="font-medium text-gray-900">{formatDate(invoice.issueDate)}</div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">支払期限</div>
+                          <div className="font-medium text-gray-900">{formatDate(invoice.dueDate)}</div>
+                        </div>
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3">
+                          <div className="text-xs text-green-600 uppercase tracking-wide mb-1">金額</div>
+                          <div className="text-xl font-bold text-green-600">
+                            {formatPrice(invoice.totalAmount)}
+                          </div>
+                        </div>
+                      </div>
+                      
                       {invoice.description && (
-                        <p className="text-gray-600 text-sm mt-2 line-clamp-2">{invoice.description}</p>
+                        <div className="bg-blue-50 rounded-lg p-3">
+                          <div className="text-xs text-blue-600 uppercase tracking-wide mb-1">備考</div>
+                          <p className="text-gray-700 text-sm line-clamp-2">{invoice.description}</p>
+                        </div>
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
+                    <div className="flex flex-col sm:flex-row gap-2 lg:ml-4">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => router.push(`/invoices/${invoice.id}`)}
-                        className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-all text-sm font-medium shadow-sm"
                       >
-                        詳細
-                      </button>
+                        📄 詳細
+                      </motion.button>
 
                       {invoice.status === InvoiceStatus.DRAFT && (
                         <>
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => router.push(`/invoices/${invoice.id}/edit`)}
-                            className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-medium shadow-sm"
                           >
-                            編集
-                          </button>
-                          <button
+                            ✏️ 編集
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => handleSendInvoice(invoice.id)}
-                            className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-all text-sm font-medium shadow-sm"
                           >
-                            送信
-                          </button>
+                            📤 送信
+                          </motion.button>
                         </>
                       )}
 
                       {invoice.status === InvoiceStatus.SENT && (
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => handleMarkAsPaid(invoice.id)}
-                          className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                          className="px-4 py-2 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-all text-sm font-medium shadow-sm"
                         >
-                          支払済み
-                        </button>
+                          ✅ 支払済み
+                        </motion.button>
                       )}
 
                       {(invoice.status === InvoiceStatus.DRAFT || invoice.status === InvoiceStatus.CANCELLED) && (
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => handleDeleteInvoice(invoice.id)}
-                          className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                          className="px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-all text-sm font-medium shadow-sm"
                         >
-                          削除
-                        </button>
+                          🗑️ 削除
+                        </motion.button>
                       )}
                     </div>
                   </div>
@@ -395,61 +439,103 @@ const InvoicesPage: React.FC = () => {
               ))}
 
               {invoices.length === 0 && !loading && (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📄</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">請求書がありません</h3>
-                  <p className="text-gray-600 mb-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative bg-white border border-gray-200 p-12 transition-all overflow-hidden text-center"
+                  style={{
+                    background: `
+                      linear-gradient(135deg, transparent 10px, white 10px),
+                      linear-gradient(-135deg, transparent 10px, white 10px),
+                      linear-gradient(45deg, transparent 10px, white 10px),
+                      linear-gradient(-45deg, transparent 10px, white 10px)
+                    `,
+                    backgroundPosition: 'top left, top right, bottom right, bottom left',
+                    backgroundSize: '50% 50%',
+                    backgroundRepeat: 'no-repeat',
+                    boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+                  }}
+                >
+                  <div className="text-6xl mb-6">📄</div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">請求書がありません</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
                     {selectedStatus 
                       ? `${statusLabels[selectedStatus as InvoiceStatus]}の請求書はありません。`
-                      : '新しい請求書を作成してください。'
+                      : '新しい請求書を作成して、クライアントとの取引を開始しましょう。'
                     }
                   </p>
                   {!selectedStatus && (
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => router.push('/invoices/create')}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all"
                     >
                       請求書を作成
-                    </button>
+                    </motion.button>
                   )}
-                </div>
+                </motion.div>
               )}
             </div>
 
             {pagination && pagination.totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-8">
-                <button
-                  disabled={!pagination.hasPrev}
-                  className="px-4 py-2 bg-white rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  前へ
-                </button>
-                
-                {Array.from({ length: Math.min(10, pagination.totalPages) }, (_, i) => {
-                  const page = Math.max(1, pagination.page - 5) + i;
-                  if (page > pagination.totalPages) return null;
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative bg-white border border-gray-200 p-6 transition-all overflow-hidden mt-8"
+                style={{
+                  background: `
+                    linear-gradient(135deg, transparent 10px, white 10px),
+                    linear-gradient(-135deg, transparent 10px, white 10px),
+                    linear-gradient(45deg, transparent 10px, white 10px),
+                    linear-gradient(-45deg, transparent 10px, white 10px)
+                  `,
+                  backgroundPosition: 'top left, top right, bottom right, bottom left',
+                  backgroundSize: '50% 50%',
+                  backgroundRepeat: 'no-repeat',
+                  boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+                }}
+              >
+                <div className="flex justify-center items-center space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    disabled={!pagination.hasPrev}
+                    className="px-4 py-2 bg-gray-100 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors font-medium"
+                  >
+                    前へ
+                  </motion.button>
                   
-                  return (
-                    <button
-                      key={page}
-                      className={`px-4 py-2 rounded-lg border ${
-                        page === pagination.page
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-                
-                <button
-                  disabled={!pagination.hasNext}
-                  className="px-4 py-2 bg-white rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  次へ
-                </button>
-              </div>
+                  {Array.from({ length: Math.min(10, pagination.totalPages) }, (_, i) => {
+                    const page = Math.max(1, pagination.page - 5) + i;
+                    if (page > pagination.totalPages) return null;
+                    
+                    return (
+                      <motion.button
+                        key={page}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`px-4 py-2 rounded-lg border font-medium transition-colors ${
+                          page === pagination.page
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-gray-100 hover:bg-gray-200 border-gray-300'
+                        }`}
+                      >
+                        {page}
+                      </motion.button>
+                    );
+                  })}
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    disabled={!pagination.hasNext}
+                    className="px-4 py-2 bg-gray-100 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors font-medium"
+                  >
+                    次へ
+                  </motion.button>
+                </div>
+              </motion.div>
             )}
           </div>
         </div>
