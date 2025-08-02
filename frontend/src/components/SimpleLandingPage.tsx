@@ -35,7 +35,11 @@ const SimpleLandingPage: React.FC = () => {
       name: 'Standardプラン',
       price: '1マッチング3万円',
       description: '謝礼が発生するもの',
-      features: [],
+      features: [
+        'AI分析・提案機能',
+        'メッセージング機能',
+        'マッチング毎の課金'
+      ],
       buttonText: '今すぐ始める',
       highlighted: true,
       color: 'from-emerald-500 to-teal-600'
@@ -43,8 +47,12 @@ const SimpleLandingPage: React.FC = () => {
     {
       name: 'Proプラン',
       price: '月額35万円',
-      description: '全機能',
-      features: [],
+      description: '全機能使い放題',
+      features: [
+        'Standard全機能',
+        '無制限マッチング',
+        '優先サポート'
+      ],
       buttonText: '今すぐ始める',
       highlighted: false,
       color: 'from-purple-500 to-pink-500'
@@ -357,7 +365,7 @@ const SimpleLandingPage: React.FC = () => {
             </span>
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {pricingPlans.map((plan, index) => (
               <motion.div
                 key={index}
@@ -366,7 +374,7 @@ const SimpleLandingPage: React.FC = () => {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className={`relative bg-white p-8 group transition-all ${
+                className={`relative bg-white p-8 group transition-all flex flex-col ${
                   plan.highlighted 
                     ? 'border-2 border-gray-900 shadow-xl' 
                     : 'border border-gray-300 shadow-md'
@@ -391,24 +399,27 @@ const SimpleLandingPage: React.FC = () => {
                 )}
 
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <div className="text-3xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-bold mb-4">{plan.name}</h3>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">
                     {plan.price}
                   </div>
                   {plan.description && (
-                    <p className="text-gray-600 mt-2">{plan.description}</p>
+                    <p className="text-gray-600 text-sm">{plan.description}</p>
                   )}
                 </div>
 
-                {plan.features.length > 0 && (
-                  <ul className="mb-8 space-y-2">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="text-gray-600">
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="flex-grow">
+                  {plan.features.length > 0 && (
+                    <ul className="mb-8 space-y-3">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="text-gray-600 text-sm flex items-start">
+                          <span className="mr-2 text-emerald-600">•</span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
                 <Link href="/register">
                   <motion.button
@@ -419,10 +430,8 @@ const SimpleLandingPage: React.FC = () => {
                         ? 'text-white'
                         : 'bg-white text-gray-900 border-2 border-emerald-600'
                     }`}
-                    style={plan.highlighted ? {
-                      background: 'linear-gradient(135deg, #10b981, #059669)'
-                    } : {}}
                     style={{ 
+                      background: plan.highlighted ? 'linear-gradient(135deg, #10b981, #059669)' : '',
                       boxShadow: plan.highlighted 
                         ? '3px 3px 0 rgba(0,0,0,0.25), 2px 2px 8px rgba(0,0,0,0.12)'
                         : '3px 3px 0 rgba(0,0,0,0.25), 2px 2px 8px rgba(0,0,0,0.1)',
