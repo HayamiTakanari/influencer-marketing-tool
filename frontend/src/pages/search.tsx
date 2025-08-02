@@ -22,13 +22,15 @@ const SearchPage: React.FC = () => {
   const [pagination, setPagination] = useState<any>(null);
   const [searchTime, setSearchTime] = useState<number>(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [favoriteInfluencers, setFavoriteInfluencers] = useState<string[]>([]);
+  const [updatingFavorite, setUpdatingFavorite] = useState<string | null>(null);
   const router = useRouter();
 
   // ナビゲーションアイテム
   const navigationItems: NavigationItem[] = [
     { name: 'インフルエンサー検索', href: '/search', icon: '🔍' },
     { name: 'プロジェクト', href: '/projects', icon: '📝', badge: 5 },
-    { name: 'お気に入り', href: '/favorites', icon: '⭐', badge: user?.favoriteInfluencers?.length || 0 },
+    { name: 'お気に入り', href: '/favorites', icon: '⭐', badge: favoriteInfluencers.length },
     { name: 'チャット', href: '/chat', icon: '💬' },
     { name: '支払い履歴', href: '/payments/history', icon: '💳' },
     { name: '請求書', href: '/invoices', icon: '📋' },
@@ -69,6 +71,12 @@ const SearchPage: React.FC = () => {
     if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
       router.push('/dashboard');
       return;
+    }
+
+    // お気に入りデータを読み込み
+    const favoritesData = localStorage.getItem(`favorites_${parsedUser.id}`);
+    if (favoritesData) {
+      setFavoriteInfluencers(JSON.parse(favoritesData));
     }
   }, [router]);
 
@@ -112,6 +120,45 @@ const SearchPage: React.FC = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     router.push('/');
+  };
+
+  const handleToggleFavorite = async (influencerId: string) => {
+    if (!user) return;
+    
+    setUpdatingFavorite(influencerId);
+    
+    try {
+      const isFavorite = favoriteInfluencers.includes(influencerId);
+      let updatedFavorites;
+      
+      if (isFavorite) {
+        // お気に入りから削除
+        updatedFavorites = favoriteInfluencers.filter(id => id !== influencerId);
+      } else {
+        // お気に入りに追加
+        updatedFavorites = [...favoriteInfluencers, influencerId];
+      }
+      
+      // 状態を更新
+      setFavoriteInfluencers(updatedFavorites);
+      
+      // localStorageに保存
+      localStorage.setItem(`favorites_${user.id}`, JSON.stringify(updatedFavorites));
+      
+      // ユーザーデータも更新
+      const updatedUser = {
+        ...user,
+        favoriteInfluencers: updatedFavorites
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      
+    } catch (error) {
+      console.error('Error updating favorites:', error);
+      alert('お気に入りの更新に失敗しました。');
+    } finally {
+      setUpdatingFavorite(null);
+    }
   };
 
   const handleExportCSV = () => {
@@ -631,8 +678,18 @@ const SearchPage: React.FC = () => {
                               <Button size="sm" className="text-xs px-2 py-1">
                                 詳細
                               </Button>
-                              <Button size="sm" variant="outline" className="text-xs px-2 py-1">
-                                ⭐
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className={`text-xs px-2 py-1 ${
+                                  favoriteInfluencers.includes(influencer.id) 
+                                    ? 'bg-yellow-100 text-yellow-600 border-yellow-300' 
+                                    : ''
+                                }`}
+                                onClick={() => handleToggleFavorite(influencer.id)}
+                                disabled={updatingFavorite === influencer.id}
+                              >
+                                {updatingFavorite === influencer.id ? '...' : favoriteInfluencers.includes(influencer.id) ? '★' : '☆'}
                               </Button>
                             </div>
                           </div>
