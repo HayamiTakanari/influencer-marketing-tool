@@ -571,13 +571,13 @@ const SearchPage: React.FC = () => {
 
                   return (
                     <Card key={influencer.id} className="overflow-hidden">
-                      <div className="p-6">
+                      <div className="p-4">
                         <div className="grid grid-cols-12 gap-4 items-center">
                           {/* プロフィール情報 */}
                           <div className="col-span-3">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-lg font-bold text-gray-600">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-sm font-bold text-gray-600">
                                   {influencer.displayName?.charAt(0) || '?'}
                                 </span>
                               </div>
@@ -589,11 +589,11 @@ const SearchPage: React.FC = () => {
                                   {influencer.prefecture}
                                 </p>
                                 {influencer.categories && influencer.categories.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-1">
+                                  <div className="flex flex-wrap gap-1 mt-0.5">
                                     {influencer.categories.slice(0, 2).map((category: string, index: number) => (
                                       <span
                                         key={index}
-                                        className="inline-block px-1.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full"
+                                        className="inline-block px-1 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full"
                                       >
                                         {category}
                                       </span>
@@ -601,14 +601,14 @@ const SearchPage: React.FC = () => {
                                   </div>
                                 )}
                                 {influencer.topHashtags && influencer.topHashtags.length > 0 && (
-                                  <div className="mt-1">
+                                  <div className="mt-0.5">
                                     <p className="text-xs text-gray-500">
                                       {influencer.topHashtags.slice(0, 3).map((tag: string) => `#${tag}`).join(' ')}
                                     </p>
                                   </div>
                                 )}
                                 {(influencer.priceMin || influencer.priceMax) && (
-                                  <div className="mt-1">
+                                  <div className="mt-0.5">
                                     <p className="text-xs text-blue-600 font-medium">
                                       {influencer.priceMin?.toLocaleString()}円 - {influencer.priceMax?.toLocaleString()}円
                                     </p>
@@ -688,10 +688,10 @@ const SearchPage: React.FC = () => {
 
                           {/* アクション */}
                           <div className="col-span-1 text-right">
-                            <div className="flex flex-col space-y-2">
+                            <div className="flex flex-col space-y-1">
                               <Button 
                                 size="sm" 
-                                className="text-xs px-2 py-1"
+                                className="text-xs px-2 py-1 h-7"
                                 onClick={() => router.push(`/influencer/${influencer.id}`)}
                               >
                                 詳細
@@ -699,7 +699,7 @@ const SearchPage: React.FC = () => {
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className={`text-xs px-2 py-1 ${
+                                className={`text-xs px-2 py-1 h-7 ${
                                   favoriteInfluencers.includes(influencer.id) 
                                     ? 'bg-yellow-100 text-yellow-600 border-yellow-300' 
                                     : ''
