@@ -750,6 +750,57 @@ const SearchPage: React.FC = () => {
                 </p>
               </div>
             )}
+
+            {/* フッター */}
+            <motion.footer
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="mt-20 border-t border-gray-200 bg-gray-50 py-8"
+            >
+              <div className="max-w-6xl mx-auto px-6">
+                <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                  <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-600">
+                    <button
+                      onClick={() => router.push('/faq')}
+                      className="hover:text-gray-800 transition-colors"
+                    >
+                      よくある質問
+                    </button>
+                    <button
+                      onClick={() => router.push('/feedback')}
+                      className="hover:text-gray-800 transition-colors"
+                    >
+                      ご要望・フィードバック
+                    </button>
+                    <button
+                      onClick={() => router.push('/terms')}
+                      className="hover:text-gray-800 transition-colors"
+                    >
+                      利用規約
+                    </button>
+                    <button
+                      onClick={() => router.push('/privacy')}
+                      className="hover:text-gray-800 transition-colors"
+                    >
+                      プライバシーポリシー
+                    </button>
+                    <button
+                      onClick={() => router.push('/commercial-law')}
+                      className="hover:text-gray-800 transition-colors"
+                    >
+                      特定商取引法
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Version 1.2.3
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-200 text-center text-xs text-gray-500">
+                  © 2024 InfluenceLink. All rights reserved.
+                </div>
+              </div>
+            </motion.footer>
           </div>
         </PageLayout>
       </div>
