@@ -168,10 +168,10 @@ const DashboardPage: React.FC = () => {
     ]
   };
 
-  // 企業ユーザーの場合は専用ダッシュボードを表示
+  // 企業ユーザーの場合はインフルエンサー検索ページにリダイレクト
   if (user.role === 'CLIENT' || user.role === 'COMPANY') {
-    const CompanyDashboard = require('../components/CompanyDashboard').default;
-    return <CompanyDashboard />;
+    router.push('/search');
+    return null;
   }
 
   return (
