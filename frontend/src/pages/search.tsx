@@ -21,7 +21,6 @@ const SearchPage: React.FC = () => {
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState<any>(null);
   const [searchTime, setSearchTime] = useState<number>(0);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [favoriteInfluencers, setFavoriteInfluencers] = useState<string[]>([]);
   const [updatingFavorite, setUpdatingFavorite] = useState<string | null>(null);
   const router = useRouter();
@@ -249,35 +248,22 @@ const SearchPage: React.FC = () => {
       </div>
 
       {/* サイドバー */}
-      <motion.div
-        initial={{ x: -320 }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.3 }}
-        className={`fixed top-0 left-0 z-50 h-full bg-white border-r border-gray-200 transition-all duration-300 ${
-          sidebarCollapsed ? 'w-16' : 'w-80'
-        }`}
+      <div
+        className="fixed top-0 left-0 z-50 h-full w-80 bg-white border-r border-gray-200"
         style={{ boxShadow: '4px 0 15px rgba(0,0,0,0.1)' }}
       >
         <div className="flex flex-col h-full">
           {/* ヘッダー */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            {!sidebarCollapsed && (
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">IL</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">InfluenceLink</h1>
-                  <p className="text-sm text-gray-600">企業ダッシュボード</p>
-                </div>
+          <div className="flex items-center p-6 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">IL</span>
               </div>
-            )}
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 text-gray-600 hover:text-gray-800 transition-colors rounded-lg hover:bg-gray-100"
-            >
-              {sidebarCollapsed ? '→' : '←'}
-            </button>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">InfluenceLink</h1>
+                <p className="text-sm text-gray-600">企業ダッシュボード</p>
+              </div>
+            </div>
           </div>
 
           {/* ナビゲーション */}
@@ -294,15 +280,11 @@ const SearchPage: React.FC = () => {
                   }`}
                 >
                   <span className="text-xl mr-3 flex-shrink-0">{item.icon}</span>
-                  {!sidebarCollapsed && (
-                    <>
-                      <span className="flex-1">{item.name}</span>
-                      {item.badge && item.badge > 0 && (
-                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-emerald-500 rounded-full">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
+                  <span className="flex-1">{item.name}</span>
+                  {item.badge && item.badge > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-emerald-500 rounded-full">
+                      {item.badge}
+                    </span>
                   )}
                 </Link>
               ))}
@@ -312,34 +294,32 @@ const SearchPage: React.FC = () => {
 
           {/* ユーザー情報とログアウト */}
           <div className="border-t border-gray-200 p-6">
-            {!sidebarCollapsed && (
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-gray-600">
-                    {user.email.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {user.companyName || user.email}
-                  </p>
-                  <p className="text-xs text-gray-500">企業アカウント</p>
-                </div>
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-sm font-bold text-gray-600">
+                  {user.email.charAt(0).toUpperCase()}
+                </span>
               </div>
-            )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user.companyName || user.email}
+                </p>
+                <p className="text-xs text-gray-500">企業アカウント</p>
+              </div>
+            </div>
             <button
               onClick={handleLogout}
-              className={`${sidebarCollapsed ? 'w-10 h-10' : 'w-full'} flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors rounded-lg hover:bg-red-50`}
+              className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors rounded-lg hover:bg-red-50"
             >
-              <span className="text-lg">{sidebarCollapsed ? '🚪' : '🚪'}</span>
-              {!sidebarCollapsed && <span className="ml-2">ログアウト</span>}
+              <span className="text-lg">🚪</span>
+              <span className="ml-2">ログアウト</span>
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* メインコンテンツエリア */}
-      <div className={`${sidebarCollapsed ? 'ml-16' : 'ml-80'} transition-all duration-300 relative z-10`}>
+      <div className="ml-80 relative z-10">
         <PageLayout title="インフルエンサー検索" user={user} onLogout={handleLogout}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* 検索フィルター */}
@@ -774,13 +754,6 @@ const SearchPage: React.FC = () => {
         </PageLayout>
       </div>
 
-      {/* サイドバーオーバーレイ（モバイル用） */}
-      {!sidebarCollapsed && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-25 z-40 lg:hidden"
-          onClick={() => setSidebarCollapsed(true)}
-        />
-      )}
     </div>
   );
 };
