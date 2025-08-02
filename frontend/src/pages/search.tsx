@@ -600,6 +600,20 @@ const SearchPage: React.FC = () => {
                                     ))}
                                   </div>
                                 )}
+                                {influencer.topHashtags && influencer.topHashtags.length > 0 && (
+                                  <div className="mt-1">
+                                    <p className="text-xs text-gray-500">
+                                      {influencer.topHashtags.slice(0, 3).map((tag: string) => `#${tag}`).join(' ')}
+                                    </p>
+                                  </div>
+                                )}
+                                {(influencer.priceMin || influencer.priceMax) && (
+                                  <div className="mt-1">
+                                    <p className="text-xs text-blue-600 font-medium">
+                                      {influencer.priceMin?.toLocaleString()}円 - {influencer.priceMax?.toLocaleString()}円
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
