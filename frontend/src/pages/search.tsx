@@ -675,7 +675,11 @@ const SearchPage: React.FC = () => {
                           {/* アクション */}
                           <div className="col-span-1 text-right">
                             <div className="flex flex-col space-y-2">
-                              <Button size="sm" className="text-xs px-2 py-1">
+                              <Button 
+                                size="sm" 
+                                className="text-xs px-2 py-1"
+                                onClick={() => router.push(`/influencer/${influencer.id}`)}
+                              >
                                 詳細
                               </Button>
                               <Button 
