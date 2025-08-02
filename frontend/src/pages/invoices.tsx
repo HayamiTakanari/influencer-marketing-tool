@@ -248,23 +248,36 @@ const InvoicesPage: React.FC = () => {
                   boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
                 }}
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">売上サマリー</h2>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{formatPrice(summary.totalAmount)}</div>
-                    <div className="text-gray-600 text-sm">総売上</div>
+                <div className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mr-4">
+                    <span className="text-white font-bold text-xl">📊</span>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{formatPrice(summary.paidAmount)}</div>
-                    <div className="text-gray-600 text-sm">入金済み</div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">売上サマリー</h2>
+                    <p className="text-gray-600">請求書の統計情報</p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{formatPrice(summary.unpaidAmount)}</div>
-                    <div className="text-gray-600 text-sm">未入金</div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 text-center">
+                    <div className="text-blue-600 text-3xl mb-2">💰</div>
+                    <div className="text-2xl font-bold text-blue-600 mb-1">{formatPrice(summary.totalAmount)}</div>
+                    <div className="text-gray-600 text-sm font-medium">総売上</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{formatPrice(summary.overdueAmount)}</div>
-                    <div className="text-gray-600 text-sm">期限超過</div>
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 text-center">
+                    <div className="text-green-600 text-3xl mb-2">✅</div>
+                    <div className="text-2xl font-bold text-green-600 mb-1">{formatPrice(summary.paidAmount)}</div>
+                    <div className="text-gray-600 text-sm font-medium">入金済み</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-6 text-center">
+                    <div className="text-yellow-600 text-3xl mb-2">⏳</div>
+                    <div className="text-2xl font-bold text-yellow-600 mb-1">{formatPrice(summary.unpaidAmount)}</div>
+                    <div className="text-gray-600 text-sm font-medium">未入金</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-6 text-center">
+                    <div className="text-red-600 text-3xl mb-2">⚠️</div>
+                    <div className="text-2xl font-bold text-red-600 mb-1">{formatPrice(summary.overdueAmount)}</div>
+                    <div className="text-gray-600 text-sm font-medium">期限超過</div>
                   </div>
                 </div>
               </motion.div>
@@ -273,7 +286,7 @@ const InvoicesPage: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative bg-white border border-gray-200 p-6 transition-all overflow-hidden mb-8"
+              className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden mb-8"
               style={{
                 background: `
                   linear-gradient(135deg, transparent 10px, white 10px),
@@ -287,6 +300,15 @@ const InvoicesPage: React.FC = () => {
                 boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
               }}
             >
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-lg">🔍</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">フィルター</h3>
+                  <p className="text-sm text-gray-600">ステータス別に請求書を絞り込み</p>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-3">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -328,7 +350,39 @@ const InvoicesPage: React.FC = () => {
               </div>
             </motion.div>
 
-            <div className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden mb-8"
+              style={{
+                background: `
+                  linear-gradient(135deg, transparent 10px, white 10px),
+                  linear-gradient(-135deg, transparent 10px, white 10px),
+                  linear-gradient(45deg, transparent 10px, white 10px),
+                  linear-gradient(-45deg, transparent 10px, white 10px)
+                `,
+                backgroundPosition: 'top left, top right, bottom right, bottom left',
+                backgroundSize: '50% 50%',
+                backgroundRepeat: 'no-repeat',
+                boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-4">
+                    <span className="text-white font-bold text-xl">📄</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">請求書一覧</h3>
+                    <p className="text-gray-600">すべての請求書を管理</p>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-500">
+                  全 {invoices.length} 件
+                </div>
+              </div>
+              
+              <div className="space-y-4">
               {invoices.map((invoice, index) => (
                 <motion.div
                   key={invoice.id}
@@ -476,7 +530,8 @@ const InvoicesPage: React.FC = () => {
                   )}
                 </motion.div>
               )}
-            </div>
+              </div>
+            </motion.div>
 
             {pagination && pagination.totalPages > 1 && (
               <motion.div
