@@ -16,6 +16,7 @@ const CompanyDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentView, setCurrentView] = useState('search');
   const router = useRouter();
 
   // ナビゲーションアイテム
@@ -160,11 +161,17 @@ const CompanyDashboard: React.FC = () => {
           <div className="flex-1 overflow-y-auto py-6">
             <nav className="space-y-1 px-3">
               {navigationItems.map((item) => (
-                <Link
+                <button
                   key={item.name}
-                  href={item.href}
-                  className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all hover:bg-emerald-50 hover:text-emerald-600 ${
-                    router.pathname === item.href 
+                  onClick={() => {
+                    if (item.href === '/search') {
+                      setCurrentView('search');
+                    } else {
+                      router.push(item.href);
+                    }
+                  }}
+                  className={`w-full group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all hover:bg-emerald-50 hover:text-emerald-600 ${
+                    (currentView === 'search' && item.href === '/search') 
                       ? 'bg-emerald-100 text-emerald-700 shadow-sm' 
                       : 'text-gray-700'
                   }`}
@@ -172,7 +179,7 @@ const CompanyDashboard: React.FC = () => {
                   <span className="text-xl mr-3 flex-shrink-0">{item.icon}</span>
                   {!sidebarCollapsed && (
                     <>
-                      <span className="flex-1">{item.name}</span>
+                      <span className="flex-1 text-left">{item.name}</span>
                       {item.badge && item.badge > 0 && (
                         <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-emerald-500 rounded-full">
                           {item.badge}
@@ -180,7 +187,7 @@ const CompanyDashboard: React.FC = () => {
                       )}
                     </>
                   )}
-                </Link>
+                </button>
               ))}
             </nav>
 
