@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import InfluencerSearch from './InfluencerSearch';
 import { UserRole, WorkingStatus } from '../types';
 
 interface NavigationItem {
@@ -270,7 +269,17 @@ const CompanyDashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <InfluencerSearch />
+            {/* 一時的にsearchページへのリンクを表示 */}
+            <div className="bg-white border-2 border-gray-200 rounded-lg p-8 text-center">
+              <h2 className="text-2xl font-bold mb-4">インフルエンサー検索</h2>
+              <p className="text-gray-600 mb-6">最適なインフルエンサーを見つけましょう</p>
+              <Link 
+                href="/search"
+                className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                検索画面を開く →
+              </Link>
+            </div>
           </motion.div>
         </div>
       </div>

@@ -909,12 +909,12 @@ const ProfilePage: React.FC = () => {
                 <>
                   {/* 案件応募の条件説明 */}
                   <div className={`mb-6 p-4 rounded-lg ${
-                    oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length 
+                    oauthConnectionStatus.filter(s => s.isConnected).length > 0
                       ? 'bg-green-50 border border-green-200' 
                       : 'bg-yellow-50 border border-yellow-200'
                   }`}>
                     <div className="flex items-start">
-                      {oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length ? (
+                      {oauthConnectionStatus.filter(s => s.isConnected).length > 0 ? (
                         <FaCheckCircle className="text-green-500 text-xl mr-3 mt-1" />
                       ) : (
                         <FaTimesCircle className="text-yellow-600 text-xl mr-3 mt-1" />
@@ -927,15 +927,17 @@ const ProfilePage: React.FC = () => {
                         }`}>
                           {oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length 
                             ? '全てのSNSアカウントが連携済みです' 
-                            : 'SNSアカウントの連携が必要です'
+                            : oauthConnectionStatus.filter(s => s.isConnected).length > 0
+                              ? 'SNSアカウントが連携されています'
+                              : 'SNSアカウントを連携してください'
                           }
                         </p>
                         <p className={`text-sm mt-1 ${
-                          oauthConnectionStatus.filter(s => s.isConnected).length === Object.values(Platform).length 
+                          oauthConnectionStatus.filter(s => s.isConnected).length > 0
                             ? 'text-green-700' 
                             : 'text-yellow-700'
                         }`}>
-                          案件に応募するには、全てのSNSアカウントを連携する必要があります。
+                          連携したSNSプラットフォームの案件に応募できます。
                           現在 {oauthConnectionStatus.filter(s => s.isConnected).length}/{Object.values(Platform).length} 連携済み
                         </p>
                       </div>

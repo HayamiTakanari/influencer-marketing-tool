@@ -161,19 +161,19 @@ const SNSConnect: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800 mb-6">SNSアカウント連携</h1>
 
           {/* 案件応募の条件説明 */}
-          <div className={`mb-6 p-4 rounded-lg ${isAllConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+          <div className={`mb-6 p-4 rounded-lg ${connectedCount > 0 ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
             <div className="flex items-start">
-              {isAllConnected ? (
+              {connectedCount > 0 ? (
                 <FaCheckCircle className="text-green-500 text-xl mr-3 mt-1" />
               ) : (
                 <FaTimesCircle className="text-yellow-600 text-xl mr-3 mt-1" />
               )}
               <div>
                 <p className={`font-semibold ${isAllConnected ? 'text-green-800' : 'text-yellow-800'}`}>
-                  {isAllConnected ? '全てのSNSアカウントが連携済みです' : 'SNSアカウントの連携が必要です'}
+                  {isAllConnected ? '全てのSNSアカウントが連携済みです' : connectedCount > 0 ? 'SNSアカウントが連携されています' : 'SNSアカウントを連携してください'}
                 </p>
-                <p className={`text-sm mt-1 ${isAllConnected ? 'text-green-700' : 'text-yellow-700'}`}>
-                  案件に応募するには、全てのSNSアカウントを連携する必要があります。
+                <p className={`text-sm mt-1 ${connectedCount > 0 ? 'text-green-700' : 'text-yellow-700'}`}>
+                  連携したSNSプラットフォームの案件に応募できます。
                   現在 {connectedCount}/{allPlatforms.length} 連携済み
                 </p>
               </div>
