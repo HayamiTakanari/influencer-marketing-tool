@@ -172,7 +172,36 @@ const CompanyProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
+      {/* 背景デザイン */}
+      <div className="fixed inset-0 z-0">
+        {/* ベースグラデーション */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
+        
+        {/* メッシュグラデーション */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute -inset-[100%] opacity-60">
+            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
+          </div>
+        </div>
+        
+        {/* アーティスティックパターン */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="artistic-pattern-company" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
+              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
+              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
+              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern-company)" />
+        </svg>
+      </div>
+
       {/* サイドバー */}
       <Sidebar 
         user={user} 
@@ -181,30 +210,21 @@ const CompanyProfilePage: React.FC = () => {
       />
 
       {/* メインコンテンツエリア */}
-      <div className="ml-80">
-        {/* ヘッダー */}
-        <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
-            <BackButton text="ダッシュボードに戻る" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">企業プロフィール</h1>
-              <p className="text-sm text-gray-600">あなたの会社情報を管理しましょう</p>
+      <div className="ml-80 relative z-10">
+        {/* ナビゲーション */}
+        <nav className="fixed top-0 left-80 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">企業プロフィール</h1>
+                <p className="text-sm text-gray-600">あなたの会社情報を管理しましょう</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
-          </div>
-        </div>
-      </div>
+        </nav>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="pt-20 pb-12 px-4">
+          <div className="max-w-4xl mx-auto">
         {/* エラーメッセージ */}
         {error && (
           <motion.div
@@ -221,7 +241,18 @@ const CompanyProfilePage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
+          className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden mb-8" style={{
+            background: `
+              linear-gradient(135deg, transparent 10px, white 10px),
+              linear-gradient(-135deg, transparent 10px, white 10px),
+              linear-gradient(45deg, transparent 10px, white 10px),
+              linear-gradient(-45deg, transparent 10px, white 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
         >
           <div className="flex items-center space-x-6 mb-8">
             <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -277,7 +308,18 @@ const CompanyProfilePage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
+          className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden" style={{
+            background: `
+              linear-gradient(135deg, transparent 10px, white 10px),
+              linear-gradient(-135deg, transparent 10px, white 10px),
+              linear-gradient(45deg, transparent 10px, white 10px),
+              linear-gradient(-45deg, transparent 10px, white 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
         >
           <h3 className="text-2xl font-bold text-gray-900 mb-6">プロフィール編集</h3>
           
@@ -497,7 +539,18 @@ const CompanyProfilePage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-blue-50/80 backdrop-blur-xl border border-blue-200 rounded-3xl p-8 shadow-xl mt-8"
+          className="relative bg-blue-50 border border-blue-200 p-8 transition-all overflow-hidden mt-8" style={{
+            background: `
+              linear-gradient(135deg, transparent 10px, #eff6ff 10px),
+              linear-gradient(-135deg, transparent 10px, #eff6ff 10px),
+              linear-gradient(45deg, transparent 10px, #eff6ff 10px),
+              linear-gradient(-45deg, transparent 10px, #eff6ff 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
         >
           <h3 className="text-xl font-bold text-gray-900 mb-4">💡 プロフィール完成度を上げるコツ</h3>
           <div className="space-y-3 text-gray-700">

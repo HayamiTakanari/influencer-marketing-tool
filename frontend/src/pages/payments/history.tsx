@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DateRangeFilter from '../../components/DateRangeFilter';
 import BackButton from '../../components/BackButton';
+import Sidebar from '../../components/shared/Sidebar';
 
 interface Transaction {
   id: string;
@@ -269,31 +270,66 @@ const PaymentHistoryPage: React.FC = () => {
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
-            <BackButton text="ダッシュボードに戻る" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">支払い履歴</h1>
-              <p className="text-sm text-gray-600">取引履歴と統計情報</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
+    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
+      {/* 背景デザイン */}
+      <div className="fixed inset-0 z-0">
+        {/* ベースグラデーション */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
+        
+        {/* メッシュグラデーション */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute -inset-[100%] opacity-60">
+            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
           </div>
         </div>
+        
+        {/* アーティスティックパターン */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="artistic-pattern-payment" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
+              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
+              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
+              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern-payment)" />
+        </svg>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* サイドバー */}
+      <Sidebar 
+        user={user} 
+        favoriteCount={0} 
+        onLogout={handleLogout} 
+      />
+
+      {/* メインコンテンツエリア */}
+      <div className="ml-80 relative z-10">
+        {/* ナビゲーション */}
+        <nav className="fixed top-0 left-80 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">支払い履歴</h1>
+                <p className="text-sm text-gray-600">取引履歴と統計情報</p>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <div className="pt-20 pb-12 px-4">
+          <div className="max-w-7xl mx-auto">
         {/* エラーメッセージ */}
         {error && (
           <motion.div
@@ -311,7 +347,18 @@ const PaymentHistoryPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
+            className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden mb-8" style={{
+              background: `
+                linear-gradient(135deg, transparent 10px, white 10px),
+                linear-gradient(-135deg, transparent 10px, white 10px),
+                linear-gradient(45deg, transparent 10px, white 10px),
+                linear-gradient(-45deg, transparent 10px, white 10px)
+              `,
+              backgroundPosition: 'top left, top right, bottom right, bottom left',
+              backgroundSize: '50% 50%',
+              backgroundRepeat: 'no-repeat',
+              boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+            }}
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">支払い統計</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -346,7 +393,18 @@ const PaymentHistoryPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
+          className="relative bg-white border border-gray-200 p-6 transition-all overflow-hidden mb-8" style={{
+            background: `
+              linear-gradient(135deg, transparent 10px, white 10px),
+              linear-gradient(-135deg, transparent 10px, white 10px),
+              linear-gradient(45deg, transparent 10px, white 10px),
+              linear-gradient(-45deg, transparent 10px, white 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
         >
           <div className="space-y-6">
             {/* プロジェクトフィルター */}
@@ -388,7 +446,18 @@ const PaymentHistoryPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
+          className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden" style={{
+            background: `
+              linear-gradient(135deg, transparent 10px, white 10px),
+              linear-gradient(-135deg, transparent 10px, white 10px),
+              linear-gradient(45deg, transparent 10px, white 10px),
+              linear-gradient(-45deg, transparent 10px, white 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
         >
           <h2 className="text-2xl font-bold text-gray-900 mb-6">取引履歴</h2>
           
@@ -406,7 +475,9 @@ const PaymentHistoryPage: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all"
+                  className="relative bg-white border border-gray-200 p-6 transition-all hover:shadow-md" style={{
+                    boxShadow: '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
+                  }}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between">
                     <div className="flex-1">
@@ -479,7 +550,18 @@ const PaymentHistoryPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-blue-50/80 backdrop-blur-xl border border-blue-200 rounded-3xl p-6 shadow-xl mt-8"
+          className="relative bg-blue-50 border border-blue-200 p-6 transition-all overflow-hidden mt-8" style={{
+            background: `
+              linear-gradient(135deg, transparent 10px, #eff6ff 10px),
+              linear-gradient(-135deg, transparent 10px, #eff6ff 10px),
+              linear-gradient(45deg, transparent 10px, #eff6ff 10px),
+              linear-gradient(-45deg, transparent 10px, #eff6ff 10px)
+            `,
+            backgroundPosition: 'top left, top right, bottom right, bottom left',
+            backgroundSize: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+            boxShadow: '6px 6px 15px rgba(0,0,0,0.1), 3px 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+          }}
         >
           <h3 className="text-lg font-bold text-gray-900 mb-4">💡 支払いについて</h3>
           <div className="space-y-2 text-sm text-gray-700">
@@ -501,6 +583,8 @@ const PaymentHistoryPage: React.FC = () => {
             </div>
           </div>
         </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );
