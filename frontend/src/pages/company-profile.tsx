@@ -154,6 +154,12 @@ const CompanyProfilePage: React.FC = () => {
     }).format(price);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -164,12 +170,6 @@ const CompanyProfilePage: React.FC = () => {
       </div>
     );
   }
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
