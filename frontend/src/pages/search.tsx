@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { searchInfluencers } from '../services/api';
 import PageLayout from '../components/shared/PageLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
+
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: string;
+  badge?: number;
+}
 
 const SearchPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -13,7 +21,27 @@ const SearchPage: React.FC = () => {
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState<any>(null);
   const [searchTime, setSearchTime] = useState<number>(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const router = useRouter();
+
+  // ナビゲーションアイテム
+  const navigationItems: NavigationItem[] = [
+    { name: 'インフルエンサー検索', href: '/search', icon: '🔍' },
+    { name: 'プロジェクト', href: '/projects', icon: '📝', badge: 5 },
+    { name: 'お気に入り', href: '/favorites', icon: '⭐', badge: user?.favoriteInfluencers?.length || 0 },
+    { name: 'チャット', href: '/chat', icon: '💬' },
+    { name: '支払い履歴', href: '/payments/history', icon: '💳' },
+    { name: '請求書', href: '/invoices', icon: '📋' },
+    { name: '会社プロフィール', href: '/company-profile', icon: '🏢' },
+    { name: 'チーム管理', href: '/team-management', icon: '👥' }
+  ];
+
+  const quickActionsItems = [
+    { name: 'プロジェクト作成', href: '/projects/create', icon: '➕' },
+    { name: 'お知らせ', href: '/notifications', icon: '🔔' },
+    { name: 'フィードバック', href: '/feedback', icon: '📝' },
+    { name: 'FAQ', href: '/faq', icon: '❓' }
+  ];
 
   // 検索フィルター
   const [filters, setFilters] = useState({
@@ -150,355 +178,432 @@ const SearchPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <PageLayout
-      title="インフルエンサー検索"
-      subtitle="条件を指定して最適なインフルエンサーを見つけましょう"
-      userEmail={user.email}
-      onLogout={handleLogout}
-    >
-      {/* パフォーマンス情報 */}
-      <Card className="mb-8" padding="md">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div>
-            <p className="text-sm text-gray-600 mb-2">検索時間</p>
-            <p className="text-2xl font-bold text-emerald-600">{searchTime.toFixed(0)}ms</p>
-          </div>
-          {pagination && (
-            <div>
-              <p className="text-sm text-gray-600 mb-2">総件数</p>
-              <p className="text-2xl font-bold text-teal-600">{pagination.total.toLocaleString()}</p>
-            </div>
-          )}
-          <div>
-            <p className="text-sm text-gray-600 mb-2">表示中</p>
-            <p className="text-2xl font-bold text-gray-900">{influencers.length}</p>
-          </div>
-        </div>
-      </Card>
-
-      {/* 検索フィルター */}
-      <Card className="mb-8" padding="lg">
-        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-          <span className="text-2xl mr-3">🔍</span>
-          検索条件
-        </h3>
+    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
+      {/* 背景デザイン */}
+      <div className="fixed inset-0 z-0">
+        {/* ベースグラデーション */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              キーワード
-            </label>
-            <input
-              type="text"
-              value={filters.query}
-              onChange={(e) => handleFilterChange('query', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-              placeholder="インフルエンサー名..."
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              カテゴリ
-            </label>
-            <select
-              value={filters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-            >
-              <option value="">全て</option>
-              <option value="美容">美容</option>
-              <option value="ライフスタイル">ライフスタイル</option>
-              <option value="ファッション">ファッション</option>
-              <option value="グルメ">グルメ</option>
-              <option value="旅行">旅行</option>
-              <option value="テック">テック</option>
-              <option value="フィットネス">フィットネス</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              都道府県
-            </label>
-            <select
-              value={filters.prefecture}
-              onChange={(e) => handleFilterChange('prefecture', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-            >
-              <option value="">全て</option>
-              <option value="東京都">東京都</option>
-              <option value="大阪府">大阪府</option>
-              <option value="神奈川県">神奈川県</option>
-              <option value="愛知県">愛知県</option>
-              <option value="福岡県">福岡県</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              SNSプラットフォーム
-            </label>
-            <select
-              value={filters.platform}
-              onChange={(e) => handleFilterChange('platform', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-            >
-              <option value="">全て</option>
-              <option value="Instagram">Instagram</option>
-              <option value="TikTok">TikTok</option>
-              <option value="YouTube">YouTube</option>
-              <option value="X">X (Twitter)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              最小フォロワー数
-            </label>
-            <input
-              type="number"
-              value={filters.minFollowers}
-              onChange={(e) => handleFilterChange('minFollowers', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-              placeholder="例: 1000"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              並び順
-            </label>
-            <select
-              value={filters.sortBy}
-              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-            >
-              <option value="relevance">関連度</option>
-              <option value="followers_desc">フォロワー数(多い順)</option>
-              <option value="followers_asc">フォロワー数(少ない順)</option>
-              <option value="engagement_desc">エンゲージメント率(高い順)</option>
-              <option value="price_asc">料金(安い順)</option>
-            </select>
+        {/* メッシュグラデーション */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute -inset-[100%] opacity-60">
+            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
+            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
           </div>
         </div>
+        
+        {/* アーティスティックパターン */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="artistic-pattern-search" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
+              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
+              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
+              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern-search)" />
+        </svg>
+      </div>
 
-        <div className="flex justify-center space-x-4">
-          <Button
-            onClick={handleSearch}
-            loading={loading}
-            icon={<span>🔍</span>}
-            size="lg"
-            variant="primary"
-          >
-            検索実行
-          </Button>
-          
-          <Button
-            onClick={() => {
-              setFilters({
-                query: '',
-                category: '',
-                prefecture: '',
-                platform: '',
-                minFollowers: '',
-                maxFollowers: '',
-                sortBy: 'relevance',
-                page: 1,
-                limit: 20,
-              });
-              handleSearch();
-            }}
-            variant="secondary"
-            size="lg"
-            icon={<span>🔄</span>}
-          >
-            リセット
-          </Button>
+      {/* サイドバー */}
+      <motion.div
+        initial={{ x: -320 }}
+        animate={{ x: 0 }}
+        transition={{ duration: 0.3 }}
+        className={`fixed top-0 left-0 z-50 h-full bg-white border-r border-gray-200 transition-all duration-300 ${
+          sidebarCollapsed ? 'w-16' : 'w-80'
+        }`}
+        style={{ boxShadow: '4px 0 15px rgba(0,0,0,0.1)' }}
+      >
+        <div className="flex flex-col h-full">
+          {/* ヘッダー */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            {!sidebarCollapsed && (
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-xl">IL</span>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">InfluenceLink</h1>
+                  <p className="text-sm text-gray-600">企業ダッシュボード</p>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="p-2 text-gray-600 hover:text-gray-800 transition-colors rounded-lg hover:bg-gray-100"
+            >
+              {sidebarCollapsed ? '→' : '←'}
+            </button>
+          </div>
+
+          {/* ナビゲーション */}
+          <div className="flex-1 overflow-y-auto py-6">
+            <nav className="space-y-1 px-3">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all hover:bg-emerald-50 hover:text-emerald-600 ${
+                    router.pathname === item.href 
+                      ? 'bg-emerald-100 text-emerald-700 shadow-sm' 
+                      : 'text-gray-700'
+                  }`}
+                >
+                  <span className="text-xl mr-3 flex-shrink-0">{item.icon}</span>
+                  {!sidebarCollapsed && (
+                    <>
+                      <span className="flex-1">{item.name}</span>
+                      {item.badge && item.badge > 0 && (
+                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-emerald-500 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </Link>
+              ))}
+            </nav>
+
+            {!sidebarCollapsed && (
+              <>
+                {/* セパレーター */}
+                <div className="my-6 px-6">
+                  <div className="border-t border-gray-200" />
+                </div>
+
+                {/* クイックアクション */}
+                <div className="px-3">
+                  <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    クイックアクション
+                  </h3>
+                  <nav className="space-y-1">
+                    {quickActionsItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-lg transition-all hover:bg-gray-100 hover:text-gray-900"
+                      >
+                        <span className="text-lg mr-3">{item.icon}</span>
+                        <span>{item.name}</span>
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ユーザー情報とログアウト */}
+          <div className="border-t border-gray-200 p-6">
+            {!sidebarCollapsed && (
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-gray-600">
+                    {user.email.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user.companyName || user.email}
+                  </p>
+                  <p className="text-xs text-gray-500">企業アカウント</p>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className={`${sidebarCollapsed ? 'w-10 h-10' : 'w-full'} flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors rounded-lg hover:bg-red-50`}
+            >
+              <span className="text-lg">{sidebarCollapsed ? '🚪' : '🚪'}</span>
+              {!sidebarCollapsed && <span className="ml-2">ログアウト</span>}
+            </button>
+          </div>
         </div>
-      </Card>
+      </motion.div>
 
-      {/* エラーメッセージ */}
-      {error && (
-        <Card className="mb-8 border-red-200 bg-red-50">
-          <div className="text-red-700 text-center">
-            <span className="text-2xl mr-2">⚠️</span>
-            {error}
-          </div>
-        </Card>
-      )}
+      {/* メインコンテンツエリア */}
+      <div className={`${sidebarCollapsed ? 'ml-16' : 'ml-80'} transition-all duration-300 relative z-10`}>
+        <PageLayout title="インフルエンサー検索" user={user} onLogout={handleLogout}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* 検索フィルター */}
+            <Card className="mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    キーワード
+                  </label>
+                  <input
+                    type="text"
+                    value={filters.query}
+                    onChange={(e) => handleFilterChange('query', e.target.value)}
+                    placeholder="名前、カテゴリー、ハッシュタグなど"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
 
-      {/* ローディング */}
-      {loading && (
-        <Card className="mb-8">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">検索中...</p>
-          </div>
-        </Card>
-      )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    カテゴリー
+                  </label>
+                  <select
+                    value={filters.category}
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">すべて</option>
+                    <option value="ファッション">ファッション</option>
+                    <option value="美容">美容</option>
+                    <option value="グルメ">グルメ</option>
+                    <option value="旅行">旅行</option>
+                    <option value="ライフスタイル">ライフスタイル</option>
+                    <option value="フィットネス">フィットネス</option>
+                    <option value="テクノロジー">テクノロジー</option>
+                    <option value="ビジネス">ビジネス</option>
+                  </select>
+                </div>
 
-      {/* 検索結果 */}
-      {!loading && influencers.length > 0 && (
-        <>
-          {/* 結果ヘッダー */}
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              {pagination && (
-                <p className="text-gray-600 text-lg">
-                  {pagination.total.toLocaleString()}件中 {((pagination.page - 1) * pagination.limit + 1).toLocaleString()}-{Math.min(pagination.page * pagination.limit, pagination.total).toLocaleString()}件を表示
-                </p>
-              )}
-            </div>
-            <div>
-              <Button
-                onClick={handleExportCSV}
-                variant="outline"
-                size="sm"
-                icon={<span>📊</span>}
-              >
-                CSV出力
-              </Button>
-            </div>
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    都道府県
+                  </label>
+                  <select
+                    value={filters.prefecture}
+                    onChange={(e) => handleFilterChange('prefecture', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">すべて</option>
+                    <option value="東京都">東京都</option>
+                    <option value="神奈川県">神奈川県</option>
+                    <option value="千葉県">千葉県</option>
+                    <option value="埼玉県">埼玉県</option>
+                    <option value="大阪府">大阪府</option>
+                    <option value="愛知県">愛知県</option>
+                    <option value="福岡県">福岡県</option>
+                  </select>
+                </div>
 
-          {/* インフルエンサーリスト */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {influencers.map((influencer, index) => (
-              <motion.div
-                key={influencer.id}
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card hover={true} className="h-full">
-                  <div className="flex items-start gap-4">
-                    {/* アバター */}
-                    <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-                      {influencer.displayName?.charAt(0) || 'U'}
-                    </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    プラットフォーム
+                  </label>
+                  <select
+                    value={filters.platform}
+                    onChange={(e) => handleFilterChange('platform', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">すべて</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="YouTube">YouTube</option>
+                    <option value="X">X (Twitter)</option>
+                  </select>
+                </div>
+              </div>
 
-                    {/* メイン情報 */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4 mb-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    最小フォロワー数
+                  </label>
+                  <input
+                    type="number"
+                    value={filters.minFollowers}
+                    onChange={(e) => handleFilterChange('minFollowers', e.target.value)}
+                    placeholder="1000"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    最大フォロワー数
+                  </label>
+                  <input
+                    type="number"
+                    value={filters.maxFollowers}
+                    onChange={(e) => handleFilterChange('maxFollowers', e.target.value)}
+                    placeholder="100000"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    並び順
+                  </label>
+                  <select
+                    value={filters.sortBy}
+                    onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="relevance">関連度順</option>
+                    <option value="followers">フォロワー数順</option>
+                    <option value="engagement">エンゲージメント率順</option>
+                    <option value="price">料金順</option>
+                    <option value="recent">登録日順</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <Button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="w-full sm:w-auto"
+                >
+                  {loading ? '検索中...' : '検索'}
+                </Button>
+
+                {influencers.length > 0 && (
+                  <Button
+                    onClick={handleExportCSV}
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
+                    CSV出力
+                  </Button>
+                )}
+
+                {searchTime > 0 && (
+                  <span className="text-sm text-gray-500">
+                    検索時間: {searchTime}ms
+                  </span>
+                )}
+              </div>
+            </Card>
+
+            {/* エラー表示 */}
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-700">{error}</p>
+              </div>
+            )}
+
+            {/* 検索結果 */}
+            {influencers.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {influencers.map((influencer) => (
+                  <Card key={influencer.id} className="overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                          <span className="text-lg font-bold text-gray-600">
+                            {influencer.displayName?.charAt(0) || '?'}
+                          </span>
+                        </div>
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900 mb-1">
-                            {influencer.displayName}
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {influencer.displayName || 'Unknown'}
                           </h3>
-                          <p className="text-sm text-gray-600 mb-2">
-                            📍 {influencer.prefecture}
+                          <p className="text-sm text-gray-500">
+                            {influencer.prefecture}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-500">料金レンジ</div>
-                          <div className="text-sm font-bold text-emerald-600">
-                            ¥{influencer.priceMin?.toLocaleString()} - ¥{influencer.priceMax?.toLocaleString()}
+                      </div>
+
+                      {influencer.categories && influencer.categories.length > 0 && (
+                        <div className="mb-3">
+                          <div className="flex flex-wrap gap-1">
+                            {influencer.categories.slice(0, 3).map((category: string, index: number) => (
+                              <span
+                                key={index}
+                                className="inline-block px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full"
+                              >
+                                {category}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                      </div>
+                      )}
 
-                      {/* カテゴリー */}
-                      <div className="flex gap-2 mb-3">
-                        {influencer.categories?.map((category: string, i: number) => (
-                          <span key={i} className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                            {category}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* ハッシュタグ（使用頻度順に3つ） */}
-                      {influencer.topHashtags && influencer.topHashtags.length > 0 && (
-                        <div className="flex gap-2 mb-3">
-                          {influencer.topHashtags.slice(0, 3).map((hashtag: string, i: number) => (
-                            <span key={i} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                              #{hashtag}
-                            </span>
+                      {influencer.socialAccounts && influencer.socialAccounts.length > 0 && (
+                        <div className="mb-4 space-y-2">
+                          {influencer.socialAccounts.slice(0, 2).map((account: any, index: number) => (
+                            <div key={index} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">{account.platform}</span>
+                              <span className="font-medium">
+                                {account.followerCount?.toLocaleString()} 
+                                <span className="text-gray-500 ml-1">
+                                  ({account.engagementRate || 0}%)
+                                </span>
+                              </span>
+                            </div>
                           ))}
                         </div>
                       )}
 
-                      {/* SNS情報 */}
-                      <div className="grid grid-cols-2 gap-2 text-xs mb-4">
-                        {['Instagram', 'TikTok', 'YouTube', 'X'].map(platform => {
-                          const account = influencer.socialAccounts?.find((acc: any) => acc.platform === platform);
-                          
-                          if (!account) return null;
+                      {(influencer.priceMin || influencer.priceMax) && (
+                        <div className="mb-4">
+                          <p className="text-sm text-gray-600">料金目安</p>
+                          <p className="font-semibold text-gray-900">
+                            {influencer.priceMin?.toLocaleString()}円 - {influencer.priceMax?.toLocaleString()}円
+                          </p>
+                        </div>
+                      )}
 
-                          return (
-                            <div key={platform} className="flex items-center gap-2">
-                              <span className="text-gray-500 w-20">{platform}:</span>
-                              <span className="font-semibold text-gray-900">
-                                {account.followerCount?.toLocaleString()}
-                              </span>
-                              {account.engagementRate && (
-                                <span className="text-emerald-600">
-                                  ({account.engagementRate}%)
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
+                      <div className="flex space-x-2">
+                        <Button size="sm" className="flex-1">
+                          詳細を見る
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          ⭐
+                        </Button>
                       </div>
-
-                      {/* アクションボタン */}
-                      <Button
-                        onClick={() => router.push(`/influencer/${influencer.id}`)}
-                        variant="primary"
-                        size="sm"
-                        className="w-full"
-                      >
-                        詳細を見る
-                      </Button>
                     </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* ページネーション */}
-          {pagination && pagination.totalPages > 1 && (
-            <Card>
-              <div className="flex justify-center items-center space-x-2">
-                <Button
-                  onClick={() => setFilters(prev => ({ ...prev, page: pagination.page - 1 }))}
-                  disabled={!pagination.hasPrev}
-                  variant="outline"
-                  size="sm"
-                >
-                  前へ
-                </Button>
-                
-                <span className="mx-4 text-gray-600">
-                  ページ {pagination.page} / {pagination.totalPages}
-                </span>
-                
-                <Button
-                  onClick={() => setFilters(prev => ({ ...prev, page: pagination.page + 1 }))}
-                  disabled={!pagination.hasNext}
-                  variant="outline"
-                  size="sm"
-                >
-                  次へ
-                </Button>
+                  </Card>
+                ))}
               </div>
-            </Card>
-          )}
-        </>
-      )}
+            )}
 
-      {/* 検索結果なし */}
-      {!loading && influencers.length === 0 && (
-        <Card>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">検索結果が見つかりません</h3>
-            <p className="text-gray-600">検索条件を変更して再度お試しください。</p>
+            {/* ページネーション */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <nav className="flex space-x-2">
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handleFilterChange('page', page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${
+                        filters.page === page
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            )}
+
+            {/* 検索結果なし */}
+            {!loading && influencers.length === 0 && user && (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  検索結果が見つかりませんでした
+                </h3>
+                <p className="text-gray-500">
+                  検索条件を変更して再度お試しください
+                </p>
+              </div>
+            )}
           </div>
-        </Card>
+        </PageLayout>
+      </div>
+
+      {/* サイドバーオーバーレイ（モバイル用） */}
+      {!sidebarCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-25 z-40 lg:hidden"
+          onClick={() => setSidebarCollapsed(true)}
+        />
       )}
-    </PageLayout>
+    </div>
   );
 };
 
