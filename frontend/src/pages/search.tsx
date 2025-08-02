@@ -713,17 +713,6 @@ const SearchPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* 料金情報（下部に表示） */}
-                        {(influencer.priceMin || influencer.priceMax) && (
-                          <div className="mt-4 pt-4 border-t border-gray-100">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-600">料金目安:</span>
-                              <span className="text-sm font-semibold text-gray-900">
-                                {influencer.priceMin?.toLocaleString()}円 - {influencer.priceMax?.toLocaleString()}円
-                              </span>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </Card>
                   );
