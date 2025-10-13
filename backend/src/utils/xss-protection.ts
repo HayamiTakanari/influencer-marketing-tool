@@ -5,7 +5,7 @@ import xss from 'xss-filters';
 
 // DOMPurifyをサーバーサイドで使用するためのJSDOMセットアップ
 const window = new JSDOM('').window;
-const purify = DOMPurify(window as unknown as Window);
+const purify = DOMPurify(window as any);
 
 /**
  * XSS対策のためのエスケープとサニタイゼーション機能

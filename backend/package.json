@@ -2,10 +2,14 @@
   "name": "influencer-backend-simple",
   "version": "1.0.0",
   "description": "Simple backend for influencer marketing tool",
-  "main": "simple-backend.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node simple-backend.js",
-    "dev": "node simple-backend.js"
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.12.0",
@@ -16,6 +20,7 @@
     "@types/multer": "^2.0.0",
     "axios": "^1.11.0",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "dompurify": "^3.2.6",
     "dotenv": "^16.3.1",
@@ -28,12 +33,18 @@
     "pg": "^8.11.3",
     "sanitize-html": "^2.17.0",
     "socket.io": "^4.7.2",
-    "xss-filters": "^1.2.7"
+    "stripe": "^19.1.0",
+    "twitter-api-v2": "^1.27.0",
+    "xss-filters": "^1.2.7",
+    "zod": "^4.1.12"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "prisma": "^6.12.0"
+    "@types/node": "^24.7.2",
+    "prisma": "^6.12.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

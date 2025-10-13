@@ -21,9 +21,7 @@ export const bulkInquirySchema = z.object({
 });
 
 export const inquiryResponseSchema = z.object({
-  status: z.enum(['PENDING', 'ACCEPTED', 'DECLINED'], {
-    required_error: 'ステータスを選択してください',
-  }),
+  status: z.enum(['PENDING', 'ACCEPTED', 'DECLINED'], 'ステータスを選択してください'),
   proposedPrice: z.number().min(0).optional(),
   message: z.string().optional(),
   availableFrom: z.string().datetime().optional(),

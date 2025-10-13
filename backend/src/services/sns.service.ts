@@ -5,20 +5,29 @@ const prisma = new PrismaClient();
 
 // Twitter API service
 export class TwitterService {
-  private client: TwitterApi;
+  private client: TwitterApi | null = null;
 
   constructor() {
-    this.client = new TwitterApi({
-      appKey: process.env.TWITTER_API_KEY!,
-      appSecret: process.env.TWITTER_API_SECRET!,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN!,
-      accessSecret: process.env.TWITTER_ACCESS_SECRET!,
-    });
+    if (process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET) {
+      this.client = new TwitterApi({
+        appKey: process.env.TWITTER_API_KEY,
+        appSecret: process.env.TWITTER_API_SECRET,
+        accessToken: process.env.TWITTER_ACCESS_TOKEN,
+        accessSecret: process.env.TWITTER_ACCESS_SECRET,
+      });
+    }
+  }
+
+  private ensureClient() {
+    if (!this.client) {
+      throw new Error('Twitter API credentials not configured');
+    }
+    return this.client;
   }
 
   async getUserInfo(username: string) {
     try {
-      const user = await this.client.v2.userByUsername(username, {
+      const user = await this.ensureClient().v2.userByUsername(username, {
         'user.fields': ['public_metrics', 'verified', 'profile_image_url'],
       });
 
@@ -40,12 +49,12 @@ export class TwitterService {
 
   async getUserTweets(userId: string, maxResults = 10) {
     try {
-      const tweets = await this.client.v2.userTimeline(userId, {
+      const tweets = await this.ensureClient().v2.userTimeline(userId, {
         max_results: maxResults,
         'tweet.fields': ['public_metrics', 'created_at'],
       });
 
-      return tweets.data?.map((tweet: any) => ({
+      return tweets.data.data?.map((tweet: any) => ({
         id: tweet.id,
         text: tweet.text,
         createdAt: tweet.created_at,

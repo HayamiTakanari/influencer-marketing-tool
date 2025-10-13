@@ -9,7 +9,7 @@ export const verifySNSConnections = async (
   next: NextFunction
 ) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req as any).user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: '認証が必要です' });

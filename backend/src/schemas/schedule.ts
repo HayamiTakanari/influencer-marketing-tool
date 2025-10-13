@@ -6,9 +6,7 @@ export const projectScheduleSchema = z.object({
   projectId: z.string().cuid('有効なプロジェクトIDを指定してください'),
   publishDate: z.string().datetime('有効な投稿日を指定してください'),
   milestones: z.array(z.object({
-    type: z.enum(['VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], {
-      required_error: 'マイルストーンタイプを選択してください',
-    }),
+    type: z.enum(['VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], 'マイルストーンタイプを選択してください'),
     title: z.string().min(1, 'タイトルは必須です'),
     description: z.string().optional(),
     dueDate: z.string().datetime('有効な期限を指定してください'),
@@ -16,9 +14,7 @@ export const projectScheduleSchema = z.object({
 });
 
 export const milestoneSchema = z.object({
-  type: z.enum(['VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], {
-    required_error: 'マイルストーンタイプを選択してください',
-  }),
+  type: z.enum(['VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], 'マイルストーンタイプを選択してください'),
   title: z.string().min(1, 'タイトルは必須です'),
   description: z.string().optional(),
   dueDate: z.string().datetime('有効な期限を指定してください'),

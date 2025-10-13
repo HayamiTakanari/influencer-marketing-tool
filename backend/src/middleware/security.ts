@@ -108,7 +108,7 @@ export const securityHeaders = helmet({
       frameAncestors: ["'none'"],
       
       // アップグレード非セキュア接続
-      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : undefined,
+      ...(process.env.NODE_ENV === 'production' ? { upgradeInsecureRequests: [] } : {}),
       
       // レポートURI（CSP違反報告）
       reportUri: ["/api/security/csp-report"]
@@ -140,14 +140,14 @@ export const securityHeaders = helmet({
   },
   
   // 権限ポリシー
-  permissionsPolicy: {
-    features: {
-      camera: ["'none'"],
-      microphone: ["'none'"],
-      geolocation: ["'none'"],
-      payment: ["'self'"]
-    }
-  }
+  // permissionsPolicy: {
+  //   features: {
+  //     camera: ["'none'"],
+  //     microphone: ["'none'"],
+  //     geolocation: ["'none'"],
+  //     payment: ["'self'"]
+  //   }
+  // }
 });
 
 // ファイルアップロード設定
@@ -326,7 +326,7 @@ export const validateQueryParameters = (schema: z.ZodSchema) => {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           error: 'Invalid query parameters',
-          details: error.errors,
+          details: error.issues,
         });
         return;
       }

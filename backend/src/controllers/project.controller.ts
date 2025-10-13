@@ -23,7 +23,7 @@ const applyToProjectSchema = z.object({
 
 export const getAvailableProjects = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'INFLUENCER') {
@@ -195,7 +195,7 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
 
 export const applyToProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'INFLUENCER') {
@@ -304,7 +304,7 @@ export const applyToProject = async (req: Request, res: Response) => {
 
 export const getMyApplications = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'INFLUENCER') {
@@ -351,7 +351,7 @@ export const getMyApplications = async (req: Request, res: Response) => {
 
 export const getApplicationsForMyProjects = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'CLIENT') {
@@ -396,7 +396,7 @@ export const getApplicationsForMyProjects = async (req: Request, res: Response) 
 
 export const acceptApplication = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { applicationId } = req.params;
     
@@ -449,6 +449,7 @@ export const acceptApplication = async (req: Request, res: Response) => {
             include: {
               user: {
                 select: {
+                  id: true,
                   email: true,
                 },
               },
@@ -513,7 +514,7 @@ export const acceptApplication = async (req: Request, res: Response) => {
 
 export const rejectApplication = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { applicationId } = req.params;
     
@@ -602,7 +603,7 @@ const updateProjectSchema = createProjectSchema.partial();
 
 export const createProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'CLIENT') {
@@ -682,7 +683,7 @@ export const createProject = async (req: Request, res: Response) => {
 
 export const getMyProjects = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'CLIENT') {
@@ -750,7 +751,7 @@ export const getMyProjects = async (req: Request, res: Response) => {
 
 export const getProjectById = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
 
@@ -850,7 +851,7 @@ export const getProjectById = async (req: Request, res: Response) => {
 
 export const updateProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
     
@@ -976,7 +977,7 @@ export const updateProject = async (req: Request, res: Response) => {
 
 export const deleteProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
     
@@ -1034,7 +1035,7 @@ export const deleteProject = async (req: Request, res: Response) => {
 
 export const updateProjectStatus = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
     const { status } = z.object({ status: z.nativeEnum(ProjectStatus) }).parse(req.body);

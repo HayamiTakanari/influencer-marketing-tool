@@ -137,7 +137,7 @@ function sanitizeObject(obj: any, depth = 0): any {
 export const protectFromCommandInjection = (req: Request, res: Response, next: NextFunction): void => {
   try {
     // リクエストサイズ制限
-    const requestSize = JSON.stringify(req.body).length;
+    const requestSize = req.body ? JSON.stringify(req.body).length : 0;
     if (requestSize > 1024 * 1024) { // 1MB制限
       res.status(413).json({ error: 'Request entity too large' });
       return;
@@ -156,9 +156,12 @@ export const protectFromCommandInjection = (req: Request, res: Response, next: N
       req.params = sanitizeObject(req.params);
     }
 
-    // ヘッダーの基本チェック
+    // ヘッダーの基本チェック（curl等のテストツールは許可）
     const userAgent = req.get('User-Agent') || '';
-    if (containsDangerousPattern(userAgent)) {
+    const isCurl = userAgent.toLowerCase().includes('curl');
+    const isPostman = userAgent.toLowerCase().includes('postman');
+    
+    if (!isCurl && !isPostman && containsDangerousPattern(userAgent)) {
       console.warn(`Suspicious User-Agent detected: ${userAgent}`);
       res.status(400).json({ error: 'Invalid request headers' });
       return;

@@ -5,12 +5,8 @@ import { z } from 'zod';
 export const achievementSchema = z.object({
   projectName: z.string().min(1, 'プロジェクト名は必須です'),
   brandName: z.string().min(1, 'ブランド名は必須です'),
-  purpose: z.enum(['SALES', 'LEAD_GEN', 'AWARENESS', 'BRAND_IMAGE', 'ENGAGEMENT'], {
-    required_error: '目的を選択してください',
-  }),
-  platform: z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER'], {
-    required_error: 'プラットフォームを選択してください',
-  }),
+  purpose: z.enum(['SALES', 'LEAD_GEN', 'AWARENESS', 'BRAND_IMAGE', 'ENGAGEMENT'], '目的を選択してください'),
+  platform: z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'TWITTER'], 'プラットフォームを選択してください'),
   description: z.string().optional(),
   metrics: z.object({
     views: z.number().min(0).optional(),

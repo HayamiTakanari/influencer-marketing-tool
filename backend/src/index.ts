@@ -10,13 +10,13 @@ import { generalRateLimit, securityHeaders } from './middleware/security';
 import { protectFromCommandInjection, preventSystemCommands } from './middleware/command-injection-protection';
 
 // Sentry configuration (must be imported first)
-import { initializeSentry, setupSentryErrorHandler } from './config/sentry';
-import { 
-  requestTrackingMiddleware, 
-  userContextMiddleware, 
-  apiErrorHandler, 
-  setupGlobalErrorHandlers 
-} from './middleware/error-tracking';
+// import { initializeSentry, setupSentryErrorHandler } from './config/sentry';
+// import { 
+//   requestTrackingMiddleware, 
+//   userContextMiddleware, 
+//   apiErrorHandler, 
+//   setupGlobalErrorHandlers 
+// } from './middleware/error-tracking';
 import authRoutes from './routes/auth.routes';
 import influencerRoutes from './routes/influencer.routes';
 import profileRoutes from './routes/profile.routes';
@@ -46,10 +46,10 @@ cloudinary.config({
 const app = express();
 
 // Initialize Sentry (must be first)
-initializeSentry(app);
+// initializeSentry(app);
 
 // Setup global error handlers
-setupGlobalErrorHandlers();
+// setupGlobalErrorHandlers();
 
 const httpServer = createServer(app);
 
@@ -105,8 +105,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(generalRateLimit);
 
 // Request tracking and user context middleware
-app.use(requestTrackingMiddleware);
-app.use(userContextMiddleware);
+// app.use(requestTrackingMiddleware);
+// app.use(userContextMiddleware);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -131,10 +131,10 @@ app.get('/health', (_req, res) => {
 });
 
 // Sentry error handler (must be before other error handlers)
-setupSentryErrorHandler(app);
+// setupSentryErrorHandler(app);
 
 // Custom API error handler
-app.use(apiErrorHandler);
+// app.use(apiErrorHandler);
 
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);

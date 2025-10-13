@@ -412,7 +412,7 @@ export const getPerformanceMetrics = async (req: Request, res: Response) => {
           platform: true,
           followerCount: true,
           engagementRate: true,
-          lastSyncAt: true,
+          lastSynced: true,
         },
       }),
       // Engagement trends (mock data)
@@ -510,12 +510,12 @@ export const getComparisonData = async (req: Request, res: Response) => {
     const similarInfluencers = await prisma.influencer.findMany({
       where: {
         id: { not: influencer.id },
-        category: influencer.category,
+        categories: { hasSome: influencer.categories },
         prefecture: influencer.prefecture,
       },
       include: {
         socialAccounts: true,
-        matchedProjects: {
+        projects: {
           where: {
             status: 'COMPLETED',
           },
@@ -543,12 +543,12 @@ export const getComparisonData = async (req: Request, res: Response) => {
       const avgEngagement = inf.socialAccounts.length > 0 
         ? inf.socialAccounts.reduce((sum, acc) => sum + acc.engagementRate, 0) / inf.socialAccounts.length 
         : 0;
-      const totalEarnings = inf.matchedProjects.reduce((sum, proj) => sum + (proj.transaction?.amount || 0), 0);
+      const totalEarnings = inf.projects.reduce((sum, proj) => sum + (proj.transaction?.amount || 0), 0);
       
       acc.totalFollowers += totalFollowers;
       acc.totalEngagement += avgEngagement;
       acc.totalEarnings += totalEarnings;
-      acc.projectCount += inf.matchedProjects.length;
+      acc.projectCount += inf.projects.length;
       
       return acc;
     }, {

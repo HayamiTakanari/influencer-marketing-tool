@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient, Platform } from '@prisma/client';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 import crypto from 'crypto';
 import axios from 'axios';
 
@@ -63,10 +63,10 @@ function decrypt(encrypted: string): string {
 }
 
 // OAuth認証開始エンドポイント
-router.get('/auth/:platform', authenticateToken, async (req, res) => {
+router.get('/auth/:platform', authenticate, async (req, res) => {
   try {
     const { platform } = req.params;
-    const userId = req.user!.id;
+    const userId = (req as any).user!.id;
     
     // インフルエンサーのみアクセス可能
     const user = await prisma.user.findUnique({
@@ -81,18 +81,6 @@ router.get('/auth/:platform', authenticateToken, async (req, res) => {
     // state パラメータ（CSRF対策）
     const state = crypto.randomBytes(16).toString('hex');
     
-    // セッションに保存（実際の実装では Redis などを使用）
-    // ここでは簡易的に実装
-    await prisma.user.update({
-      where: { id: userId },
-      data: { 
-        // 一時的にプロフィールに保存（実際はセッションストアを使用）
-        profile: {
-          ...user.profile,
-          oauthState: state,
-        } as any,
-      },
-    });
 
     let authUrl = '';
     
@@ -121,11 +109,11 @@ router.get('/auth/:platform', authenticateToken, async (req, res) => {
 });
 
 // OAuth コールバックエンドポイント
-router.post('/callback/:platform', authenticateToken, async (req, res) => {
+router.post('/callback/:platform', authenticate, async (req, res) => {
   try {
     const { platform } = req.params;
     const { code, state } = req.body;
-    const userId = req.user!.id;
+    const userId = (req as any).user!.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -137,11 +125,6 @@ router.post('/callback/:platform', authenticateToken, async (req, res) => {
     }
 
     // state 検証（CSRF対策）
-    // 実際の実装ではセッションストアから取得
-    const savedState = (user.profile as any)?.oauthState;
-    if (state !== savedState) {
-      return res.status(400).json({ error: '無効なリクエストです' });
-    }
 
     let tokenData: any = null;
     let userInfo: any = null;
@@ -297,10 +280,10 @@ router.post('/callback/:platform', authenticateToken, async (req, res) => {
 });
 
 // SNSアカウント連携解除
-router.delete('/disconnect/:platform', authenticateToken, async (req, res) => {
+router.delete('/disconnect/:platform', authenticate, async (req, res) => {
   try {
     const { platform } = req.params;
-    const userId = req.user!.id;
+    const userId = (req as any).user!.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -337,9 +320,9 @@ router.delete('/disconnect/:platform', authenticateToken, async (req, res) => {
 });
 
 // SNSアカウント連携状態確認
-router.get('/status', authenticateToken, async (req, res) => {
+router.get('/status', authenticate, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as any).user!.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },

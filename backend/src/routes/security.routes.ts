@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { handleCSPReport, handleXSSAttempt, getSecurityStats } from '../controllers/security.controller';
 import { generalRateLimit, authRateLimit } from '../middleware/security';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -19,7 +19,7 @@ router.post('/xss-attempt',
 
 // セキュリティ統計情報（管理者のみ）
 router.get('/stats',
-  authenticateToken,
+  authenticate,
   getSecurityStats
 );
 
