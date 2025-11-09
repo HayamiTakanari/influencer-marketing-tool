@@ -19,10 +19,10 @@ const createRateLimit = (options) => {
     });
 };
 exports.createRateLimit = createRateLimit;
-// 一般的なAPI用レート制限
+// 一般的なAPI用レート制限（開発環境では緩和）
 exports.generalRateLimit = (0, exports.createRateLimit)({
     windowMs: 15 * 60 * 1000, // 15分
-    max: 100, // 15分間に100リクエスト
+    max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 本番:100回、開発:1000回
     message: 'Too many requests from this IP, please try again later.'
 });
 // 認証関連のレート制限（開発環境では緩和）

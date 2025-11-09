@@ -94,16 +94,16 @@ const ProjectDetailPage: React.FC = () => {
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    
+
     if (userData && token) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-      
+
       if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
         router.push('/dashboard');
         return;
       }
-      
+
       if (id) {
         fetchProjectDetails();
       }
@@ -111,12 +111,6 @@ const ProjectDetailPage: React.FC = () => {
       router.push('/login');
     }
   }, [id, router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
 
   if (loading) {
     return (

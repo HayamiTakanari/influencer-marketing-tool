@@ -605,12 +605,24 @@ export const createProject = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
-    
+
+    console.log('Creating project - userId:', userId, 'userRole:', userRole);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+
     if (userRole !== 'CLIENT') {
       return res.status(403).json({ error: 'Only clients can create projects' });
     }
 
-    const data = createProjectSchema.parse(req.body);
+    let data;
+    try {
+      data = createProjectSchema.parse(req.body);
+    } catch (validationError: any) {
+      console.error('Validation error:', validationError);
+      return res.status(400).json({
+        error: 'Validation error',
+        details: validationError.errors || validationError.message
+      });
+    }
 
     // Get client profile
     const client = await prisma.client.findUnique({
@@ -624,11 +636,13 @@ export const createProject = async (req: Request, res: Response) => {
     // Validate dates
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
-    
+
+    console.log('Start date:', startDate, 'End date:', endDate);
+
     if (startDate >= endDate) {
       return res.status(400).json({ error: 'End date must be after start date' });
     }
-    
+
     if (startDate < new Date()) {
       return res.status(400).json({ error: 'Start date cannot be in the past' });
     }
@@ -674,9 +688,21 @@ export const createProject = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json(project);
-  } catch (error) {
+    res.status(201).json({
+      project: project,
+      message: 'Project created successfully'
+    });
+  } catch (error: any) {
     console.error('Create project error:', error);
+
+    // より詳細なエラーメッセージを返す
+    if (error.name === 'ZodError') {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: error.errors
+      });
+    }
+
     res.status(500).json({ error: 'Failed to create project' });
   }
 };

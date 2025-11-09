@@ -155,11 +155,26 @@ const CreateProjectPage: React.FC = () => {
     'ヘルスケア', '自動車', '金融', 'その他'
   ];
 
+  const PlatformIcon: React.FC<{ platform: string }> = ({ platform }) => {
+    switch (platform) {
+      case 'INSTAGRAM':
+        return <span className="text-lg">📷</span>;
+      case 'YOUTUBE':
+        return <span className="text-lg">▶️</span>;
+      case 'TIKTOK':
+        return <span className="text-lg">♪</span>;
+      case 'TWITTER':
+        return <span className="text-lg">𝕏</span>;
+      default:
+        return <span className="text-xs">{platform}</span>;
+    }
+  };
+
   const platforms = [
-    { value: 'INSTAGRAM', label: 'Instagram', icon: '📸' },
-    { value: 'YOUTUBE', label: 'YouTube', icon: '🎥' },
-    { value: 'TIKTOK', label: 'TikTok', icon: '🎵' },
-    { value: 'TWITTER', label: 'Twitter', icon: '🐦' }
+    { value: 'INSTAGRAM', label: 'Instagram', disabled: true },
+    { value: 'YOUTUBE', label: 'YouTube', disabled: true },
+    { value: 'TIKTOK', label: 'TikTok', disabled: false },
+    { value: 'TWITTER', label: 'X', disabled: true }
   ];
 
   const shootingAngles = [
@@ -308,32 +323,61 @@ const CreateProjectPage: React.FC = () => {
     setError('');
 
     try {
-      const { createProject } = await import('../../services/api');
-      const result = await createProject(formData);
-      console.log('Project created:', result);
-      
-      // プロジェクトデータを一時的に保存（AIマッチング用）
-      const projectForAI = {
-        id: result.project.id,
+      // バックエンドスキーマに必要なフィールドのみを抽出
+      const projectData = {
         title: formData.title,
         description: formData.description,
         category: formData.category,
         budget: formData.budget,
         targetPlatforms: formData.targetPlatforms,
-        brandName: formData.brandName,
-        productName: formData.productName,
-        campaignObjective: formData.campaignObjective,
-        campaignTarget: formData.campaignTarget,
+        targetPrefecture: formData.targetPrefecture || undefined,
+        targetCity: formData.targetCity || undefined,
+        targetGender: formData.targetGender || undefined,
+        targetAgeMin: formData.targetAgeMin > 0 ? formData.targetAgeMin : undefined,
+        targetAgeMax: formData.targetAgeMax > 0 ? formData.targetAgeMax : undefined,
+        targetFollowerMin: formData.targetFollowerMin > 0 ? formData.targetFollowerMin : undefined,
+        targetFollowerMax: formData.targetFollowerMax > 0 ? formData.targetFollowerMax : undefined,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+      };
+
+      console.log('Submitting project data:', projectData);
+
+      const { createProject } = await import('../../services/api');
+      const result = await createProject(projectData);
+      console.log('Project created:', result);
+      
+      // プロジェクトデータを一時的に保存（AIマッチング用）
+      const projectForAI = {
+        id: result.id || result.project?.id,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        budget: formData.budget,
+        targetPlatforms: formData.targetPlatforms,
+        brandName: formData.brandName || '',
+        productName: formData.productName || '',
+        campaignObjective: formData.campaignObjective || '',
+        campaignTarget: formData.campaignTarget || '',
         messageToConvey: formData.messageToConvey.filter(msg => msg.trim() !== '').join('\n')
       };
       localStorage.setItem('recentProject', JSON.stringify(projectForAI));
       
       // AIマッチングページにリダイレクト
       handleSuccess('プロジェクトを作成しました！');
-      router.push(`/project-ai-matching?projectId=${result.project.id}`);
+      const projectId = result.id || result.project?.id;
+      if (projectId) {
+        router.push(`/project-ai-matching?projectId=${projectId}`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
+      console.error('Full error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error message:', err.message);
       handleError(err, 'プロジェクトの作成');
-      setError(err.response?.data?.error || 'プロジェクトの作成に失敗しました。');
+      const errorMessage = err.response?.data?.error || err.message || 'プロジェクトの作成に失敗しました。';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -350,13 +394,12 @@ const CreateProjectPage: React.FC = () => {
   return (
     <DashboardLayout
       title="新規プロジェクト作成"
-      subtitle="インフルエンサーマーケティングプロジェクトを簡単に作成してミッションを実現しましょう"
     >
-      <div className="text-center mb-8">
+      <div className="mb-6">
         <Link href="/projects">
-          <Button variant="ghost" size="md">
-            ← プロジェクト一覧に戾る
-          </Button>
+          <button className="text-sm text-gray-600 hover:text-gray-900 font-medium">
+            ← 戻る
+          </button>
         </Link>
       </div>
       {/* エラーメッセージ */}
@@ -367,13 +410,13 @@ const CreateProjectPage: React.FC = () => {
       )}
 
       {/* プロジェクト作成フォーム */}
-      <Card padding="xl" shadow="lg">
-          <form onSubmit={handleSubmit} className="space-y-8">
+      <Card padding="lg">
+        <form onSubmit={handleSubmit} className="space-y-4">
             {/* 基本情報 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">基本情報</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">基本情報</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <span className="flex items-center">
@@ -458,32 +501,35 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 対象プラットフォーム */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                対象プラットフォーム
-                <HelpButton field="targetPlatforms" />
-              </h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <h2 className="text-lg font-bold text-gray-900 mb-3">対象プラットフォーム</h2>
+
+              <div className="flex gap-2 flex-wrap">
                 {platforms.map(platform => (
-                  <div
+                  <button
                     key={platform.value}
-                    onClick={() => handlePlatformToggle(platform.value)}
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
-                      formData.targetPlatforms.includes(platform.value)
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    type="button"
+                    onClick={() => !platform.disabled && handlePlatformToggle(platform.value)}
+                    disabled={platform.disabled}
+                    className={`px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium ${
+                      platform.disabled
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                        : formData.targetPlatforms.includes(platform.value)
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-emerald-300'
                     }`}
                   >
-                    <div className="text-3xl mb-2">{platform.icon}</div>
-                    <div className="font-medium text-gray-900">{platform.label}</div>
-                  </div>
+                    <span className="inline-flex items-center gap-2">
+                      <PlatformIcon platform={platform.value} className="w-4 h-4" />
+                      {platform.label}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* ターゲット設定 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">ターゲット設定</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">ターゲット設定</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -589,7 +635,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 期間設定 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">期間設定</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">期間設定</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -626,9 +672,9 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 詳細要件 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">詳細要件</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">詳細要件</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <span className="flex items-center">
@@ -681,7 +727,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 商品・広告主情報 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">商品・広告主情報</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">商品・広告主情報</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -786,7 +832,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* キャンペーン詳細 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">キャンペーン詳細</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -911,7 +957,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 撮影・制作仕様 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">撮影・制作仕様</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -998,9 +1044,9 @@ const CreateProjectPage: React.FC = () => {
 
             {/* ハッシュタグ・制約事項 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・制約事項</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">ハッシュタグ・制約事項</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     希望ハッシュタグ（5つまで）
@@ -1081,7 +1127,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 二次利用・開示設定 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">二次利用・開示設定</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">二次利用・開示設定</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -1150,7 +1196,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* カスタム項目 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">カスタム項目</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">カスタム項目</h2>
               
               <div className="space-y-4">
                 {formData.customFields.map((field, index) => (

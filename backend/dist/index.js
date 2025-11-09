@@ -36,6 +36,7 @@ const bulkInquiry_routes_1 = __importDefault(require("./routes/bulkInquiry.route
 const schedule_routes_1 = __importDefault(require("./routes/schedule.routes"));
 const security_routes_1 = __importDefault(require("./routes/security.routes"));
 const oauth_1 = __importDefault(require("./routes/oauth"));
+const upload_routes_1 = __importDefault(require("./routes/upload.routes"));
 dotenv_1.default.config();
 // Configure Cloudinary
 cloudinary_1.v2.config({
@@ -76,7 +77,7 @@ app.use(command_injection_protection_1.preventSystemCommands);
 app.use('/api/payments/webhook', express_1.default.raw({ type: 'application/json' }));
 // JSON parsing for all other routes with size limit
 app.use(express_1.default.json({
-    limit: '10mb',
+    limit: '50mb',
     verify: (req, res, buf) => {
         // JSONの構造をチェック
         try {
@@ -116,6 +117,8 @@ app.use('/api/bulk-inquiries', bulkInquiry_routes_1.default);
 app.use('/api/schedules', schedule_routes_1.default);
 app.use('/api/security', security_routes_1.default);
 app.use('/api/oauth', oauth_1.default);
+app.use('/api/upload', upload_routes_1.default);
+app.use('/uploads', express_1.default.static('uploads'));
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
 });

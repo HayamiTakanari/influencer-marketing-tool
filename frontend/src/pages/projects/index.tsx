@@ -192,50 +192,68 @@ const ProjectsPage: React.FC = () => {
 
   return (
     <DashboardLayout
-      title={user?.role === 'INFLUENCER' ? "進行中のプロジェクト" : "プロジェクト管理"}
-      subtitle={user?.role === 'INFLUENCER' ? "参加中のプロジェクトを確認" : "あなたのインフルエンサーマーケティングプロジェクトを一元管理"}
+      title="プロジェクト管理"
+      subtitle={user?.role === 'INFLUENCER' ? "参加中のプロジェクトを確認" : undefined}
     >
+      {/* 統計情報 - ページ最上部 */}
+      <div className="mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="text-xs text-gray-600">総数</div>
+            <div className="text-lg font-bold text-gray-900">{projects.length}</div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="text-xs text-gray-600">募集中</div>
+            <div className="text-lg font-bold text-gray-900">{projects.filter(p => p.status === 'PENDING').length}</div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="text-xs text-gray-600">進行中</div>
+            <div className="text-lg font-bold text-gray-900">{projects.filter(p => p.status === 'IN_PROGRESS').length}</div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="text-xs text-gray-600">完了済み</div>
+            <div className="text-lg font-bold text-gray-900">{projects.filter(p => p.status === 'COMPLETED').length}</div>
+          </div>
+        </div>
+      </div>
+
       {user?.role !== 'INFLUENCER' && (
-        <div className="mb-8 flex justify-end">
+        <div className="mb-6 flex justify-end">
           <Button
             onClick={() => router.push('/projects/create')}
             variant="primary"
-            size="lg"
+            size="sm"
             icon="+"
           >
-            新規プロジェクト作成
+            新規作成
           </Button>
         </div>
       )}
       {/* 検索・フィルター */}
-      <Card className="mb-4" padding="lg">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="プロジェクト名、説明、カテゴリーで検索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {statusOptions.map(option => (
-              <button
-                key={option.value}
-                onClick={() => setStatusFilter(option.value)}
-                className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                  statusFilter === option.value
-                    ? 'bg-emerald-500 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+      <div className="mb-6 space-y-3">
+        <input
+          type="text"
+          placeholder="検索..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+        />
+        <div className="flex gap-2 flex-wrap">
+          {statusOptions.map(option => (
+            <button
+              key={option.value}
+              onClick={() => setStatusFilter(option.value)}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                statusFilter === option.value
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
-      </Card>
+      </div>
 
       {/* エラーメッセージ */}
       {error && (
@@ -247,17 +265,17 @@ const ProjectsPage: React.FC = () => {
       {/* プロジェクト一覧 */}
       <div className="space-y-4">
         {filteredProjects.length === 0 ? (
-          <Card>
-            <EmptyState
-              icon="📋"
-              title="プロジェクトが見つかりません"
-              description={user?.role === 'INFLUENCER' 
-                ? '現在進行中のプロジェクトはありません。' 
-                : (statusFilter === 'all' ? '新しいプロジェクトを作成してみましょう。' : '条件に合うプロジェクトがありません。')}
-              actionLabel={user?.role !== 'INFLUENCER' ? "新しいプロジェクトを作成" : undefined}
-              onAction={user?.role !== 'INFLUENCER' ? () => router.push('/projects/create') : undefined}
-            />
-          </Card>
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-4">プロジェクトが見つかりません</p>
+            {user?.role !== 'INFLUENCER' && (
+              <button
+                onClick={() => router.push('/projects/create')}
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                新規作成 →
+              </button>
+            )}
+          </div>
         ) : (
           filteredProjects.map((project) => (
             <div key={project.id}>
@@ -518,31 +536,6 @@ const ProjectsPage: React.FC = () => {
             </div>
           ))
         )}
-      </div>
-
-      {/* 統計情報 */}
-      <div className="mt-6">
-        <Card padding="xl">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">プロジェクト統計</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <StatsCard
-              title="総プロジェクト数"
-              value={projects.length}
-            />
-            <StatsCard
-              title="募集中"
-              value={projects.filter(p => p.status === 'PENDING').length}
-            />
-            <StatsCard
-              title="進行中"
-              value={projects.filter(p => p.status === 'IN_PROGRESS').length}
-            />
-            <StatsCard
-              title="完了済み"
-              value={projects.filter(p => p.status === 'COMPLETED').length}
-            />
-          </div>
-        </Card>
       </div>
     </DashboardLayout>
   );

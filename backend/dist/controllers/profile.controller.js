@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.completeRegistration = exports.uploadPortfolioImage = exports.deletePortfolio = exports.updatePortfolio = exports.addPortfolio = exports.deleteSocialAccount = exports.updateSocialAccount = exports.addSocialAccount = exports.updateProfile = exports.getMyProfile = void 0;
+exports.getProfileCompletion = exports.completeRegistration = exports.uploadPortfolioImage = exports.deletePortfolio = exports.updatePortfolio = exports.addPortfolio = exports.deleteSocialAccount = exports.updateSocialAccount = exports.addSocialAccount = exports.updateProfile = exports.getMyProfile = void 0;
 const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
 const multer_1 = __importDefault(require("multer"));
@@ -36,6 +36,9 @@ const portfolioSchema = zod_1.z.object({
 const getMyProfile = async (req, res) => {
     try {
         const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
         const influencer = await prisma.influencer.findUnique({
             where: { userId },
             include: {
@@ -318,3 +321,58 @@ const completeRegistration = async (req, res) => {
     }
 };
 exports.completeRegistration = completeRegistration;
+const getProfileCompletion = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+        const influencer = await prisma.influencer.findUnique({
+            where: { userId },
+            include: {
+                user: true,
+                socialAccounts: true,
+                portfolio: true,
+                achievements: true,
+            },
+        });
+        if (!influencer) {
+            return res.status(404).json({ error: 'Influencer profile not found' });
+        }
+        const fields = [
+            { name: '表示名', key: 'displayName', value: influencer.displayName, weight: 5 },
+            { name: '自己紹介', key: 'bio', value: influencer.bio, weight: 10 },
+            { name: '性別', key: 'gender', value: influencer.gender !== 'NOT_SPECIFIED' ? influencer.gender : null, weight: 5 },
+            { name: '生年月日', key: 'birthDate', value: influencer.birthDate, weight: 5 },
+            { name: '電話番号', key: 'phoneNumber', value: influencer.phoneNumber, weight: 5 },
+            { name: '住所', key: 'address', value: influencer.address, weight: 5 },
+            { name: '都道府県', key: 'prefecture', value: influencer.prefecture, weight: 5 },
+            { name: '市区町村', key: 'city', value: influencer.city, weight: 5 },
+            { name: 'カテゴリー', key: 'categories', value: influencer.categories.length > 0 ? influencer.categories : null, weight: 10 },
+            { name: '最低単価', key: 'priceMin', value: influencer.priceMin, weight: 5 },
+            { name: '最高単価', key: 'priceMax', value: influencer.priceMax, weight: 5 },
+            { name: 'SNSアカウント', key: 'socialAccounts', value: influencer.socialAccounts.length > 0 ? influencer.socialAccounts : null, weight: 15 },
+            { name: 'ポートフォリオ', key: 'portfolio', value: influencer.portfolio.length > 0 ? influencer.portfolio : null, weight: 10 },
+        ];
+        const completedFields = fields.filter(field => field.value !== null && field.value !== undefined && field.value !== '');
+        const missingFields = fields.filter(field => field.value === null || field.value === undefined || field.value === '');
+        const totalWeight = fields.reduce((sum, field) => sum + field.weight, 0);
+        const completedWeight = completedFields.reduce((sum, field) => sum + field.weight, 0);
+        const completionPercentage = Math.round((completedWeight / totalWeight) * 100);
+        res.json({
+            completionPercentage,
+            completedFields: completedFields.map(f => ({ name: f.name, key: f.key })),
+            missingFields: missingFields.map(f => ({ name: f.name, key: f.key, weight: f.weight })),
+            stats: {
+                totalFields: fields.length,
+                completedCount: completedFields.length,
+                missingCount: missingFields.length,
+            }
+        });
+    }
+    catch (error) {
+        console.error('Get profile completion error:', error);
+        res.status(500).json({ error: 'Failed to get profile completion' });
+    }
+};
+exports.getProfileCompletion = getProfileCompletion;

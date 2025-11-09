@@ -519,10 +519,22 @@ const createProject = async (req, res) => {
     try {
         const userId = req.user.userId;
         const userRole = req.user.role;
+        console.log('Creating project - userId:', userId, 'userRole:', userRole);
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
         if (userRole !== 'CLIENT') {
             return res.status(403).json({ error: 'Only clients can create projects' });
         }
-        const data = createProjectSchema.parse(req.body);
+        let data;
+        try {
+            data = createProjectSchema.parse(req.body);
+        }
+        catch (validationError) {
+            console.error('Validation error:', validationError);
+            return res.status(400).json({
+                error: 'Validation error',
+                details: validationError.errors || validationError.message
+            });
+        }
         // Get client profile
         const client = await prisma.client.findUnique({
             where: { userId },
@@ -533,6 +545,7 @@ const createProject = async (req, res) => {
         // Validate dates
         const startDate = new Date(data.startDate);
         const endDate = new Date(data.endDate);
+        console.log('Start date:', startDate, 'End date:', endDate);
         if (startDate >= endDate) {
             return res.status(400).json({ error: 'End date must be after start date' });
         }
@@ -577,10 +590,20 @@ const createProject = async (req, res) => {
                 },
             },
         });
-        res.status(201).json(project);
+        res.status(201).json({
+            project: project,
+            message: 'Project created successfully'
+        });
     }
     catch (error) {
         console.error('Create project error:', error);
+        // より詳細なエラーメッセージを返す
+        if (error.name === 'ZodError') {
+            return res.status(400).json({
+                error: 'Validation error',
+                details: error.errors
+            });
+        }
         res.status(500).json({ error: 'Failed to create project' });
     }
 };

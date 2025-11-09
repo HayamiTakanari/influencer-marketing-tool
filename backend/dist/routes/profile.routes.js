@@ -10,6 +10,7 @@ router.use((0, auth_1.authorizeRole)(['INFLUENCER']));
 router.get('/me', profile_controller_1.getMyProfile);
 router.put('/me', profile_controller_1.updateProfile);
 router.post('/me/complete-registration', profile_controller_1.completeRegistration);
+router.get('/me/completion', profile_controller_1.getProfileCompletion);
 router.post('/social-accounts', profile_controller_1.addSocialAccount);
 router.put('/social-accounts/:id', profile_controller_1.updateSocialAccount);
 router.delete('/social-accounts/:id', profile_controller_1.deleteSocialAccount);

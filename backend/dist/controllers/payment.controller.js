@@ -134,7 +134,7 @@ const getPaymentHistory = async (req, res) => {
         const userId = req.user?.id;
         const userRole = req.user?.role;
         let whereClause = {};
-        if (userRole === 'CLIENT') {
+        if (userRole === 'CLIENT' || userRole === 'COMPANY') {
             whereClause = {
                 project: {
                     client: {
@@ -176,7 +176,7 @@ const getPaymentHistory = async (req, res) => {
             },
             orderBy: { createdAt: 'desc' },
         });
-        res.json(transactions);
+        res.json({ transactions });
     }
     catch (error) {
         console.error('Get payment history error:', error);

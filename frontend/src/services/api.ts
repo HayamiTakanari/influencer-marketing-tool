@@ -1774,19 +1774,16 @@ export const getMyProjects = async () => {
     ]
   };
 
-  // Vercel環境または明示的にモックモードの場合
-  if (typeof window !== 'undefined' && 
-      (window.location.hostname.includes('vercel.app') || 
-       window.location.hostname === 'localhost' ||
-       window.location.hostname === '127.0.0.1')) {
-    console.log('Using mock getMyProjects data');
+  // Vercel環境の場合のみモックを使用
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using mock getMyProjects data for Vercel environment');
     return mockProjects;
   }
-  
+
   // 実際のAPIを試行し、失敗した場合はモックデータを返す
   try {
     console.log('Attempting to fetch projects from API...');
-    const response = await api.get('/projects');
+    const response = await api.get('/projects/my-projects');
     console.log('API response received:', response.data);
     return response.data;
   } catch (error) {

@@ -45,6 +45,28 @@ const getDashboardData = async (req, res) => {
                 }
             });
             const totalFollowers = user.influencer?.socialAccounts.reduce((sum, account) => sum + (account.followerCount || 0), 0) || 0;
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const monthlyEarnings = await prisma.transaction.aggregate({
+                where: {
+                    project: {
+                        matchedInfluencerId: user.influencer?.id
+                    },
+                    status: 'completed',
+                    createdAt: {
+                        gte: startOfMonth
+                    }
+                },
+                _sum: {
+                    amount: true
+                }
+            });
+            const availableProjects = await prisma.project.count({
+                where: {
+                    status: 'PENDING',
+                    endDate: { gte: now }
+                }
+            });
             const recentProjects = await prisma.project.findMany({
                 where: {
                     matchedInfluencerId: user.influencer?.id
@@ -53,13 +75,12 @@ const getDashboardData = async (req, res) => {
                     createdAt: 'desc'
                 },
                 take: 5,
-                select: {
-                    id: true,
-                    title: true,
-                    status: true,
-                    startDate: true,
-                    endDate: true,
-                    createdAt: true
+                include: {
+                    client: {
+                        select: {
+                            companyName: true
+                        }
+                    }
                 }
             });
             res.json({
@@ -74,15 +95,25 @@ const getDashboardData = async (req, res) => {
                     activeProjects: activeProjects,
                     totalAchievements: achievements,
                     totalFollowers: totalFollowers,
-                    monthlyRevenue: 0,
-                    newOffers: 0
+                    monthlyRevenue: monthlyEarnings._sum.amount || 0,
+                    newOffers: availableProjects
                 },
                 recentActivities: recentProjects.map(project => ({
                     id: project.id,
                     title: project.title,
                     type: 'project',
                     status: project.status,
-                    date: project.createdAt
+                    date: project.createdAt,
+                    companyName: project.client.companyName
+                })),
+                recentProjects: recentProjects.map(project => ({
+                    id: project.id,
+                    title: project.title,
+                    status: project.status,
+                    budget: project.budget,
+                    startDate: project.startDate,
+                    endDate: project.endDate,
+                    companyName: project.client.companyName
                 }))
             });
         }

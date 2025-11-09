@@ -68,6 +68,16 @@ const ProjectSearchPage: React.FC = () => {
     '兵庫県', '京都府', '広島県', '宮城県', '新潟県', '長野県', '静岡県', '岐阜県'
   ];
 
+  const getPlatformIcon = (platform: string) => {
+    switch (platform) {
+      case 'INSTAGRAM': return '📸';
+      case 'YOUTUBE': return '🎥';
+      case 'TIKTOK': return '🎵';
+      case 'TWITTER': return '🐦';
+      default: return '📱';
+    }
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -198,16 +208,6 @@ const ProjectSearchPage: React.FC = () => {
       month: 'short',
       day: 'numeric'
     });
-  };
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'INSTAGRAM': return '📸';
-      case 'YOUTUBE': return '🎥';
-      case 'TIKTOK': return '🎵';
-      case 'TWITTER': return '🐦';
-      default: return '📱';
-    }
   };
 
   const totalPages = Math.ceil(total / 12);

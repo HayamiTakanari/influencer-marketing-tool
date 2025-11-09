@@ -8,6 +8,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const generateToken = (user) => {
     const payload = {
+        id: user.id,
         userId: user.id,
         email: user.email,
         role: user.role,

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Sidebar from '../components/shared/Sidebar';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import LoadingState from '../components/common/LoadingState';
 import EmptyState from '../components/common/EmptyState';
 import StatsCard from '../components/common/StatsCard';
+import Card from '../components/shared/Card';
 
 interface Invoice {
   id: string;
@@ -85,70 +86,25 @@ const InvoicesPage: React.FC = () => {
   const paidAmount = invoices.filter(inv => inv.status === 'paid').reduce((sum, invoice) => sum + invoice.amount, 0);
   const pendingAmount = invoices.filter(inv => inv.status === 'pending').reduce((sum, invoice) => sum + invoice.amount, 0);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <DashboardLayout title="請求書管理" subtitle="読み込み中...">
         <LoadingState />
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute -inset-[100%] opacity-60">
-            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #ddd6fe, #8b5cf6, transparent)' }} />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
-            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #c7d2fe, #4f46e5, transparent)' }} />
+    <DashboardLayout
+      title="請求書管理"
+      subtitle="インフルエンサーとの取引を管理しましょう"
+    >
+      <div className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {error}
           </div>
-        </div>
-        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="artistic-pattern-invoices" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
-              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
-              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
-              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
-              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
-              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
-            </pattern>
-          </defs>
-          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern-invoices)" />
-        </svg>
-      </div>
-
-      <Sidebar 
-        user={user} 
-        favoriteCount={0} 
-        onLogout={handleLogout} 
-      />
-
-      <div className="ml-80 relative z-10">
-        <nav className="fixed top-0 left-80 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">請求書管理</h1>
-                <p className="text-sm text-gray-600">インフルエンサーとの取引を管理しましょう</p>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        <div className="pt-20 pb-12 px-4">
-          <div className="max-w-7xl mx-auto">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
-                {error}
-              </div>
-            )}
+        )}
 
             {/* 概要セクション */}
             <div className="mb-8">
@@ -337,7 +293,7 @@ const InvoicesPage: React.FC = () => {
             {/* ヒントセクション */}
             <div
               className="relative bg-blue-50 border border-blue-200 p-8 transition-all overflow-hidden mt-8"
-              style{{
+              style={{
                 background: `
                   linear-gradient(135deg, transparent 10px, #eff6ff 10px),
                   linear-gradient(-135deg, transparent 10px, #eff6ff 10px),
@@ -370,10 +326,8 @@ const InvoicesPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
