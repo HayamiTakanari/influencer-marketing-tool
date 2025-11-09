@@ -5,6 +5,8 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
+import { FaInstagram, FaYoutube, FaTiktok } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 
 // 各項目の説明文
 const fieldDescriptions: Record<string, string> = {
@@ -155,16 +157,16 @@ const CreateProjectPage: React.FC = () => {
     'ヘルスケア', '自動車', '金融', 'その他'
   ];
 
-  const PlatformIcon: React.FC<{ platform: string }> = ({ platform }) => {
+  const PlatformIcon: React.FC<{ platform: string; className?: string }> = ({ platform, className = 'w-5 h-5' }) => {
     switch (platform) {
       case 'INSTAGRAM':
-        return <span className="text-lg">📷</span>;
+        return <FaInstagram className={className} />;
       case 'YOUTUBE':
-        return <span className="text-lg">▶️</span>;
+        return <FaYoutube className={className} />;
       case 'TIKTOK':
-        return <span className="text-lg">♪</span>;
+        return <FaTiktok className={className} />;
       case 'TWITTER':
-        return <span className="text-lg">𝕏</span>;
+        return <FaXTwitter className={className} />;
       default:
         return <span className="text-xs">{platform}</span>;
     }

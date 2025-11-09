@@ -7,6 +7,8 @@ import LoadingState from '../../components/common/LoadingState';
 import EmptyState from '../../components/common/EmptyState';
 import SearchFilters, { FilterConfig } from '../../components/search/SearchFilters';
 import Pagination from '../../components/search/Pagination';
+import { FaInstagram, FaYoutube, FaTiktok } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 
 interface Project {
   id: string;
@@ -68,13 +70,13 @@ const ProjectSearchPage: React.FC = () => {
     '兵庫県', '京都府', '広島県', '宮城県', '新潟県', '長野県', '静岡県', '岐阜県'
   ];
 
-  const getPlatformIcon = (platform: string) => {
+  const PlatformIcon: React.FC<{ platform: string; className?: string }> = ({ platform, className = 'w-5 h-5' }) => {
     switch (platform) {
-      case 'INSTAGRAM': return '📸';
-      case 'YOUTUBE': return '🎥';
-      case 'TIKTOK': return '🎵';
-      case 'TWITTER': return '🐦';
-      default: return '📱';
+      case 'INSTAGRAM': return <FaInstagram className={className} />;
+      case 'YOUTUBE': return <FaYoutube className={className} />;
+      case 'TIKTOK': return <FaTiktok className={className} />;
+      case 'TWITTER': return <FaXTwitter className={className} />;
+      default: return null;
     }
   };
 
@@ -188,7 +190,7 @@ const ProjectSearchPage: React.FC = () => {
       label: 'プラットフォーム',
       type: 'multiSelect',
       options: platforms.map(p => ({
-        label: `${getPlatformIcon(p)} ${p}`,
+        label: p,
         value: p
       }))
     }
@@ -298,13 +300,14 @@ const ProjectSearchPage: React.FC = () => {
                       </div>
 
                       {project.targetPlatforms && project.targetPlatforms.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-3">
+                        <div className="flex flex-wrap gap-2 mb-3">
                           {project.targetPlatforms.map((platform, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                              className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded flex items-center gap-1"
                             >
-                              {getPlatformIcon(platform)} {platform}
+                              <PlatformIcon platform={platform} className="w-4 h-4" />
+                              {platform}
                             </span>
                           ))}
                         </div>
