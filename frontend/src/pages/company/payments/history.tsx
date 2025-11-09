@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import DashboardLayout from '../../components/layout/DashboardLayout';
-import Card from '../../components/shared/Card';
-import Button from '../../components/shared/Button';
-import LoadingState from '../../components/common/LoadingState';
-import StatsCard from '../../components/common/StatsCard';
-import EmptyState from '../../components/common/EmptyState';
+import DashboardLayout from '../../../components/layout/DashboardLayout';
+import Card from '../../../components/shared/Card';
+import Button from '../../../components/shared/Button';
+import LoadingState from '../../../components/common/LoadingState';
+import StatsCard from '../../../components/common/StatsCard';
+import EmptyState from '../../../components/common/EmptyState';
 
 interface Transaction {
   id: string;

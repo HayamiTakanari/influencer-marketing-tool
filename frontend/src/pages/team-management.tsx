@@ -348,8 +348,8 @@ const TeamManagementPage: React.FC = () => {
           <div className="max-w-7xl mx-auto">
         {/* 開発中のお知らせ */}
         <div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+
+
           className="relative bg-blue-50 border border-blue-200 px-4 py-3 mb-6" style={{
             background: `
               linear-gradient(135deg, transparent 10px, #eff6ff 10px),
@@ -375,8 +375,8 @@ const TeamManagementPage: React.FC = () => {
         {/* エラーメッセージ */}
         {error && (
           <div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+
+
             className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
           >
             {error}
@@ -386,9 +386,9 @@ const TeamManagementPage: React.FC = () => {
         {!team ? (
           /* チーム作成 */
           <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+
+
+
             className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden text-center" style={{
               background: `
                 linear-gradient(135deg, transparent 10px, white 10px),
@@ -408,8 +408,8 @@ const TeamManagementPage: React.FC = () => {
             
             {!showCreateForm ? (
               <button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+
+
                 onClick={() => setShowCreateForm(true)}
                 className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
               >
@@ -432,8 +432,8 @@ const TeamManagementPage: React.FC = () => {
                 </div>
                 <div className="flex space-x-3">
                   <button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+
+
                     type="submit"
                     disabled={submitting}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
@@ -441,8 +441,8 @@ const TeamManagementPage: React.FC = () => {
                     {submitting ? '作成中...' : '作成'}
                   </button>
                   <button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+
+
                     type="button"
                     onClick={() => setShowCreateForm(false)}
                     className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
@@ -457,9 +457,9 @@ const TeamManagementPage: React.FC = () => {
           <>
             {/* チーム情報 */}
             <div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+
+
+
               className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden mb-8" style={{
                 background: `
                   linear-gradient(135deg, transparent 10px, white 10px),
@@ -480,8 +480,8 @@ const TeamManagementPage: React.FC = () => {
                       <h2 className="text-2xl font-bold text-gray-900">{team.name}</h2>
                       {currentUserIsOwner && (
                         <button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+
+
                           onClick={() => setEditingTeam(true)}
                           className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                         >
@@ -498,8 +498,8 @@ const TeamManagementPage: React.FC = () => {
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+
+
                         type="submit"
                         disabled={submitting}
                         className="px-3 py-1 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50"
@@ -507,8 +507,8 @@ const TeamManagementPage: React.FC = () => {
                         {submitting ? '保存中...' : '保存'}
                       </button>
                       <button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+
+
                         type="button"
                         onClick={() => {
                           setEditingTeam(false);
@@ -526,16 +526,16 @@ const TeamManagementPage: React.FC = () => {
                   {currentUserIsOwner && (
                     <>
                       <button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+
+
                         onClick={() => setShowAddMemberForm(true)}
                         className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                       >
                         + メンバー追加
                       </button>
                       <button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+
+
                         onClick={handleDeleteTeam}
                         disabled={submitting}
                         className="px-4 py-2 border-2 border-red-300 text-red-700 rounded-xl font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
@@ -569,9 +569,9 @@ const TeamManagementPage: React.FC = () => {
 
             {/* メンバー一覧 */}
             <div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+
+
+
               className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden" style={{
                 background: `
                   linear-gradient(135deg, transparent 10px, white 10px),
@@ -591,9 +591,9 @@ const TeamManagementPage: React.FC = () => {
                 {team.members.map((member, index) => (
                   <div
                     key={member.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
+
+
+
                     className="relative bg-white flex items-center justify-between p-4 border border-gray-200 transition-all hover:shadow-md" style={{
                       boxShadow: '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
                     }}
@@ -624,8 +624,8 @@ const TeamManagementPage: React.FC = () => {
                     {currentUserIsOwner && member.user.id !== user.id && (
                       <div className="flex space-x-2">
                         <button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+
+
                           onClick={() => handleToggleOwner(member.id, member.isOwner, member.user.email)}
                           disabled={processing === member.id}
                           className={`px-3 py-1 text-sm rounded-lg font-medium transition-colors disabled:opacity-50 ${
@@ -637,8 +637,8 @@ const TeamManagementPage: React.FC = () => {
                           {processing === member.id ? '処理中...' : member.isOwner ? '管理者解除' : '管理者に昇格'}
                         </button>
                         <button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+
+
                           onClick={() => handleRemoveMember(member.id, member.user.email)}
                           disabled={processing === member.id}
                           className="px-3 py-1 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
@@ -658,8 +658,8 @@ const TeamManagementPage: React.FC = () => {
         {showAddMemberForm && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+
+
               className="bg-white rounded-3xl p-8 max-w-md w-full relative"
             >
               <button
@@ -704,8 +704,8 @@ const TeamManagementPage: React.FC = () => {
                 </div>
 
                 <button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+
+
                   type="submit"
                   disabled={submitting}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"

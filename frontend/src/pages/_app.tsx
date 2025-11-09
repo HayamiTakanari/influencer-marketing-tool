@@ -8,6 +8,7 @@ import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { ErrorProvider } from '../contexts/ErrorContext';
 import ErrorToast from '../components/common/ErrorToast';
 import { setUserContext, trackPageView } from '../utils/error-tracking';
+import { errorLogger } from '../utils/errorLogger';
 
 
 export default function App({ Component, pageProps, router }: AppProps & { router: any }) {
@@ -56,6 +57,29 @@ export default function App({ Component, pageProps, router }: AppProps & { route
     trackPageView(router.pathname);
   }, [router.pathname]);
 
+  // グローバルエラーハンドラ
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      errorLogger.log(event.error, 'GLOBAL_ERROR', {
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno
+      });
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      errorLogger.log(event.reason, 'UNHANDLED_PROMISE_REJECTION');
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
   // Console警告は1回のみ表示（マウント時のみ）
   useEffect(() => {
     if (typeof window !== 'undefined' && !window.sessionStorage.getItem('consoleWarningShown')) {
@@ -65,6 +89,18 @@ export default function App({ Component, pageProps, router }: AppProps & { route
         '\n悪意のあるコードをここに貼り付けないでください。\nアカウントが乗っ取られる可能性があります。'
       );
       window.sessionStorage.setItem('consoleWarningShown', 'true');
+
+      // エラーロガーの初期化
+      console.log('%c📊 エラーロギングシステムを初期化しました', 'color: blue; font-weight: bold;');
+
+      // 開発環境でエラーサマリーを表示するための window オブジェクトに追加
+      if (typeof window !== 'undefined') {
+        (window as any).__errorLogger = {
+          getLogs: () => errorLogger.getAllLogs(),
+          printSummary: () => errorLogger.printSummary(),
+          clear: () => errorLogger.clearLogs()
+        };
+      }
     }
   }, []);
 

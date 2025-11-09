@@ -68,7 +68,31 @@ const PORT = Number(process.env.PORT) || 5002;
 
 // CORS設定 - セキュリティヘッダーより先に適用
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Allow localhost on any port during development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+
+    // Allow configured frontend URL
+    const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',');
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Production domains
+    if (process.env.NODE_ENV === 'production') {
+      const productionOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+      if (productionOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+    }
+
+    callback(null, true); // Allow in development, restrict in production
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

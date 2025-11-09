@@ -216,8 +216,8 @@ const ProjectDetailPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.2 }}
+
+
               className="text-2xl font-bold text-gray-900 relative"
             >
               <span className="relative z-10">
@@ -229,8 +229,8 @@ const ProjectDetailPage: React.FC = () => {
               <span className="text-gray-700 font-medium">{user?.email}</span>
               <motion.button
                 onClick={handleLogout}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+
+
                 className="relative text-white px-4 py-2 font-medium overflow-hidden group"
                 style={{ 
                   clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 100%, 8px 100%)',
@@ -249,9 +249,9 @@ const ProjectDetailPage: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           {/* ページタイトル */}
           <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+
+
+
             className="text-center mb-8"
           >
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
@@ -260,8 +260,8 @@ const ProjectDetailPage: React.FC = () => {
             <div className="flex items-center justify-center gap-4 mb-6">
               <Link href="/projects">
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+
+
                   className="relative text-gray-700 px-6 py-2 font-medium border border-gray-300 overflow-hidden group"
                   style={{
                     background: 'white',
@@ -272,9 +272,9 @@ const ProjectDetailPage: React.FC = () => {
                   <div 
                     className="absolute inset-0 pointer-events-none"
                     style={{ background: 'linear-gradient(135deg, #f9fafb, #f3f4f6)' }}
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
+
+
+
                   />
                 </motion.button>
               </Link>
@@ -286,9 +286,9 @@ const ProjectDetailPage: React.FC = () => {
 
           {/* プロジェクト詳細カード */}
           <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+
+
+
             className="relative bg-white p-8 mb-8 group transition-all border border-gray-200"
             style={{ 
               background: `

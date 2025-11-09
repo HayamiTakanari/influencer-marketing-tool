@@ -51,28 +51,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, user, onLogout }) =
   const isCompany = user?.role === 'CLIENT' || user?.role === 'COMPANY';
 
   const influencerNavigation: NavigationItem[] = [
-    { label: 'ホーム', path: '/dashboard', icon: MdHome },
-    { label: 'プロジェクト検索', path: '/projects/search', icon: MdSearch },
-    { label: 'プロジェクト', path: '/projects', icon: MdFolder },
-    { label: 'メッセージ', path: '/messages', icon: MdMessage },
-    { label: 'プロフィール', path: '/profile', icon: MdPerson },
-    { label: '実績', path: '/achievements', icon: MdEmojiEvents },
-    { label: '収益', path: '/revenue', icon: MdAttachMoney },
-    { label: '統計', path: '/analytics', icon: MdBarChart },
-    { label: '設定', path: '/settings', icon: MdSettings },
+    { label: 'ホーム', path: '/influencer/dashboard', icon: MdHome },
+    { label: '案件を探す', path: '/influencer/opportunities', icon: MdSearch },
+    { label: '応募した案件', path: '/influencer/applications', icon: MdFolder },
+    { label: 'メッセージ', path: '/influencer/messages', icon: MdMessage },
+    { label: 'プロフィール', path: '/influencer/profile', icon: MdPerson },
+    { label: '実績', path: '/influencer/achievements', icon: MdEmojiEvents },
+    { label: '収益', path: '/influencer/revenue', icon: MdAttachMoney },
+    { label: '統計', path: '/influencer/analytics', icon: MdBarChart },
+    { label: '設定', path: '/influencer/settings', icon: MdSettings },
   ];
 
   const companyNavigation: NavigationItem[] = [
-    { label: 'ホーム', path: '/dashboard', icon: MdHome },
-    { label: 'インフルエンサー検索', path: '/search', icon: MdSearch },
-    { label: 'プロジェクト', path: '/projects', icon: MdFolder },
-    { label: 'お気に入り', path: '/favorites', icon: MdStar },
-    { label: 'メッセージ', path: '/messages', icon: MdMessage },
-    { label: '分析', path: '/analytics', icon: MdBarChart },
-    { label: '支払い履歴', path: '/payments/history', icon: MdAttachMoney },
-    { label: '会社プロフィール', path: '/company-profile', icon: MdBusiness },
-    { label: 'チーム管理', path: '/team-management', icon: MdGroup },
-    { label: '設定', path: '/settings', icon: MdSettings },
+    { label: 'ホーム', path: '/company/dashboard', icon: MdHome },
+    { label: 'インフルエンサー検索', path: '/company/influencers/search', icon: MdSearch },
+    { label: 'プロジェクト', path: '/company/projects/list', icon: MdFolder },
+    { label: '支払い履歴', path: '/company/payments/history', icon: MdAttachMoney },
+    { label: '企業プロフィール', path: '/company/profile', icon: MdBusiness },
+    { label: '設定', path: '/influencer/settings', icon: MdSettings },
   ];
 
   const navigationItems = isInfluencer ? influencerNavigation : companyNavigation;

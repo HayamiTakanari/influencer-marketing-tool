@@ -1,11 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { Header } from './common/Header';
 
 const SimpleLandingPage: React.FC = () => {
-  // Remove the mounted state check as it causes hydration issues
-
   const concerns = [
     {
       icon: '🔍',
@@ -66,7 +63,7 @@ const SimpleLandingPage: React.FC = () => {
       <div className="fixed inset-0 z-0">
         {/* ベースグラデーション */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
-        
+
         {/* メッシュグラデーション */}
         <div className="absolute inset-0 opacity-40">
           <div className="absolute -inset-[100%] opacity-60">
@@ -75,7 +72,7 @@ const SimpleLandingPage: React.FC = () => {
             <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
           </div>
         </div>
-        
+
         {/* アーティスティックパターン */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -90,7 +87,7 @@ const SimpleLandingPage: React.FC = () => {
           </defs>
           <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern)" />
         </svg>
-        
+
         {/* シンプルな波パターン */}
         <div className="absolute inset-0 opacity-[0.02]" style={{
           backgroundImage: `
@@ -98,7 +95,7 @@ const SimpleLandingPage: React.FC = () => {
           `,
           backgroundSize: '200px 200px'
         }} />
-        
+
         {/* アシンメトリックライン */}
         <svg className="absolute top-1/4 left-0 w-full h-px opacity-[0.05]" preserveAspectRatio="none">
           <path d="M0,0 Q400,0 800,0 T1600,0" stroke="#000000" strokeWidth="1" fill="none" />
@@ -113,12 +110,7 @@ const SimpleLandingPage: React.FC = () => {
       {/* ヒーローセクション */}
       <section className="pt-32 pb-20 px-4 relative z-10">
         <div className="max-w-5xl mx-auto text-center relative">
-          <motion.h1
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-6xl md:text-7xl font-bold mb-12 relative"
-          >
+          <h1 className="text-6xl md:text-7xl font-bold mb-12 relative opacity-100 transition-opacity duration-800">
             <span className="relative">
               <span className="text-gray-900 relative">
                 InfluenceLink
@@ -140,25 +132,16 @@ const SimpleLandingPage: React.FC = () => {
                 <path d="M0,12 Q150,2 300,12" stroke="url(#accent-gradient-2)" strokeWidth="1" fill="none"/>
               </svg>
             </span>
-          </motion.h1>
+          </h1>
 
           {/* お悩みセクション */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-12"
-          >
+          <div className="mb-12 opacity-100 transition-opacity duration-600">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
               {concerns.map((concern, index) => (
-                <motion.div
+                <div
                   key={index}
-                  whileHover={{ y: -4 }}
-                  initial={false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                  className="relative bg-white border border-gray-200 p-8 transition-all group overflow-hidden"
-                  style={{ 
+                  className="relative bg-white border border-gray-200 p-8 transition-all group overflow-hidden hover:-translate-y-1 duration-300"
+                  style={{
                     background: `
                       linear-gradient(135deg, transparent 10px, white 10px),
                       linear-gradient(-135deg, transparent 10px, white 10px),
@@ -194,10 +177,10 @@ const SimpleLandingPage: React.FC = () => {
                   </p>
                   {/* ホバー時のアクセント */}
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" style={{ background: 'linear-gradient(90deg, #34d399, #14b8a6, #10b981, #059669)' }} />
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* 装飾的な区切り線 */}
           <div className="flex items-center justify-center my-8">
@@ -225,60 +208,36 @@ const SimpleLandingPage: React.FC = () => {
           </div>
 
           {/* そのお悩みを解決します */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-8"
-          >
+          <div className="mb-8 opacity-100 transition-opacity duration-600">
             <h2 className="text-3xl md:text-4xl font-bold relative">
               <span className="text-gray-900 relative">
                 そのお悩みを解決します！
               </span>
             </h2>
-          </motion.div>
+          </div>
 
           {/* Freeプラン登録CTA */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-16"
-          >
+          <div className="mb-16">
             <Link href="/register">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative text-white px-12 py-4 text-lg font-semibold overflow-hidden group"
-                style={{ 
-                  clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
+              <button
+                className="relative text-white px-12 py-4 text-lg font-semibold overflow-hidden group hover:opacity-90 transition-opacity rounded-lg"
+                style={{
                   background: 'linear-gradient(135deg, #10b981, #059669, #047857)',
-                  boxShadow: '5px 5px 0 rgba(16, 185, 129, 0.4), 3px 3px 15px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
-                  textShadow: 'none'
+                  boxShadow: '5px 5px 0 rgba(16, 185, 129, 0.4), 3px 3px 15px rgba(16, 185, 129, 0.2)'
                 }}
               >
                 <span className="relative z-10">無料プランで今すぐ始める</span>
-                <motion.div 
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(135deg, #047857, #065f46, #064e3b)' }}
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </motion.button>
+              </button>
             </Link>
             <p className="text-sm text-gray-600 mt-3">
               クレジットカード不要・即日利用可能
             </p>
-          </motion.div>
+          </div>
 
           {/* ツールの特徴 */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="relative bg-white p-10 mb-20 max-w-3xl mx-auto border-2 border-gray-900"
-            style={{ 
+          <div
+            className="relative bg-white p-10 mb-20 max-w-3xl mx-auto border-2 border-gray-900 opacity-100 transition-opacity duration-600"
+            style={{
               boxShadow: '10px 10px 0 rgba(0,0,0,0.12), 5px 5px 25px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.9)',
               background: 'linear-gradient(45deg, #f9fafb 25%, transparent 25%), linear-gradient(-45deg, #f9fafb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f9fafb 75%), linear-gradient(-45deg, transparent 75%, #f9fafb 75%)',
               backgroundSize: '20px 20px',
@@ -298,7 +257,7 @@ const SimpleLandingPage: React.FC = () => {
                 AIが分析し、ご提案します！
               </span>
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -312,44 +271,33 @@ const SimpleLandingPage: React.FC = () => {
       {/* 料金プラン */}
       <section className="py-20 px-4 bg-gray-50 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <motion.h2
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-center mb-16 relative"
-          >
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 relative opacity-100 transition-opacity duration-600">
             <span>
               料金プラン
             </span>
-          </motion.h2>
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {pricingPlans.map((plan, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={false}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className={`relative bg-white p-8 group transition-all flex flex-col ${
-                  plan.highlighted 
-                    ? 'border-2 border-gray-900 shadow-xl' 
+                className={`relative bg-white p-8 group transition-all flex flex-col hover:-translate-y-2 duration-300 ${
+                  plan.highlighted
+                    ? 'border-2 border-gray-900 shadow-xl'
                     : 'border border-gray-300 shadow-md'
                 }`}
                 style={{
-                  boxShadow: plan.highlighted 
-                    ? '6px 6px 0 rgba(0,0,0,0.2), 2px 2px 15px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)' 
+                  boxShadow: plan.highlighted
+                    ? '6px 6px 0 rgba(0,0,0,0.2), 2px 2px 15px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)'
                     : '3px 3px 0 rgba(0,0,0,0.1), 1px 1px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
                   borderRadius: '0'
                 }}
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3 -right-3">
-                    <div className="bg-black text-white px-4 py-2 text-sm font-bold" 
-                      style={{ 
-                        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)' 
+                    <div className="bg-black text-white px-4 py-2 text-sm font-bold"
+                      style={{
+                        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)'
                       }}
                     >
                       おすすめ
@@ -381,54 +329,31 @@ const SimpleLandingPage: React.FC = () => {
                 </div>
 
                 <Link href="/register">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`relative w-full py-3 font-medium transition-all overflow-hidden group ${
+                  <button
+                    className={`relative w-full py-3 font-medium transition-all overflow-hidden group hover:opacity-90 ${
                       plan.highlighted
                         ? 'text-white'
                         : 'bg-white text-gray-900 border-2 border-emerald-600'
                     }`}
-                    style={{ 
-                      background: plan.highlighted ? 'linear-gradient(135deg, #10b981, #059669)' : '',
-                      boxShadow: plan.highlighted 
-                        ? '3px 3px 0 rgba(0,0,0,0.25), 2px 2px 8px rgba(0,0,0,0.12)'
-                        : '3px 3px 0 rgba(0,0,0,0.25), 2px 2px 8px rgba(0,0,0,0.1)',
-                      textShadow: 'none'
+                    style={plan.highlighted ? {
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      boxShadow: '3px 3px 0 rgba(0,0,0,0.25), 2px 2px 8px rgba(0,0,0,0.12)'
+                    } : {
+                      boxShadow: '3px 3px 0 rgba(0,0,0,0.25), 2px 2px 8px rgba(0,0,0,0.1)'
                     }}
                   >
                     <span className="relative z-10">{plan.buttonText}</span>
-                    {!plan.highlighted && (
-                      <motion.div 
-                        className="absolute inset-0 pointer-events-none"
-                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
-                        initial={{ x: "-100%" }}
-                        whileHover={{ x: 0 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    )}
-                    {!plan.highlighted && (
-                      <motion.span 
-                        className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"
-                      >
-                        {plan.buttonText}
-                      </motion.span>
-                    )}
-                  </motion.button>
+                  </button>
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
 
-          <motion.p
-            initial={false}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="text-center text-gray-600 mt-8"
+          <p
+            className="text-center text-gray-600 mt-8 opacity-100 transition-opacity duration-600"
           >
             ※ 支払い方法はクレジットカードのみ
-          </motion.p>
+          </p>
         </div>
       </section>
 
@@ -442,38 +367,19 @@ const SimpleLandingPage: React.FC = () => {
       {/* CTA */}
       <section className="py-20 px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
-          <motion.div
-            initial={false}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
+          <div>
             <Link href="/register">
-              <motion.button
-                whileHover={{ scale: 1.05, rotate: -1 }}
-                whileTap={{ scale: 0.95 }}
-                className="relative text-white px-16 py-6 text-xl font-bold overflow-hidden group"
-                style={{ 
-                  clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)',
+              <button
+                className="text-white px-16 py-6 text-xl font-bold rounded-lg hover:opacity-90 transition-opacity"
+                style={{
                   background: 'linear-gradient(135deg, #10b981, #059669, #047857)',
-                  boxShadow: '10px 10px 0 rgba(16, 185, 129, 0.4), 5px 5px 25px rgba(16, 185, 129, 0.3), 3px 3px 12px rgba(16, 185, 129, 0.2)',
-                  transform: 'perspective(1000px) rotateX(2deg)',
-                  textShadow: 'none'
+                  boxShadow: '10px 10px 0 rgba(16, 185, 129, 0.4), 5px 5px 25px rgba(16, 185, 129, 0.3)'
                 }}
               >
-                <span className="relative z-10">まずは無料で始める</span>
-                <motion.div 
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: 'linear-gradient(135deg, #047857, #065f46, #0f766e)' }}
-                  initial={{ y: "100%" }}
-                  whileHover={{ y: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-                {/* アクセントライン */}
-                <div className="absolute bottom-0 left-0 w-full h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" style={{ background: 'linear-gradient(90deg, #6ee7b7, #34d399, #10b981)' }} />
-              </motion.button>
+                <span>まずは無料で始める</span>
+              </button>
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

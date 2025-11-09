@@ -288,8 +288,8 @@ const CreateInvoicePage: React.FC = () => {
 
             {/* 明細項目 */}
             <div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+
+
               className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg transition-all duration-500"
             >
               <div className="flex justify-between items-center mb-6">
@@ -414,8 +414,8 @@ const CreateInvoicePage: React.FC = () => {
 
             {/* 支払情報 */}
             <div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+
+
               className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg transition-all duration-500"
             >
               <h2 className="text-xl font-bold text-gray-900 mb-6">支払情報</h2>

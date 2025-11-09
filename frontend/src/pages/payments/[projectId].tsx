@@ -131,8 +131,8 @@ const CheckoutForm: React.FC<{
       )}
 
       <button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+
+
         type="submit"
         disabled={!stripe || loading}
         className="w-full py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -226,8 +226,8 @@ const PaymentPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
         <div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+
+
           className="text-center bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-12 shadow-xl max-w-md"
         >
           <div className="text-6xl mb-6">🎉</div>
@@ -239,8 +239,8 @@ const PaymentPage: React.FC = () => {
             <Link href="/projects">
               <span className="inline-block w-full">
                 <button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+
+
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   プロジェクト一覧に戻る
@@ -283,9 +283,9 @@ const PaymentPage: React.FC = () => {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* プロジェクト詳細 */}
         <div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+
+
+
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
         >
           <h2 className="text-2xl font-bold text-gray-900 mb-6">支払い詳細</h2>
@@ -328,9 +328,9 @@ const PaymentPage: React.FC = () => {
 
         {/* 決済フォーム */}
         <div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+
+
+
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
         >
           <h3 className="text-xl font-bold text-gray-900 mb-6">カード情報</h3>
@@ -350,9 +350,9 @@ const PaymentPage: React.FC = () => {
 
         {/* セキュリティ情報 */}
         <div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+
+
+
           className="bg-gray-50/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mt-8"
         >
           <h4 className="font-semibold text-gray-900 mb-3">🔒 セキュリティとプライバシー</h4>

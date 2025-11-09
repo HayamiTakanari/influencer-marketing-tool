@@ -45,6 +45,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle 401 Unauthorized - redirect to login
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
@@ -52,6 +53,14 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+
+    // Handle 403 Forbidden - suppress error silently and continue
+    // This happens when user role doesn't match the endpoint requirement
+    if (error.response?.status === 403) {
+      console.warn('Access denied (403) - User role does not have permission for this resource');
+      // Don't redirect, just let the calling component handle it gracefully
+    }
+
     return Promise.reject(error);
   }
 );
@@ -1185,8 +1194,11 @@ export const getMyProfile = async () => {
   try {
     const response = await api.get('/profile/me');
     return response.data;
-  } catch (error) {
-    console.error('Error fetching profile, falling back to mock data:', error);
+  } catch (error: any) {
+    // Suppress 403 errors (access denied) - expected for unauthenticated users
+    if (error.response?.status !== 403) {
+      console.error('Error fetching profile, falling back to mock data:', error);
+    }
     
     // バックエンドエラーの場合もモックデータを返す
     const userData = localStorage.getItem('user');
@@ -1370,8 +1382,17 @@ export const refundPayment = async (transactionId: string) => {
 };
 
 export const getPaymentStats = async () => {
-  const response = await api.get('/payments/stats');
-  return response.data;
+  try {
+    const response = await api.get('/payments/stats');
+    return response.data;
+  } catch (error: any) {
+    // Suppress 403 errors (access denied) - expected for unauthenticated users or wrong role
+    // Return empty stats instead of throwing error
+    if (error.response?.status === 403) {
+      return { totalRevenue: 0, totalPayments: 0, pendingAmount: 0, completedPayments: [] };
+    }
+    throw error;
+  }
 };
 
 // SNS

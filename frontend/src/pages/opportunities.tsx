@@ -316,9 +316,9 @@ const OpportunitiesPage: React.FC = () => {
             filteredOpportunities.map((opportunity, index) => (
               <div
                 key={opportunity.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+
+
+
                 className={`bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${
                   opportunity.matchesProfile ? 'border-green-200 bg-green-50/50' : ''
                 }`}
@@ -461,8 +461,8 @@ const OpportunitiesPage: React.FC = () => {
       {showApplicationForm && selectedProject && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+
+
             className="bg-white rounded-3xl p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto"
           >
             <button
@@ -523,8 +523,8 @@ const OpportunitiesPage: React.FC = () => {
               </div>
 
               <button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+
+
                 type="submit"
                 disabled={submitting}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -540,8 +540,8 @@ const OpportunitiesPage: React.FC = () => {
       {showRejectForm && selectedProject && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+
+
             className="bg-white rounded-3xl p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto"
           >
             <button
@@ -584,8 +584,8 @@ const OpportunitiesPage: React.FC = () => {
               </div>
 
               <button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+
+
                 type="submit"
                 disabled={submitting || !rejectReason.trim()}
                 className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -601,8 +601,8 @@ const OpportunitiesPage: React.FC = () => {
       {showProjectDetail && selectedProject && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+
+
             className="bg-white rounded-3xl p-8 max-w-4xl w-full relative max-h-[90vh] overflow-y-auto"
           >
             <button
@@ -966,8 +966,8 @@ const OpportunitiesPage: React.FC = () => {
               {!selectedProject.isApplied && (
                 <div className="flex justify-center space-x-4 pt-6 border-t">
                   <button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+
+
                     onClick={() => {
                       setShowProjectDetail(false);
                       setShowApplicationForm(true);
@@ -977,8 +977,8 @@ const OpportunitiesPage: React.FC = () => {
                     このプロジェクトに応募する
                   </button>
                   <button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+
+
                     onClick={() => {
                       setShowProjectDetail(false);
                       setShowRejectForm(true);
