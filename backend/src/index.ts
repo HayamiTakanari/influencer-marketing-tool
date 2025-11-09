@@ -36,6 +36,7 @@ import securityRoutes from './routes/security.routes';
 import oauthRoutes from './routes/oauth';
 import uploadRoutes from './routes/upload.routes';
 import aiRoutes from './routes/ai.routes';
+import adminRoutes from './routes/admin.routes';
 
 dotenv.config();
 
@@ -157,6 +158,7 @@ app.use('/api/security', securityRoutes);
 app.use('/api/oauth', oauthRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use('/uploads', express.static('uploads'));
 

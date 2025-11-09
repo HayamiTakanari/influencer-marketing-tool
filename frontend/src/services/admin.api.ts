@@ -4,21 +4,20 @@ export const adminAPI = {
   // Dashboard
   getDashboardStats: async () => {
     try {
-      const response = await api.get('/admin/dashboard/stats');
+      const response = await api.get('/admin/dashboard');
       return response.data;
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      throw error;
-    }
-  },
-
-  getRecentProjects: async () => {
-    try {
-      const response = await api.get('/admin/dashboard/recent-projects');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching recent projects:', error);
-      throw error;
+      return {
+        totalUsers: 0,
+        totalClients: 0,
+        totalInfluencers: 0,
+        totalProjects: 0,
+        completedProjects: 0,
+        totalTransactions: 0,
+        totalRevenue: 0,
+        recentProjects: [],
+      };
     }
   },
 
@@ -31,20 +30,20 @@ export const adminAPI = {
       return response.data;
     } catch (error) {
       console.error('Error fetching companies:', error);
-      throw error;
+      return { companies: [] };
     }
   },
 
   // Influencers
-  getInfluencers: async (search?: string) => {
+  getInfluencers: async (search?: string, category?: string, prefecture?: string) => {
     try {
       const response = await api.get('/admin/influencers', {
-        params: { search },
+        params: { search, category, prefecture },
       });
       return response.data;
     } catch (error) {
       console.error('Error fetching influencers:', error);
-      throw error;
+      return { influencers: [] };
     }
   },
 
@@ -57,7 +56,7 @@ export const adminAPI = {
       return response.data;
     } catch (error) {
       console.error('Error fetching projects:', error);
-      throw error;
+      return { projects: [] };
     }
   },
 
@@ -71,9 +70,9 @@ export const adminAPI = {
     }
   },
 
-  updateProjectProgress: async (id: string, data: { progress: number; status: string }) => {
+  updateProjectProgress: async (id: string, status: string) => {
     try {
-      const response = await api.put(`/admin/projects/${id}/progress`, data);
+      const response = await api.patch(`/admin/projects/${id}/progress`, { status });
       return response.data;
     } catch (error) {
       console.error('Error updating project progress:', error);
@@ -82,21 +81,21 @@ export const adminAPI = {
   },
 
   // Users
-  getUsers: async (search?: string, role?: string, status?: string) => {
+  getUsers: async (search?: string, role?: string) => {
     try {
       const response = await api.get('/admin/users', {
-        params: { search, role, status },
+        params: { search, role },
       });
       return response.data;
     } catch (error) {
       console.error('Error fetching users:', error);
-      throw error;
+      return { users: [] };
     }
   },
 
-  updateUserStatus: async (id: string, status: string) => {
+  updateUserStatus: async (id: string, isVerified: boolean) => {
     try {
-      const response = await api.put(`/admin/users/${id}/status`, { status });
+      const response = await api.patch(`/admin/users/${id}/status`, { isVerified });
       return response.data;
     } catch (error) {
       console.error('Error updating user status:', error);
