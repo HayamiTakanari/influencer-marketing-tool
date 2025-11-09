@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
 
@@ -105,25 +104,13 @@ const FeedbackPage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   if (submitted) {
     return (
-      <PageLayout
+      <DashboardLayout
         title="ご要望・フィードバック"
         subtitle="送信完了"
-        userEmail={user?.email}
-        onLogout={user ? handleLogout : undefined}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div>
           <Card className="text-center" padding="xl">
             <div className="text-6xl mb-6">✅</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -166,23 +153,17 @@ const FeedbackPage: React.FC = () => {
               </Button>
             </div>
           </Card>
-        </motion.div>
-      </PageLayout>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <PageLayout
+    <DashboardLayout
       title="ご要望・フィードバック"
       subtitle="InfluenceLinkをより良いサービスにするためのご意見をお聞かせください"
-      userEmail={user?.email}
-      onLogout={user ? handleLogout : undefined}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
+      <div>
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* フィードバックタイプ選択 */}
           <Card padding="lg">
@@ -191,9 +172,8 @@ const FeedbackPage: React.FC = () => {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {feedbackTypes.map(type => (
-                <motion.label
+                <label
                   key={type.value}
-                  whileHover={{ scale: 1.02 }}
                   className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
                     formData.type === type.value
                       ? 'border-emerald-500 bg-emerald-50'
@@ -217,7 +197,7 @@ const FeedbackPage: React.FC = () => {
                       <p className="text-sm text-gray-600">{type.description}</p>
                     </div>
                   </div>
-                </motion.label>
+                </label>
               ))}
             </div>
           </Card>
@@ -383,8 +363,8 @@ const FeedbackPage: React.FC = () => {
             </div>
           </Card>
         </form>
-      </motion.div>
-    </PageLayout>
+      </div>
+    </DashboardLayout>
   );
 };
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
 
@@ -149,20 +148,12 @@ const ChatPage: React.FC = () => {
     }, 100);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/');
-  };
-
   if (!user) return null;
 
   return (
-    <PageLayout
+    <DashboardLayout
       title="メッセージ"
       subtitle="プロジェクトやコラボレーションについてやり取りしましょう"
-      userEmail={user.email}
-      onLogout={handleLogout}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-200px)]">
         {/* チャットリスト */}
@@ -180,10 +171,8 @@ const ChatPage: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {chats.map((chat) => (
-                  <motion.div
+                  <div
                     key={chat.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleChatSelect(chat)}
                     className={`p-4 rounded-xl cursor-pointer transition-all ${
                       selectedChat?.id === chat.id
@@ -227,7 +216,7 @@ const ChatPage: React.FC = () => {
                         minute: '2-digit'
                       })}
                     </p>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             )}
@@ -334,7 +323,7 @@ const ChatPage: React.FC = () => {
           </Card>
         </div>
       </div>
-    </PageLayout>
+    </DashboardLayout>
   );
 };
 

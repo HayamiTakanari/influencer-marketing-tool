@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { createInvoice, getMyProjects } from '../../services/api';
 import { InvoiceCreateRequest, InvoiceItem } from '../../types';
@@ -201,33 +200,27 @@ const CreateInvoicePage: React.FC = () => {
             </svg>
             <span className="font-medium">請求書一覧に戻る</span>
           </button>
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          <h1 
+            className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent transition-all duration-500"
           >
             請求書作成
-          </motion.h1>
+          </h1>
         </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
+          <div
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 transition-all duration-300"
           >
             {error}
-          </motion.div>
+          </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-8">
             {/* 基本情報 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg"
+            <div
+              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg transition-all duration-500"
             >
               <h2 className="text-xl font-bold text-gray-900 mb-6">基本情報</h2>
               
@@ -291,14 +284,13 @@ const CreateInvoicePage: React.FC = () => {
                   />
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* 明細項目 */}
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg"
+              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg transition-all duration-500"
             >
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">明細</h2>
@@ -418,14 +410,13 @@ const CreateInvoicePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* 支払情報 */}
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg"
+              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg transition-all duration-500"
             >
               <h2 className="text-xl font-bold text-gray-900 mb-6">支払情報</h2>
               
@@ -530,7 +521,7 @@ const CreateInvoicePage: React.FC = () => {
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
 
             {/* 送信ボタン */}
             <div className="flex justify-end space-x-4">

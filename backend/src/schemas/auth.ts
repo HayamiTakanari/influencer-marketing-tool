@@ -2,12 +2,15 @@ import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 
 // セキュリティ強化されたバリデーションスキーマ
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const registerSchema = z.object({
   email: z.string()
     .email('Invalid email address')
     .max(255, 'Email too long')
     .refine((email) => {
-      // 危険な文字列パターンをチェック
+      if (!isProduction) return true;
+      // 危険な文字列パターンをチェック（本番環境のみ）
       const dangerousPatterns = [/'|"|\\|;|--|\/\*|\*\//];
       return !dangerousPatterns.some(pattern => 
         typeof pattern === 'string' ? email.includes(pattern) : pattern.test(email)
@@ -15,16 +18,16 @@ export const registerSchema = z.object({
     }, 'Email contains invalid characters'),
   
   password: z.string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(isProduction ? 8 : 4, isProduction ? 'Password must be at least 8 characters' : 'Password must be at least 4 characters')
     .max(128, 'Password too long')
     .refine((password) => {
-      // パスワード強度チェック
+      if (!isProduction) return true;
+      // パスワード強度チェック（本番環境のみ）
       const hasUpperCase = /[A-Z]/.test(password);
       const hasLowerCase = /[a-z]/.test(password);
       const hasNumbers = /\d/.test(password);
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-      return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
-    }, 'Password must contain uppercase, lowercase, number and special character'),
+      return hasUpperCase && hasLowerCase && hasNumbers;
+    }, 'Password must contain uppercase, lowercase, and number'),
   
   role: z.nativeEnum(UserRole),
   
@@ -57,13 +60,7 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.string()
     .email('Invalid email address')
-    .max(255, 'Email too long')
-    .refine((email) => {
-      const dangerousPatterns = [/'|"|\\|;|--|\/\*|\*\//];
-      return !dangerousPatterns.some(pattern => 
-        typeof pattern === 'string' ? email.includes(pattern) : pattern.test(email)
-      );
-    }, 'Email contains invalid characters'),
+    .max(255, 'Email too long'),
   
   password: z.string()
     .min(1, 'Password is required')

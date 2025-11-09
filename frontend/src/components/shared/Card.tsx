@@ -7,7 +7,7 @@ interface CardProps {
   hover?: boolean;
   gradient?: string;
   onClick?: () => void;
-  padding?: 'sm' | 'md' | 'lg' | 'xl';
+  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   shadow?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
@@ -21,6 +21,7 @@ const Card: React.FC<CardProps> = ({
   shadow = 'md'
 }) => {
   const paddingClasses = {
+    none: 'p-0',
     sm: 'p-4',
     md: 'p-6',
     lg: 'p-8',

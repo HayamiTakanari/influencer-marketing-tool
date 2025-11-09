@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
+import LoadingState from '../components/common/LoadingState';
+import EmptyState from '../components/common/EmptyState';
+import StatsCard from '../components/common/StatsCard';
+import Modal from '../components/common/Modal';
 import { 
   getMyAchievements, 
   getAchievementStats, 
@@ -69,7 +75,7 @@ const AchievementsPage: React.FC = () => {
     }
 
     fetchData();
-  }, [router]);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -181,74 +187,49 @@ const AchievementsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
-      </div>
+      <DashboardLayout title="実績管理" subtitle="読み込み中...">
+        <LoadingState />
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* ヘッダー */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg hover:shadow-xl transition-all text-gray-700 hover:text-blue-600"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="font-medium">ダッシュボードに戻る</span>
-            </button>
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-            >
-              実績管理
-            </motion.h1>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+    <DashboardLayout
+      title="実績管理"
+      subtitle="あなたの実績を管理して、企業にアピールしましょう"
+    >
+      <div className="space-y-4">
+        {/* ヘッダーアクション */}
+        <div className="flex justify-end">
+          <Button
             onClick={() => {
               resetForm();
               setShowModal(true);
             }}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            icon="+"
           >
             新しい実績を追加
-          </motion.button>
+          </Button>
         </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
           >
             {error}
-          </motion.div>
+          </div>
         )}
 
-        {/* 統計情報 */}
         {stats && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          <div
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"
           >
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">総実績数</h3>
-              <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
+            <StatsCard
+              title="総実績数"
+              value={stats.total}
+            />
+            <Card>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">目的別実績</h3>
               <div className="space-y-1">
                 {stats.byPurpose?.map((item: any) => (
@@ -258,8 +239,8 @@ const AchievementsPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
+            </Card>
+            <Card>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">プラットフォーム別</h3>
               <div className="space-y-1">
                 {stats.byPlatform?.map((item: any) => (
@@ -269,20 +250,14 @@ const AchievementsPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          </motion.div>
+            </Card>
+          </div>
         )}
 
         {/* 実績一覧 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {achievements.map((achievement, index) => (
-            <motion.div
-              key={achievement.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
-            >
+            <Card key={achievement.id}>
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-1">{achievement.projectName}</h3>
@@ -350,45 +325,29 @@ const AchievementsPage: React.FC = () => {
                   詳細を見る
                 </a>
               )}
-            </motion.div>
+            </Card>
           ))}
         </div>
 
         {achievements.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">まだ実績が登録されていません。</p>
-            <p className="text-gray-500 mt-2">「新しい実績を追加」ボタンから実績を登録してください。</p>
-          </div>
+          <EmptyState
+            icon="🏆"
+            title="まだ実績が登録されていません"
+            description="「新しい実績を追加」ボタンから実績を登録してください。"
+          />
         )}
       </div>
 
-      {/* モーダル */}
-      {showModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingAchievement ? '実績を編集' : '新しい実績を追加'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setEditingAchievement(null);
-                  resetForm();
-                }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ✕
-              </button>
-            </div>
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingAchievement(null);
+          resetForm();
+        }}
+        title={editingAchievement ? '実績を編集' : '新しい実績を追加'}
+        size="xl"
+      >
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -568,10 +527,8 @@ const AchievementsPage: React.FC = () => {
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </div>
+      </Modal>
+    </DashboardLayout>
   );
 };
 

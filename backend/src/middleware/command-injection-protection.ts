@@ -156,12 +156,17 @@ export const protectFromCommandInjection = (req: Request, res: Response, next: N
       req.params = sanitizeObject(req.params);
     }
 
-    // ヘッダーの基本チェック（curl等のテストツールは許可）
+    // ヘッダーの基本チェック（curl等のテストツールとブラウザは許可）
     const userAgent = req.get('User-Agent') || '';
     const isCurl = userAgent.toLowerCase().includes('curl');
     const isPostman = userAgent.toLowerCase().includes('postman');
+    const isBrowser = userAgent.toLowerCase().includes('mozilla') || 
+                      userAgent.toLowerCase().includes('chrome') || 
+                      userAgent.toLowerCase().includes('safari') ||
+                      userAgent.toLowerCase().includes('firefox') ||
+                      userAgent.toLowerCase().includes('edge');
     
-    if (!isCurl && !isPostman && containsDangerousPattern(userAgent)) {
+    if (!isCurl && !isPostman && !isBrowser && containsDangerousPattern(userAgent)) {
       console.warn(`Suspicious User-Agent detected: ${userAgent}`);
       res.status(400).json({ error: 'Invalid request headers' });
       return;

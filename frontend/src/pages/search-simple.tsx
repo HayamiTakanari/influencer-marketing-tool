@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
@@ -107,11 +106,8 @@ const SearchPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* 検索バー */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
+        <div
+          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8 transition-all duration-500"
         >
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
@@ -124,36 +120,29 @@ const SearchPage: React.FC = () => {
               />
             </div>
             <div className="flex gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => handleSearch(searchQuery)}
                 disabled={loading}
-                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? '検索中...' : '検索'}
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
+          <div
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 transition-all duration-300"
           >
             {error}
-          </motion.div>
+          </div>
         )}
 
         {/* 結果数 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-xl p-4 mb-6"
+        <div
+          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-xl p-4 mb-6 transition-all duration-500"
         >
           <div className="text-gray-700">
             {loading ? (
@@ -162,7 +151,7 @@ const SearchPage: React.FC = () => {
               <span>{influencers.length}件のインフルエンサーが見つかりました</span>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* 検索結果 */}
         <div className="space-y-6">
@@ -180,11 +169,8 @@ const SearchPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {influencers.map((influencer, index) => (
-                <motion.div
+                <div
                   key={influencer.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300"
                 >
                   <div className="text-center mb-4">
@@ -229,7 +215,7 @@ const SearchPage: React.FC = () => {
                   <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-xl font-semibold hover:shadow-lg transition-all">
                     詳細を見る
                   </button>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}

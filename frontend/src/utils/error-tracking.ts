@@ -75,9 +75,9 @@ export const trackExperiment = (experiment: string, variant: string) => {
 };
 
 export const trackAPICall = (endpoint: string, method: string, duration: number, status: number) => {
-  console.log('Error tracking disabled - trackAPICall called');
+  // Error tracking disabled in development
 };
 
 export const trackPageView = (page: string, properties?: Record<string, any>) => {
-  console.log('Error tracking disabled - trackPageView called');
+  // Error tracking disabled in development
 };

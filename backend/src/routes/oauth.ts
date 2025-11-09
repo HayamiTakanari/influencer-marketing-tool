@@ -322,7 +322,11 @@ router.delete('/disconnect/:platform', authenticate, async (req, res) => {
 // SNSアカウント連携状態確認
 router.get('/status', authenticate, async (req, res) => {
   try {
-    const userId = (req as any).user!.id;
+    const userId = (req as any).user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },

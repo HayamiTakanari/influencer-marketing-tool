@@ -42,6 +42,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Password strength validation
 export const checkPasswordStrength = (password: string) => {
   const strength = {
@@ -150,6 +164,26 @@ export const verifyEmail = async (token: string) => {
 };
 
 // Auth
+export const getDashboardData = async () => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  
+  try {
+    const response = await api.get('/dashboard', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Dashboard data fetch error:', error);
+    throw error;
+  }
+};
+
 export const login = async (email: string, password: string) => {
   console.log('Login API called with:', { email, baseURL: API_BASE_URL });
   
@@ -189,69 +223,22 @@ export const login = async (email: string, password: string) => {
     console.log('Login successful:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('Login failed, falling back to mock data:', error);
-    
-    // バックエンドエラーの場合もモックログインを試行
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const mockUsers = [
-      { email: 'company@test.com', password: 'test123', role: 'COMPANY', id: '1' },
-      { email: 'client@test.com', password: 'test123', role: 'CLIENT', id: '2' },
-      { email: 'influencer@test.com', password: 'test123', role: 'INFLUENCER', id: '3' }
-    ];
-    
-    const user = mockUsers.find(u => u.email === email && u.password === password);
-    
-    if (user) {
-      return {
-        token: 'mock-jwt-token-' + user.id,
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role
-        }
-      };
-    }
-    
+    console.error('Login failed:', error);
     throw error;
   }
 };
 
 export const register = async (userData: any) => {
-  // Vercel環境やローカルでバックエンドが利用できない場合のモックデータ
-  if (typeof window !== 'undefined' && 
-      (window.location.hostname.includes('vercel.app') || !window.navigator.onLine)) {
-    console.log('Using mock data for registration');
-    
-    await new Promise(resolve => setTimeout(resolve, 1000)); // ローディング演出
-    
-    return {
-      user: {
-        id: 'new-' + Date.now(),
-        email: userData.email,
-        role: userData.role || 'CLIENT'
-      },
-      token: 'mock-jwt-token-new-' + Date.now()
-    };
-  }
-
+  console.log('Registering user with data:', { ...userData, password: '[HIDDEN]' });
+  console.log('API URL:', API_BASE_URL);
+  
   try {
     const response = await api.post('/auth/register', userData);
+    console.log('Registration successful:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('Registration failed, falling back to mock data:', error);
-    
-    // エラー時もモック登録を返す
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return {
-      user: {
-        id: 'new-' + Date.now(),
-        email: userData.email,
-        role: userData.role || 'CLIENT'
-      },
-      token: 'mock-jwt-token-new-' + Date.now()
-    };
+    console.error('Registration error:', error.response?.data || error.message);
+    throw error;
   }
 };
 

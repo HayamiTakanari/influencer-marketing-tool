@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import BackButton from '../components/BackButton';
-import Sidebar from '../components/shared/Sidebar';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
+import LoadingState from '../components/common/LoadingState';
+import EmptyState from '../components/common/EmptyState';
+import ErrorState from '../components/common/ErrorState';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 interface TeamMember {
   id: string;
@@ -47,6 +51,7 @@ const TeamManagementPage: React.FC = () => {
   const [processing, setProcessing] = useState<string | null>(null);
   const [editingTeam, setEditingTeam] = useState(false);
   const router = useRouter();
+  const { handleError, handleSuccess } = useErrorHandler();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -77,16 +82,12 @@ const TeamManagementPage: React.FC = () => {
         setTeamName(result.name);
       }
     } catch (err: any) {
-      console.error('Error fetching team data:', err);
-      
-      // APIが実装されていない場合のフォールバック処理
       if (err.response?.status === 404 || err.code === 'ERR_NETWORK' || err.message?.includes('getMyTeam is not a function')) {
-        // モックデータを使用するか、チームなしの状態にする
-        console.log('Using fallback: No team exists or API not implemented');
         setTeam(null);
-        setError(''); // エラーメッセージをクリア
+        setError('');
       } else {
-        setError('チーム情報の取得に失敗しました。開発中の機能です。');
+        handleError(err, 'チーム情報の取得');
+        setError('チーム情報の取得に失敗しました。');
       }
     } finally {
       setLoading(false);
@@ -106,38 +107,8 @@ const TeamManagementPage: React.FC = () => {
       setTeamName(newTeam.name);
       await fetchTeamData();
     } catch (err: any) {
-      console.error('Error creating team:', err);
-      
-      // APIが実装されていない場合のフォールバック
-      if (err.code === 'ERR_NETWORK' || err.message?.includes('createTeam is not a function')) {
-        // モックチームを作成
-        const mockTeam: Team = {
-          id: 'mock-team-1',
-          name: teamName.trim(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          members: [
-            {
-              id: 'mock-member-1',
-              isOwner: true,
-              joinedAt: new Date().toISOString(),
-              user: {
-                id: user?.id || 'mock-user-1',
-                email: user?.email || 'user@example.com',
-                role: user?.role || 'CLIENT',
-                createdAt: new Date().toISOString()
-              }
-            }
-          ],
-          clients: []
-        };
-        setTeam(mockTeam);
-        setShowCreateForm(false);
-        setTeamName(mockTeam.name);
-        setError(''); // エラーをクリア
-      } else {
-        setError('チームの作成に失敗しました。開発中の機能です。');
-      }
+      handleError(err, 'チームの作成');
+      setError('チームの作成に失敗しました。');
     } finally {
       setSubmitting(false);
     }
@@ -155,9 +126,7 @@ const TeamManagementPage: React.FC = () => {
       setEditingTeam(false);
       await fetchTeamData();
     } catch (err: any) {
-      console.error('Error updating team:', err);
-      
-      // APIが実装されていない場合のフォールバック
+      handleError(err, 'チーム名の更新');
       if (err.code === 'ERR_NETWORK' || err.message?.includes('updateTeam is not a function')) {
         // ローカルでチーム名を更新
         setTeam({ ...team, name: teamName.trim() });
@@ -188,9 +157,7 @@ const TeamManagementPage: React.FC = () => {
       setMemberIsOwner(false);
       setError('');
     } catch (err: any) {
-      console.error('Error adding member:', err);
-      
-      // APIが実装されていない場合のフォールバック
+      handleError(err, 'メンバーの追加');
       if (err.code === 'ERR_NETWORK' || err.message?.includes('addTeamMember is not a function')) {
         // ローカルでメンバーを追加（モック）
         const newMember: TeamMember = {
@@ -227,9 +194,7 @@ const TeamManagementPage: React.FC = () => {
       await fetchTeamData();
       setError('');
     } catch (err: any) {
-      console.error('Error removing member:', err);
-      
-      // APIが実装されていない場合のフォールバック
+      handleError(err, 'メンバーの削除');
       if (err.code === 'ERR_NETWORK' || err.message?.includes('removeTeamMember is not a function')) {
         // ローカルでメンバーを削除
         setTeam({ ...team, members: team.members.filter(m => m.id !== memberId) });
@@ -255,9 +220,7 @@ const TeamManagementPage: React.FC = () => {
       await fetchTeamData();
       setError('');
     } catch (err: any) {
-      console.error('Error updating member role:', err);
-      
-      // APIが実装されていない場合のフォールバック
+      handleError(err, 'メンバーの役割更新');
       if (err.code === 'ERR_NETWORK' || err.message?.includes('updateMemberRole is not a function')) {
         // ローカルでメンバーの権限を更新
         const updatedMembers = team.members.map(m => 
@@ -283,9 +246,7 @@ const TeamManagementPage: React.FC = () => {
       setTeam(null);
       setError('');
     } catch (err: any) {
-      console.error('Error deleting team:', err);
-      
-      // APIが実装されていない場合のフォールバック
+      handleError(err, 'チームの削除');
       if (err.code === 'ERR_NETWORK' || err.message?.includes('deleteTeam is not a function')) {
         // ローカルでチームを削除
         setTeam(null);
@@ -386,7 +347,7 @@ const TeamManagementPage: React.FC = () => {
         <div className="pt-20 pb-12 px-4">
           <div className="max-w-7xl mx-auto">
         {/* 開発中のお知らせ */}
-        <motion.div
+        <div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative bg-blue-50 border border-blue-200 px-4 py-3 mb-6" style={{
@@ -409,22 +370,22 @@ const TeamManagementPage: React.FC = () => {
               <p className="text-sm">チーム管理機能は現在開発中です。一部の機能はモックデータで動作します。</p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
           >
             {error}
-          </motion.div>
+          </div>
         )}
 
         {!team ? (
           /* チーム作成 */
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -446,14 +407,14 @@ const TeamManagementPage: React.FC = () => {
             <p className="text-gray-600 mb-8">チームを作成して、複数のメンバーでプロジェクトを管理できます。</p>
             
             {!showCreateForm ? (
-              <motion.button
+              <button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowCreateForm(true)}
                 className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
               >
                 チームを作成
-              </motion.button>
+              </button>
             ) : (
               <form onSubmit={handleCreateTeam} className="max-w-md mx-auto">
                 <div className="mb-4">
@@ -470,7 +431,7 @@ const TeamManagementPage: React.FC = () => {
                   />
                 </div>
                 <div className="flex space-x-3">
-                  <motion.button
+                  <button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     type="submit"
@@ -478,8 +439,8 @@ const TeamManagementPage: React.FC = () => {
                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                   >
                     {submitting ? '作成中...' : '作成'}
-                  </motion.button>
-                  <motion.button
+                  </button>
+                  <button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     type="button"
@@ -487,15 +448,15 @@ const TeamManagementPage: React.FC = () => {
                     className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
                   >
                     キャンセル
-                  </motion.button>
+                  </button>
                 </div>
               </form>
             )}
-          </motion.div>
+          </div>
         ) : (
           <>
             {/* チーム情報 */}
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -518,14 +479,14 @@ const TeamManagementPage: React.FC = () => {
                     <div className="flex items-center space-x-3">
                       <h2 className="text-2xl font-bold text-gray-900">{team.name}</h2>
                       {currentUserIsOwner && (
-                        <motion.button
+                        <button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setEditingTeam(true)}
                           className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           ✏️ 編集
-                        </motion.button>
+                        </button>
                       )}
                     </div>
                   ) : (
@@ -536,7 +497,7 @@ const TeamManagementPage: React.FC = () => {
                         onChange={(e) => setTeamName(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
-                      <motion.button
+                      <button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         type="submit"
@@ -544,8 +505,8 @@ const TeamManagementPage: React.FC = () => {
                         className="px-3 py-1 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50"
                       >
                         {submitting ? '保存中...' : '保存'}
-                      </motion.button>
-                      <motion.button
+                      </button>
+                      <button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         type="button"
@@ -556,7 +517,7 @@ const TeamManagementPage: React.FC = () => {
                         className="px-3 py-1 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         キャンセル
-                      </motion.button>
+                      </button>
                     </form>
                   )}
                   <p className="text-gray-600 mt-2">作成日: {formatDate(team.createdAt)}</p>
@@ -564,15 +525,15 @@ const TeamManagementPage: React.FC = () => {
                 <div className="flex space-x-3">
                   {currentUserIsOwner && (
                     <>
-                      <motion.button
+                      <button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setShowAddMemberForm(true)}
                         className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                       >
                         + メンバー追加
-                      </motion.button>
-                      <motion.button
+                      </button>
+                      <button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleDeleteTeam}
@@ -580,7 +541,7 @@ const TeamManagementPage: React.FC = () => {
                         className="px-4 py-2 border-2 border-red-300 text-red-700 rounded-xl font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
                       >
                         チーム削除
-                      </motion.button>
+                      </button>
                     </>
                   )}
                 </div>
@@ -604,10 +565,10 @@ const TeamManagementPage: React.FC = () => {
                   <div className="text-purple-800">関連クライアント</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* メンバー一覧 */}
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -628,7 +589,7 @@ const TeamManagementPage: React.FC = () => {
               
               <div className="space-y-4">
                 {team.members.map((member, index) => (
-                  <motion.div
+                  <div
                     key={member.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -662,7 +623,7 @@ const TeamManagementPage: React.FC = () => {
                     
                     {currentUserIsOwner && member.user.id !== user.id && (
                       <div className="flex space-x-2">
-                        <motion.button
+                        <button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleToggleOwner(member.id, member.isOwner, member.user.email)}
@@ -674,8 +635,8 @@ const TeamManagementPage: React.FC = () => {
                           }`}
                         >
                           {processing === member.id ? '処理中...' : member.isOwner ? '管理者解除' : '管理者に昇格'}
-                        </motion.button>
-                        <motion.button
+                        </button>
+                        <button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleRemoveMember(member.id, member.user.email)}
@@ -683,20 +644,20 @@ const TeamManagementPage: React.FC = () => {
                           className="px-3 py-1 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
                         >
                           削除
-                        </motion.button>
+                        </button>
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           </>
         )}
 
         {/* メンバー追加フォーム */}
         {showAddMemberForm && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
+            <div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="bg-white rounded-3xl p-8 max-w-md w-full relative"
@@ -742,7 +703,7 @@ const TeamManagementPage: React.FC = () => {
                   </label>
                 </div>
 
-                <motion.button
+                <button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
@@ -750,9 +711,9 @@ const TeamManagementPage: React.FC = () => {
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? '追加中...' : 'メンバーを追加'}
-                </motion.button>
+                </button>
               </form>
-            </motion.div>
+            </div>
           </div>
         )}
           </div>

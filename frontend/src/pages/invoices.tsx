@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Sidebar from '../components/shared/Sidebar';
+import LoadingState from '../components/common/LoadingState';
+import EmptyState from '../components/common/EmptyState';
+import StatsCard from '../components/common/StatsCard';
 
 interface Invoice {
   id: string;
@@ -23,43 +25,6 @@ const InvoicesPage: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
   const router = useRouter();
 
-  // Mock data for demonstration
-  const mockInvoices: Invoice[] = [
-    {
-      id: '1',
-      invoiceNumber: 'INV-2024-001',
-      amount: 500000,
-      status: 'paid',
-      dueDate: '2024-02-15',
-      issueDate: '2024-01-15',
-      influencerName: '田中花子',
-      projectName: '春の新商品キャンペーン',
-      description: 'Instagram投稿 × 3回、ストーリー × 5回'
-    },
-    {
-      id: '2',
-      invoiceNumber: 'INV-2024-002',
-      amount: 800000,
-      status: 'pending',
-      dueDate: '2024-02-28',
-      issueDate: '2024-01-28',
-      influencerName: '佐藤美咲',
-      projectName: '美容製品レビュー',
-      description: 'YouTube動画 × 1本、Instagram投稿 × 2回'
-    },
-    {
-      id: '3',
-      invoiceNumber: 'INV-2024-003',
-      amount: 300000,
-      status: 'overdue',
-      dueDate: '2024-01-31',
-      issueDate: '2024-01-01',
-      influencerName: '山田太郎',
-      projectName: 'グルメキャンペーン',
-      description: 'TikTok動画 × 3本'
-    }
-  ];
-
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -73,11 +38,9 @@ const InvoicesPage: React.FC = () => {
         return;
       }
       
-      // Set mock data and loading state
-      setTimeout(() => {
-        setInvoices(mockInvoices);
-        setLoading(false);
-      }, 500);
+      setError('請求書APIは未実装です。');
+      setInvoices([]);
+      setLoading(false);
     } else {
       router.push('/login');
     }
@@ -131,10 +94,7 @@ const InvoicesPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
+        <LoadingState />
       </div>
     );
   }
@@ -185,22 +145,13 @@ const InvoicesPage: React.FC = () => {
         <div className="pt-20 pb-12 px-4">
           <div className="max-w-7xl mx-auto">
             {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-              >
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
                 {error}
-              </motion.div>
+              </div>
             )}
 
             {/* 概要セクション */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="mb-8"
-            >
+            <div className="mb-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-2xl">📋</span>
@@ -278,15 +229,10 @@ const InvoicesPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* フィルターセクション */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="mb-8"
-            >
+            <div className="mb-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-lg">🔍</span>
@@ -317,13 +263,10 @@ const InvoicesPage: React.FC = () => {
                   </button>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
             {/* 請求書リストセクション */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+            <div
               className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden"
               style={{
                 background: `
@@ -350,10 +293,8 @@ const InvoicesPage: React.FC = () => {
 
               <div className="space-y-4">
                 {filteredInvoices.map((invoice) => (
-                  <motion.div
+                  <div
                     key={invoice.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
                     className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all"
                   >
                     <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 items-center">
@@ -381,25 +322,22 @@ const InvoicesPage: React.FC = () => {
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <p className="text-sm text-gray-600">{invoice.description}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
               {filteredInvoices.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-gray-400 text-6xl mb-4">📋</div>
-                  <p className="text-gray-600">該当する請求書がありません</p>
-                </div>
+                <EmptyState
+                  icon="📋"
+                  title="該当する請求書がありません"
+                />
               )}
-            </motion.div>
+            </div>
 
             {/* ヒントセクション */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+            <div
               className="relative bg-blue-50 border border-blue-200 p-8 transition-all overflow-hidden mt-8"
-              style={{
+              style{{
                 background: `
                   linear-gradient(135deg, transparent 10px, #eff6ff 10px),
                   linear-gradient(-135deg, transparent 10px, #eff6ff 10px),
@@ -431,7 +369,7 @@ const InvoicesPage: React.FC = () => {
                   <p>請求書の詳細を確認し、プロジェクトの成果と照らし合わせましょう</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

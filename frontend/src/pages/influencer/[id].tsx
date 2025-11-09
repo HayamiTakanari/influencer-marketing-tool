@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
@@ -193,12 +192,7 @@ const InfluencerDetailPage: React.FC = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* プロフィール概要 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8">
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
             <div className="text-center md:text-left">
               <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto md:mx-0 mb-4">
@@ -398,28 +392,21 @@ const InfluencerDetailPage: React.FC = () => {
                     <li>応募があった時点でチャット機能が利用可能になります</li>
                   </ol>
                   <div className="mt-4">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    <button
                       onClick={() => router.push('/projects/create')}
                       className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                     >
                       プロジェクトを作成する →
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* SNSアカウント詳細 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">SNSアカウント</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {influencer.socialAccounts.map(account => (
@@ -457,15 +444,10 @@ const InfluencerDetailPage: React.FC = () => {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* SNS API分析データ */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 SNS分析データ</h2>
           
           {/* 性別分布 */}
@@ -687,16 +669,11 @@ const InfluencerDetailPage: React.FC = () => {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* ポートフォリオ */}
         {influencer.portfolio && influencer.portfolio.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
-          >
+          <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">ポートフォリオ</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {influencer.portfolio.map(item => (
@@ -723,7 +700,7 @@ const InfluencerDetailPage: React.FC = () => {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 

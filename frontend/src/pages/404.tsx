@@ -1,22 +1,14 @@
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Button from '../components/shared/Button';
 
 export default function Custom404() {
   return (
-    <PageLayout
+    <DashboardLayout
       title="404"
       subtitle="ページが見つかりません"
-      showNavigation={false}
-      maxWidth="md"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-center"
-      >
+      <div className="text-center">
         <h1 className="text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600 mb-4">
           404
         </h1>
@@ -35,7 +27,7 @@ export default function Custom404() {
             </Button>
           </Link>
         </div>
-      </motion.div>
-    </PageLayout>
+      </div>
+    </DashboardLayout>
   );
 }

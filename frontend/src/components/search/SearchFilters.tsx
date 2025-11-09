@@ -1,160 +1,184 @@
 import React from 'react';
+import Card from '../shared/Card';
+import Button from '../shared/Button';
+
+export interface FilterConfig {
+  key: string;
+  label: string;
+  type: 'text' | 'select' | 'multiSelect' | 'number' | 'range';
+  options?: { label: string; value: string }[];
+  placeholder?: string;
+  min?: number;
+  max?: number;
+}
 
 interface SearchFiltersProps {
-  filters: {
-    query: string;
-    category: string;
-    prefecture: string;
-    platform: string;
-    minFollowers: string;
-    maxFollowers: string;
-    limit: number;
-  };
-  loading: boolean;
+  filters: Record<string, any>;
+  config: FilterConfig[];
   onFilterChange: (key: string, value: any) => void;
-  onSearch: () => void;
-  onReset: () => void;
+  onClear: () => void;
+  onSearch?: () => void;
+  loading?: boolean;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
   filters,
-  loading,
+  config,
   onFilterChange,
+  onClear,
   onSearch,
-  onReset
+  loading = false,
 }) => {
+  const renderFilter = (filterConfig: FilterConfig) => {
+    const { key, label, type, options, placeholder, min, max } = filterConfig;
+
+    switch (type) {
+      case 'text':
+        return (
+          <div key={key}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label}
+            </label>
+            <input
+              type="text"
+              value={filters[key] || ''}
+              onChange={(e) => onFilterChange(key, e.target.value)}
+              placeholder={placeholder}
+              onKeyPress={(e) => e.key === 'Enter' && onSearch?.()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+          </div>
+        );
+
+      case 'select':
+        return (
+          <div key={key}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label}
+            </label>
+            <select
+              value={filters[key] || ''}
+              onChange={(e) => onFilterChange(key, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            >
+              <option value="">すべて</option>
+              {options?.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+
+      case 'multiSelect':
+        return (
+          <div key={key} className="col-span-full">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {options?.map((opt) => {
+                const selected = filters[key]?.includes(opt.value) || false;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      const current = filters[key] || [];
+                      const newValue = selected
+                        ? current.filter((v: string) => v !== opt.value)
+                        : [...current, opt.value];
+                      onFilterChange(key, newValue);
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selected
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 'number':
+        return (
+          <div key={key}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label}
+            </label>
+            <input
+              type="number"
+              value={filters[key] || ''}
+              onChange={(e) => onFilterChange(key, e.target.value)}
+              placeholder={placeholder}
+              min={min}
+              max={max}
+              onKeyPress={(e) => e.key === 'Enter' && onSearch?.()}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+          </div>
+        );
+
+      case 'range':
+        const minKey = `${key}Min`;
+        const maxKey = `${key}Max`;
+        return (
+          <div key={key} className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label}
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                value={filters[minKey] || ''}
+                onChange={(e) => onFilterChange(minKey, e.target.value)}
+                placeholder="最小値"
+                min={min}
+                onKeyPress={(e) => e.key === 'Enter' && onSearch?.()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              <input
+                type="number"
+                value={filters[maxKey] || ''}
+                onChange={(e) => onFilterChange(maxKey, e.target.value)}
+                placeholder="最大値"
+                max={max}
+                onKeyPress={(e) => e.key === 'Enter' && onSearch?.()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">キーワード</label>
-          <input
-            type="text"
-            value={filters.query}
-            onChange={(e) => onFilterChange('query', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="インフルエンサー名..."
-            onKeyPress={(e) => e.key === 'Enter' && onSearch()}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">カテゴリ</label>
-          <select
-            value={filters.category}
-            onChange={(e) => onFilterChange('category', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">全て</option>
-            <option value="美容">美容</option>
-            <option value="ライフスタイル">ライフスタイル</option>
-            <option value="ファッション">ファッション</option>
-            <option value="グルメ">グルメ</option>
-            <option value="旅行">旅行</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">都道府県</label>
-          <select
-            value={filters.prefecture}
-            onChange={(e) => onFilterChange('prefecture', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">全て</option>
-            <option value="東京都">東京都</option>
-            <option value="大阪府">大阪府</option>
-            <option value="神奈川県">神奈川県</option>
-            <option value="愛知県">愛知県</option>
-            <option value="福岡県">福岡県</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">SNSプラットフォーム</label>
-          <select
-            value={filters.platform}
-            onChange={(e) => onFilterChange('platform', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">全て</option>
-            <option value="Instagram">Instagram</option>
-            <option value="TikTok">TikTok</option>
-            <option value="YouTube">YouTube</option>
-            <option value="X">X (Twitter)</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">最小フォロワー数</label>
-          <input
-            type="number"
-            value={filters.minFollowers}
-            onChange={(e) => onFilterChange('minFollowers', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="1000"
-            onKeyPress={(e) => e.key === 'Enter' && onSearch()}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">最大フォロワー数</label>
-          <input
-            type="number"
-            value={filters.maxFollowers}
-            onChange={(e) => onFilterChange('maxFollowers', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="100000"
-            onKeyPress={(e) => e.key === 'Enter' && onSearch()}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">表示件数</label>
-          <select
-            value={filters.limit}
-            onChange={(e) => onFilterChange('limit', parseInt(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value={10}>10件</option>
-            <option value={20}>20件</option>
-            <option value={50}>50件</option>
-            <option value={100}>100件</option>
-          </select>
-        </div>
+    <Card>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">検索フィルター</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {config.map((filterConfig) => renderFilter(filterConfig))}
       </div>
 
-      {/* 検索ボタンエリア */}
-      <div className="flex justify-center space-x-4">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onSearch();
-          }}
-          disabled={loading}
-          className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-        >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>検索中...</span>
-            </>
-          ) : (
-            <>
-              <span>🔍</span>
-              <span>検索実行</span>
-            </>
-          )}
-        </button>
-        
-        <button
-          onClick={onReset}
-          className="px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
-        >
-          リセット
-        </button>
+      <div className="mt-4 flex justify-end space-x-2">
+        <Button variant="secondary" size="sm" onClick={onClear}>
+          フィルターをクリア
+        </Button>
+        {onSearch && (
+          <Button variant="primary" size="sm" onClick={onSearch} disabled={loading}>
+            {loading ? '検索中...' : '検索'}
+          </Button>
+        )}
       </div>
-    </div>
+    </Card>
   );
 };
 

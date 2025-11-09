@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import PageLayout from '../components/shared/PageLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
-import Sidebar from '../components/shared/Sidebar';
+import LoadingState from '../components/common/LoadingState';
+import EmptyState from '../components/common/EmptyState';
 import { Influencer, WorkingStatus } from '../types';
 
 const FavoritesPage: React.FC = () => {
@@ -56,59 +55,9 @@ const FavoritesPage: React.FC = () => {
         return;
       }
 
-      // TODO: 実際のAPI呼び出しでお気に入りインフルエンサーの詳細情報を取得
-      // const { getFavoriteInfluencers } = await import('../services/api');
-      // const result = await getFavoriteInfluencers(favoriteIds);
-      
-      // モックデータ（実際にはAPIから取得）
-      const mockFavoriteInfluencers: Influencer[] = favoriteIds.map((id: string, index: number) => ({
-        id,
-        userId: `user_${id}`,
-        displayName: `インフルエンサー${index + 1}`,
-        bio: `美容とライフスタイルについて発信している人気インフルエンサーです。`,
-        gender: 'FEMALE',
-        categories: ['美容', 'ライフスタイル'],
-        prefecture: '東京都',
-        city: '渋谷区',
-        priceMin: 50000,
-        priceMax: 200000,
-        isRegistered: true,
-        hasInvoiceInfo: true,
-        workingStatus: index % 4 === 0 ? WorkingStatus.AVAILABLE : 
-                     index % 4 === 1 ? WorkingStatus.BUSY :
-                     index % 4 === 2 ? WorkingStatus.UNAVAILABLE : WorkingStatus.BREAK,
-        workingStatusMessage: index % 4 === 2 ? '現在新規案件は受け付けておりません' : '',
-        lastUpdated: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        user: {
-          id: `user_${id}`,
-          email: `influencer${index + 1}@example.com`,
-          role: 'INFLUENCER',
-          isVerified: true,
-          hasAgreedToNDA: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        socialAccounts: [
-          {
-            id: `social_${id}`,
-            influencerId: id,
-            platform: 'INSTAGRAM',
-            username: `influencer${index + 1}`,
-            profileUrl: `https://instagram.com/influencer${index + 1}`,
-            followerCount: Math.floor(Math.random() * 100000) + 10000,
-            engagementRate: Math.random() * 5 + 1,
-            isVerified: Math.random() > 0.5,
-            lastSynced: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        ],
-        portfolio: []
-      }));
-      
-      setFavoriteInfluencers(mockFavoriteInfluencers);
+      const { getFavoriteInfluencers } = await import('../services/api');
+      const result = await getFavoriteInfluencers(favoriteIds);
+      setFavoriteInfluencers(result || []);
     } catch (err: any) {
       console.error('Error fetching favorites:', err);
     } finally {
@@ -124,12 +73,8 @@ const FavoritesPage: React.FC = () => {
     try {
       const updatedFavorites = user.favoriteInfluencers.filter((id: string) => id !== influencerId);
       
-      // TODO: 実際のAPI呼び出し
-      // const { updateFavorites } = await import('../services/api');
-      // await updateFavorites(updatedFavorites);
-      
-      // モック処理
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { updateFavorites } = await import('../services/api');
+      await updateFavorites(updatedFavorites);
       
       // ローカル状態を更新
       setFavoriteInfluencers(prev => prev.filter(inf => inf.id !== influencerId));
@@ -160,7 +105,8 @@ const FavoritesPage: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price?: number) => {
+    if (price === undefined || price === null) return '¥0';
     return new Intl.NumberFormat('ja-JP', {
       style: 'currency',
       currency: 'JPY',
@@ -176,55 +122,24 @@ const FavoritesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <PageLayout title="お気に入り" subtitle="読み込み中...">
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-        </div>
-      </PageLayout>
+      <div className="flex items-center justify-center py-20">
+        <LoadingState />
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
-      {/* 背景デザイン */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
-      </div>
-
-      {/* サイドバー */}
-      <Sidebar 
-        user={user} 
-        favoriteCount={favoriteInfluencers.length} 
-        onLogout={handleLogout} 
-      />
-
-      {/* メインコンテンツエリア */}
-      <div className="ml-80 relative z-10">
-        <PageLayout
-          title="お気に入りインフルエンサー"
-          subtitle="登録したお気に入りのインフルエンサーを管理"
-          userEmail={user?.email}
-          onLogout={handleLogout}
-        >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         {favoriteInfluencers.length === 0 ? (
-          <Card className="text-center py-16">
-            <div className="text-6xl mb-4">⭐</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">お気に入りインフルエンサーがありません</h3>
-            <p className="text-gray-600 mb-6">
-              インフルエンサー検索から気になるクリエイターをお気に入りに追加してみましょう。
-            </p>
-            <Button
-              onClick={() => router.push('/search')}
-              variant="primary"
-              size="lg"
-            >
-              インフルエンサーを探す
-            </Button>
+          <Card>
+            <EmptyState
+              icon="⭐"
+              title="お気に入りインフルエンサーがありません"
+              description="インフルエンサー検索から気になるクリエイターをお気に入りに追加してみましょう。"
+              actionLabel="インフルエンサーを探す"
+              onAction={() => router.push('/search')}
+            />
           </Card>
         ) : (
           <>
@@ -244,12 +159,7 @@ const FavoritesPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoriteInfluencers.map((influencer, index) => (
-                <motion.div
-                  key={influencer.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
+                <div key={influencer.id}>
                   <Card hover={true} padding="lg" className="relative">
                     {/* お気に入り削除ボタン */}
                     <button
@@ -332,13 +242,11 @@ const FavoritesPage: React.FC = () => {
                       </div>
                     </div>
                   </Card>
-                </motion.div>
+                </div>
               ))}
             </div>
           </>
         )}
-      </motion.div>
-        </PageLayout>
       </div>
     </div>
   );

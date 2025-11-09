@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import BackButton from '../components/BackButton';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
+import LoadingState from '../components/common/LoadingState';
+import EmptyState from '../components/common/EmptyState';
+import ErrorState from '../components/common/ErrorState';
 
 interface MyApplication {
   id: string;
@@ -134,25 +136,16 @@ const MyApplicationsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
-      </div>
+      <DashboardLayout title="応募履歴" subtitle="読み込み中...">
+        <LoadingState />
+      </DashboardLayout>
     );
   }
 
   return (
-    <PageLayout
+    <DashboardLayout
       title="応募履歴"
       subtitle="あなたの応募状況を確認"
-      userEmail={user?.email}
-      onLogout={() => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        router.push('/login');
-      }}
     >
         {/* フィルター */}
         <Card className="mb-8">
@@ -194,23 +187,17 @@ const MyApplicationsPage: React.FC = () => {
         {/* 応募履歴一覧 */}
         <div className="space-y-6">
           {filteredApplications.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">応募がありません</h3>
-              <p className="text-gray-600">
-                まだプロジェクトに応募していません。
-                <Link href="/opportunities" className="text-blue-600 hover:underline ml-1">
-                  プロジェクトを探す
-                </Link>
-              </p>
-            </div>
+            <EmptyState
+              icon="📝"
+              title="応募がありません"
+              description="まだプロジェクトに応募していません。"
+              actionLabel="プロジェクトを探す"
+              onAction={() => router.push('/opportunities')}
+            />
           ) : (
             filteredApplications.map((application, index) => (
-              <motion.div
+              <div
                 key={application.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300"
               >
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -265,36 +252,30 @@ const MyApplicationsPage: React.FC = () => {
                   {application.isAccepted && ['MATCHED', 'IN_PROGRESS'].includes(application.project.status) && (
                     <>
                       <Link href={`/chat?project=${application.project.id}`}>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <button
                           className="px-6 py-2 border-2 border-blue-300 text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
                         >
                           💬 チャット
-                        </motion.button>
+                        </button>
                       </Link>
                       <Link href={`/payments/${application.project.id}`}>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <button
                           className="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                         >
                           💰 決済確認
-                        </motion.button>
+                        </button>
                       </Link>
                     </>
                   )}
                   <Link href={`/projects/${application.project.id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    <button
                       className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
                     >
                       📋 詳細
-                    </motion.button>
+                    </button>
                   </Link>
                 </div>
-              </motion.div>
+              </div>
             ))
           )}
         </div>
@@ -329,7 +310,7 @@ const MyApplicationsPage: React.FC = () => {
             </div>
           </div>
         </Card>
-    </PageLayout>
+    </DashboardLayout>
   );
 };
 

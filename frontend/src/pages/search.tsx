@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { searchInfluencers } from '../services/api';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
-import Sidebar from '../components/shared/Sidebar';
+import EmptyState from '../components/common/EmptyState';
+import LoadingState from '../components/common/LoadingState';
+import SearchFilters, { FilterConfig } from '../components/search/SearchFilters';
+import Pagination from '../components/search/Pagination';
 
 
 const SearchPage: React.FC = () => {
@@ -92,6 +94,77 @@ const SearchPage: React.FC = () => {
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
   };
+
+  const handleClearFilters = () => {
+    setFilters({
+      query: '',
+      category: '',
+      prefecture: '',
+      platform: '',
+      minFollowers: '',
+      maxFollowers: '',
+      sortBy: 'relevance',
+      page: 1,
+      limit: 20,
+    });
+  };
+
+  const filterConfig: FilterConfig[] = [
+    { key: 'query', label: 'キーワード', type: 'text', placeholder: '名前、カテゴリー、ハッシュタグなど' },
+    {
+      key: 'category',
+      label: 'カテゴリー',
+      type: 'select',
+      options: [
+        { label: 'ファッション', value: 'ファッション' },
+        { label: '美容', value: '美容' },
+        { label: 'グルメ', value: 'グルメ' },
+        { label: '旅行', value: '旅行' },
+        { label: 'ライフスタイル', value: 'ライフスタイル' },
+        { label: 'フィットネス', value: 'フィットネス' },
+        { label: 'テクノロジー', value: 'テクノロジー' },
+        { label: 'ビジネス', value: 'ビジネス' },
+      ]
+    },
+    {
+      key: 'prefecture',
+      label: '都道府県',
+      type: 'select',
+      options: [
+        { label: '東京都', value: '東京都' },
+        { label: '神奈川県', value: '神奈川県' },
+        { label: '千葉県', value: '千葉県' },
+        { label: '埼玉県', value: '埼玉県' },
+        { label: '大阪府', value: '大阪府' },
+        { label: '愛知県', value: '愛知県' },
+        { label: '福岡県', value: '福岡県' },
+      ]
+    },
+    {
+      key: 'platform',
+      label: 'プラットフォーム',
+      type: 'select',
+      options: [
+        { label: 'Instagram', value: 'Instagram' },
+        { label: 'TikTok', value: 'TikTok' },
+        { label: 'YouTube', value: 'YouTube' },
+        { label: 'X (Twitter)', value: 'X' },
+      ]
+    },
+    { key: 'followers', label: 'フォロワー数', type: 'range' },
+    {
+      key: 'sortBy',
+      label: '並び順',
+      type: 'select',
+      options: [
+        { label: '関連度順', value: 'relevance' },
+        { label: 'フォロワー数順', value: 'followers' },
+        { label: 'エンゲージメント率順', value: 'engagement' },
+        { label: '料金順', value: 'price' },
+        { label: '登録日順', value: 'recent' },
+      ]
+    },
+  ];
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -201,186 +274,38 @@ const SearchPage: React.FC = () => {
 
   if (!user) return null;
 
+  if (loading && influencers.length === 0) {
+    return (
+      <DashboardLayout title="インフルエンサー検索" subtitle="読み込み中...">
+        <LoadingState />
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
-      {/* 背景デザイン */}
-      <div className="fixed inset-0 z-0">
-        {/* ベースグラデーション */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50" />
-        
-        {/* メッシュグラデーション */}
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute -inset-[100%] opacity-60">
-            <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #d1fae5, #10b981, transparent)' }} />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, #f3f4f6, #6b7280, transparent)' }} />
-            <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{ background: 'radial-gradient(circle, #6ee7b7, #059669, transparent)' }} />
-          </div>
-        </div>
-        
-        {/* アーティスティックパターン */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="artistic-pattern-search" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
-              <circle cx="60" cy="60" r="1" fill="#000000" opacity="0.6" />
-              <circle cx="30" cy="30" r="0.5" fill="#000000" opacity="0.4" />
-              <circle cx="90" cy="90" r="0.5" fill="#000000" opacity="0.4" />
-              <line x1="20" y1="20" x2="40" y2="40" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
-              <line x1="80" y1="80" x2="100" y2="100" stroke="#000000" strokeWidth="0.5" opacity="0.3" />
-            </pattern>
-          </defs>
-          <rect x="0" y="0" width="100%" height="100%" fill="url(#artistic-pattern-search)" />
-        </svg>
-      </div>
+    <DashboardLayout
+      title="インフルエンサー検索"
+      subtitle="あなたにぴったりのインフルエンサーを見つけましょう"
+    >
+      <div className="space-y-4">
+            <SearchFilters
+              filters={filters}
+              config={filterConfig}
+              onFilterChange={handleFilterChange}
+              onClear={handleClearFilters}
+              onSearch={handleSearch}
+              loading={loading}
+            />
 
-      {/* サイドバー */}
-      <Sidebar 
-        user={user} 
-        favoriteCount={favoriteInfluencers.length} 
-        onLogout={handleLogout} 
-      />
-
-      {/* メインコンテンツエリア */}
-      <div className="ml-80 relative z-10">
-        <PageLayout title="インフルエンサー検索" user={user} onLogout={handleLogout}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* 検索フィルター */}
-            <Card className="mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    キーワード
-                  </label>
-                  <input
-                    type="text"
-                    value={filters.query}
-                    onChange={(e) => handleFilterChange('query', e.target.value)}
-                    placeholder="名前、カテゴリー、ハッシュタグなど"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    カテゴリー
-                  </label>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    <option value="">すべて</option>
-                    <option value="ファッション">ファッション</option>
-                    <option value="美容">美容</option>
-                    <option value="グルメ">グルメ</option>
-                    <option value="旅行">旅行</option>
-                    <option value="ライフスタイル">ライフスタイル</option>
-                    <option value="フィットネス">フィットネス</option>
-                    <option value="テクノロジー">テクノロジー</option>
-                    <option value="ビジネス">ビジネス</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    都道府県
-                  </label>
-                  <select
-                    value={filters.prefecture}
-                    onChange={(e) => handleFilterChange('prefecture', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    <option value="">すべて</option>
-                    <option value="東京都">東京都</option>
-                    <option value="神奈川県">神奈川県</option>
-                    <option value="千葉県">千葉県</option>
-                    <option value="埼玉県">埼玉県</option>
-                    <option value="大阪府">大阪府</option>
-                    <option value="愛知県">愛知県</option>
-                    <option value="福岡県">福岡県</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    プラットフォーム
-                  </label>
-                  <select
-                    value={filters.platform}
-                    onChange={(e) => handleFilterChange('platform', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    <option value="">すべて</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="TikTok">TikTok</option>
-                    <option value="YouTube">YouTube</option>
-                    <option value="X">X (Twitter)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    最小フォロワー数
-                  </label>
-                  <input
-                    type="number"
-                    value={filters.minFollowers}
-                    onChange={(e) => handleFilterChange('minFollowers', e.target.value)}
-                    placeholder="1000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    最大フォロワー数
-                  </label>
-                  <input
-                    type="number"
-                    value={filters.maxFollowers}
-                    onChange={(e) => handleFilterChange('maxFollowers', e.target.value)}
-                    placeholder="100000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    並び順
-                  </label>
-                  <select
-                    value={filters.sortBy}
-                    onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    <option value="relevance">関連度順</option>
-                    <option value="followers">フォロワー数順</option>
-                    <option value="engagement">エンゲージメント率順</option>
-                    <option value="price">料金順</option>
-                    <option value="recent">登録日順</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {influencers.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-4">
                 <Button
-                  onClick={handleSearch}
-                  disabled={loading}
+                  onClick={handleExportCSV}
+                  variant="outline"
                   className="w-full sm:w-auto"
                 >
-                  {loading ? '検索中...' : '検索'}
+                  CSV出力
                 </Button>
-
-                {influencers.length > 0 && (
-                  <Button
-                    onClick={handleExportCSV}
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                  >
-                    CSV出力
-                  </Button>
-                )}
 
                 {searchTime > 0 && (
                   <span className="text-sm text-gray-500">
@@ -388,7 +313,7 @@ const SearchPage: React.FC = () => {
                   </span>
                 )}
               </div>
-            </Card>
+            )}
 
             {/* エラー表示 */}
             {error && (
@@ -587,95 +512,25 @@ const SearchPage: React.FC = () => {
               </div>
             )}
 
-            {/* ページネーション */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
-                <nav className="flex space-x-2">
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handleFilterChange('page', page)}
-                      className={`px-3 py-2 text-sm font-medium rounded-md ${
-                        filters.page === page
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </nav>
-              </div>
+              <Pagination
+                currentPage={filters.page}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.total}
+                onPageChange={(page) => handleFilterChange('page', page)}
+                itemsPerPage={filters.limit}
+              />
             )}
 
-            {/* 検索結果なし */}
             {!loading && influencers.length === 0 && user && (
-              <div className="text-center py-12">
-                <div className="text-gray-400 text-6xl mb-4">🔍</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  検索結果が見つかりませんでした
-                </h3>
-                <p className="text-gray-500">
-                  検索条件を変更して再度お試しください
-                </p>
-              </div>
+              <EmptyState
+                icon="🔍"
+                title="検索結果が見つかりませんでした"
+                description="検索条件を変更して再度お試しください"
+              />
             )}
-
-            {/* フッター */}
-            <motion.footer
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="mt-20 border-t border-gray-200 bg-gray-50 py-8"
-            >
-              <div className="max-w-6xl mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                  <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-600">
-                    <button
-                      onClick={() => router.push('/faq')}
-                      className="hover:text-gray-800 transition-colors"
-                    >
-                      よくある質問
-                    </button>
-                    <button
-                      onClick={() => router.push('/feedback')}
-                      className="hover:text-gray-800 transition-colors"
-                    >
-                      ご要望・フィードバック
-                    </button>
-                    <button
-                      onClick={() => router.push('/terms')}
-                      className="hover:text-gray-800 transition-colors"
-                    >
-                      利用規約
-                    </button>
-                    <button
-                      onClick={() => router.push('/privacy')}
-                      className="hover:text-gray-800 transition-colors"
-                    >
-                      プライバシーポリシー
-                    </button>
-                    <button
-                      onClick={() => router.push('/commercial-law')}
-                      className="hover:text-gray-800 transition-colors"
-                    >
-                      特定商取引法
-                    </button>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Version 1.2.3
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-gray-200 text-center text-xs text-gray-500">
-                  © 2024 InfluenceLink. All rights reserved.
-                </div>
-              </div>
-            </motion.footer>
-          </div>
-        </PageLayout>
       </div>
-
-    </div>
+    </DashboardLayout>
   );
 };
 

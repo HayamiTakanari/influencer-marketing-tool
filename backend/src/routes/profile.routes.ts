@@ -11,6 +11,7 @@ import {
   deletePortfolio,
   uploadPortfolioImage,
   completeRegistration,
+  getProfileCompletion,
 } from '../controllers/profile.controller';
 
 const router = Router();
@@ -22,6 +23,7 @@ router.use(authorizeRole(['INFLUENCER']));
 router.get('/me', getMyProfile);
 router.put('/me', updateProfile);
 router.post('/me/complete-registration', completeRegistration);
+router.get('/me/completion', getProfileCompletion);
 
 router.post('/social-accounts', addSocialAccount);
 router.put('/social-accounts/:id', updateSocialAccount);

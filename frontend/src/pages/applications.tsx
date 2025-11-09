@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
+import LoadingState from '../components/common/LoadingState';
+import EmptyState from '../components/common/EmptyState';
+import ErrorState from '../components/common/ErrorState';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 interface Application {
   id: string;
@@ -49,7 +55,11 @@ const ApplicationsPage: React.FC = () => {
   const [processing, setProcessing] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('date');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
   const router = useRouter();
+  const { handleError, handleSuccess } = useErrorHandler();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -72,13 +82,23 @@ const ApplicationsPage: React.FC = () => {
     }
   }, [router]);
 
+  // 自動更新
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      fetchApplications();
+    }, 30000); // 30秒ごと
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
+
   const fetchApplications = async () => {
     try {
       const { getApplicationsForMyProjects } = await import('../services/api');
       const result = await getApplicationsForMyProjects();
       setApplications(result || []);
+      setError('');
     } catch (err: any) {
-      console.error('Error fetching applications:', err);
+      handleError(err, '応募の取得');
       setError('応募の取得に失敗しました。');
     } finally {
       setLoading(false);
@@ -93,10 +113,9 @@ const ApplicationsPage: React.FC = () => {
       const { acceptApplication } = await import('../services/api');
       await acceptApplication(applicationId);
       await fetchApplications();
-      alert('応募を承認しました！');
+      handleSuccess('応募を承認しました！');
     } catch (err: any) {
-      console.error('Error accepting application:', err);
-      alert('応募の承認に失敗しました。');
+      handleError(err, '応募の承認');
     } finally {
       setProcessing(null);
     }
@@ -110,10 +129,9 @@ const ApplicationsPage: React.FC = () => {
       const { rejectApplication } = await import('../services/api');
       await rejectApplication(applicationId);
       await fetchApplications();
-      alert('応募を拒否しました。');
+      handleSuccess('応募を拒否しました');
     } catch (err: any) {
-      console.error('Error rejecting application:', err);
-      alert('応募の拒否に失敗しました。');
+      handleError(err, '応募の拒否');
     } finally {
       setProcessing(null);
     }
@@ -125,24 +143,49 @@ const ApplicationsPage: React.FC = () => {
       const result = await getProjects();
       setProjects(result?.projects || []);
     } catch (err: any) {
-      console.error('Error fetching projects:', err);
+      handleError(err, 'プロジェクトの取得');
     }
   };
 
-  const filteredApplications = applications.filter(application => {
-    let matchesStatus = true;
-    let matchesProject = true;
+  const filteredApplications = applications
+    .filter(application => {
+      let matchesStatus = true;
+      let matchesProject = true;
+      let matchesSearch = true;
 
-    // Status filter
-    if (statusFilter === 'pending') matchesStatus = !application.isAccepted && !application.isRejected && application.project.status === 'PENDING';
-    else if (statusFilter === 'accepted') matchesStatus = application.isAccepted;
-    else if (statusFilter === 'rejected') matchesStatus = application.isRejected === true;
+      // Status filter
+      if (statusFilter === 'pending') matchesStatus = !application.isAccepted && !application.isRejected && application.project.status === 'PENDING';
+      else if (statusFilter === 'accepted') matchesStatus = application.isAccepted;
+      else if (statusFilter === 'rejected') matchesStatus = application.isRejected === true;
 
-    // Project filter
-    if (projectFilter !== 'all') matchesProject = application.project.id === projectFilter;
+      // Project filter
+      if (projectFilter !== 'all') matchesProject = application.project.id === projectFilter;
 
-    return matchesStatus && matchesProject;
-  });
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        matchesSearch = 
+          application.influencer.displayName.toLowerCase().includes(query) ||
+          application.influencer.categories.some(cat => cat.toLowerCase().includes(query)) ||
+          application.project.title.toLowerCase().includes(query);
+      }
+
+      return matchesStatus && matchesProject && matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'date':
+          return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
+        case 'followers':
+          return getTotalFollowers(b.influencer.socialAccounts) - getTotalFollowers(a.influencer.socialAccounts);
+        case 'engagement':
+          return parseFloat(getAverageEngagement(b.influencer.socialAccounts)) - parseFloat(getAverageEngagement(a.influencer.socialAccounts));
+        case 'price':
+          return b.proposedPrice - a.proposedPrice;
+        default:
+          return 0;
+      }
+    });
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ja-JP', {
@@ -192,10 +235,7 @@ const ApplicationsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
+        <LoadingState />
       </div>
     );
   }
@@ -225,17 +265,53 @@ const ApplicationsPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* フィルター */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-2">応募一覧</h2>
                 <p className="text-gray-600">あなたのプロジェクトへの応募を確認・管理できます</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* 検索 */}
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="インフルエンサー、カテゴリー、プロジェクトで検索..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Sort */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">並び替え:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="date">日付順</option>
+                  <option value="followers">フォロワー数</option>
+                  <option value="engagement">エンゲージメント</option>
+                  <option value="price">提案料金</option>
+                </select>
+              </div>
+
+              {/* Auto Refresh */}
+              <div className="flex items-center gap-2">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoRefresh}
+                    onChange={(e) => setAutoRefresh(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">自動更新</span>
+                </label>
               </div>
             </div>
             
@@ -248,10 +324,8 @@ const ApplicationsPage: React.FC = () => {
                   { value: 'accepted', label: '承認済み' },
                   { value: 'rejected', label: '却下済み' }
                 ].map(filter => (
-                  <motion.button
+                  <button
                     key={filter.value}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => setStatusFilter(filter.value)}
                     className={`px-4 py-2 rounded-xl font-medium transition-all ${
                       statusFilter === filter.value
@@ -260,7 +334,7 @@ const ApplicationsPage: React.FC = () => {
                     }`}
                   >
                     {filter.label}
-                  </motion.button>
+                  </button>
                 ))}
               </div>
 
@@ -282,34 +356,27 @@ const ApplicationsPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
             {error}
-          </motion.div>
+          </div>
         )}
 
         {/* 応募一覧 */}
         <div className="space-y-6">
           {filteredApplications.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">応募がありません</h3>
-              <p className="text-gray-600">まだプロジェクトへの応募がありません。</p>
-            </div>
+            <EmptyState
+              icon="📝"
+              title="応募がありません"
+              description="まだプロジェクトへの応募がありません。"
+            />
           ) : (
             filteredApplications.map((application, index) => (
-              <motion.div
+              <div
                 key={application.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
                 className={`bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${
                   application.isAccepted ? 'border-green-200 bg-green-50/50' : ''
                 }`}
@@ -428,38 +495,29 @@ const ApplicationsPage: React.FC = () => {
                 {/* 操作ボタン */}
                 {!application.isAccepted && !application.isRejected && application.project.status === 'PENDING' && (
                   <div className="flex justify-end space-x-3 mt-4 pt-4 border-t">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    <button
                       onClick={() => handleRejectApplication(application.id)}
                       disabled={processing === application.id}
                       className="px-6 py-2 border-2 border-red-300 text-red-700 rounded-xl font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
                     >
                       {processing === application.id ? '処理中...' : '拒否'}
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    </button>
+                    <button
                       onClick={() => handleAcceptApplication(application.id)}
                       disabled={processing === application.id}
                       className="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                     >
                       {processing === application.id ? '処理中...' : '承認'}
-                    </motion.button>
+                    </button>
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))
           )}
         </div>
 
         {/* 統計情報 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mt-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mt-8">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">応募統計</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
@@ -487,7 +545,7 @@ const ApplicationsPage: React.FC = () => {
               <div className="text-gray-600">平均提案料金（円）</div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

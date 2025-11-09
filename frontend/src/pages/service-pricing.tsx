@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { 
   getMyServicePricing, 
@@ -178,46 +177,32 @@ const ServicePricingPage: React.FC = () => {
               </svg>
               <span className="font-medium">ダッシュボードに戻る</span>
             </button>
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-            >
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent transition-all">
               料金設定
-            </motion.h1>
+            </h1>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setShowBulkModal(true)}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
             一括設定
-          </motion.button>
+          </button>
         </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 transition-all">
             {error}
-          </motion.div>
+          </div>
         )}
 
         {/* バリデーション結果 */}
         {validation && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-6 rounded-xl mb-8 ${
+          <div className={`p-6 rounded-xl mb-8 transition-all ${
               validation.isValid 
                 ? 'bg-green-50 border border-green-200' 
                 : 'bg-yellow-50 border border-yellow-200'
-            }`}
-          >
+            }`}>
             <div className="flex items-center mb-4">
               <span className="text-2xl mr-3">
                 {validation.isValid ? '✅' : '⚠️'}
@@ -242,17 +227,14 @@ const ServicePricingPage: React.FC = () => {
                 </ul>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* 料金設定一覧 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {servicePricings.map((service, index) => (
-            <motion.div
+            <div
               key={service.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
               className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all flex flex-col min-h-[280px]"
             >
               {/* カードヘッダー */}
@@ -310,7 +292,7 @@ const ServicePricingPage: React.FC = () => {
                   {new Date(service.updatedAt).toLocaleDateString()}
                 </span>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
@@ -324,16 +306,8 @@ const ServicePricingPage: React.FC = () => {
 
       {/* 一括設定モーダル */}
       {showBulkModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-          >
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
+          <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto transition-all">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">料金一括設定</h2>
               <button
@@ -426,22 +400,14 @@ const ServicePricingPage: React.FC = () => {
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
 
       {/* 編集モーダル */}
       {showEditModal && editingService && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full"
-          >
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full transition-all">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">
                 {serviceTypeLabels[editingService.serviceType as keyof typeof serviceTypeLabels]}の編集
@@ -529,8 +495,8 @@ const ServicePricingPage: React.FC = () => {
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
     </div>
   );

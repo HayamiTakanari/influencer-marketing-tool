@@ -531,13 +531,13 @@ class AdaptiveRateLimiter {
         pattern: '/api/auth/',
         userType: 'all',
         limits: {
-          requestsPerSecond: 2,
-          requestsPerMinute: 10,
-          requestsPerHour: 50,
-          requestsPerDay: 200,
-          concurrentRequests: 5
+          requestsPerSecond: process.env.NODE_ENV === 'production' ? 2 : 10,
+          requestsPerMinute: process.env.NODE_ENV === 'production' ? 10 : 100,
+          requestsPerHour: process.env.NODE_ENV === 'production' ? 50 : 500,
+          requestsPerDay: process.env.NODE_ENV === 'production' ? 200 : 2000,
+          concurrentRequests: process.env.NODE_ENV === 'production' ? 5 : 20
         },
-        burstCapacity: 5,
+        burstCapacity: process.env.NODE_ENV === 'production' ? 5 : 20,
         enabled: true,
         priority: 0
       },

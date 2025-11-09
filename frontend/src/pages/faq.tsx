@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 
 interface FAQItem {
@@ -152,25 +151,12 @@ const FAQPage: React.FC = () => {
     ));
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   return (
-    <PageLayout
+    <DashboardLayout
       title="よくある質問"
       subtitle="InfluenceLinkの使い方や機能について"
-      userEmail={user?.email}
-      onLogout={user ? handleLogout : undefined}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        {/* 検索とフィルター */}
+      <div>
         <Card className="mb-8" padding="lg">
           <div className="space-y-4">
             {/* 検索バー */}
@@ -187,10 +173,8 @@ const FAQPage: React.FC = () => {
             {/* カテゴリーフィルター */}
             <div className="flex flex-wrap gap-2">
               {categories.map(category => (
-                <motion.button
+                <button
                   key={category.value}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedCategory(category.value)}
                   className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center space-x-2 ${
                     selectedCategory === category.value
@@ -200,7 +184,7 @@ const FAQPage: React.FC = () => {
                 >
                   <span>{category.icon}</span>
                   <span className="hidden sm:inline">{category.label}</span>
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
@@ -217,13 +201,8 @@ const FAQPage: React.FC = () => {
               </p>
             </Card>
           ) : (
-            filteredFAQs.map((faq, index) => (
-              <motion.div
-                key={faq.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-              >
+            filteredFAQs.map((faq) => (
+              <div key={faq.id}>
                 <Card padding="none" className="overflow-hidden">
                   <button
                     onClick={() => toggleFAQ(faq.id)}
@@ -235,44 +214,26 @@ const FAQPage: React.FC = () => {
                       </span>
                       <h3 className="font-semibold text-gray-900">{faq.question}</h3>
                     </div>
-                    <motion.div
-                      animate={{ rotate: faq.isOpen ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-gray-400"
-                    >
+                    <div className="text-gray-400 transition-transform" style={{ transform: faq.isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                       ▼
-                    </motion.div>
+                    </div>
                   </button>
-                  <AnimatePresence>
-                    {faq.isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-6 pb-4 pt-2 bg-gray-50 border-t">
+                  {faq.isOpen && (
+                    <div className="overflow-hidden transition-all">
+                      <div className="px-6 pb-4 pt-2 bg-gray-50 border-t">
                           <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                             {faq.answer}
                           </p>
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      </div>
+                  )}
                 </Card>
-              </motion.div>
+              </div>
             ))
           )}
         </div>
 
-        {/* 問い合わせ案内 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-12"
-        >
+        <div className="mt-12">
           <Card className="text-center" padding="xl">
             <div className="text-4xl mb-4">💬</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">解決できない問題がありますか？</h3>
@@ -280,27 +241,23 @@ const FAQPage: React.FC = () => {
               上記で解決できない場合は、お気軽にサポートチームまでお問い合わせください。
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => router.push('/feedback')}
                 className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-colors"
               >
                 お問い合わせ・ご要望
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => router.push('/dashboard')}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
               >
                 ダッシュボードに戻る
-              </motion.button>
+              </button>
             </div>
           </Card>
-        </motion.div>
-      </motion.div>
-    </PageLayout>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 };
 

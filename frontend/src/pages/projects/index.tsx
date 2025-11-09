@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import PageLayout from '../../components/shared/PageLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
+import LoadingState from '../../components/common/LoadingState';
+import EmptyState from '../../components/common/EmptyState';
+import StatsCard from '../../components/common/StatsCard';
 import { checkAndRedirectForInvoice } from '../../utils/invoiceValidation';
 import { checkAndRedirectForNDA } from '../../utils/ndaValidation';
 
@@ -52,6 +54,26 @@ interface Project {
     companyName: string;
     contactName?: string;
   };
+  // 企業が登録した詳細情報
+  advertiserName?: string;
+  brandName?: string;
+  productName?: string;
+  productUrl?: string;
+  productPrice?: number;
+  productFeatures?: string;
+  campaignObjective?: string;
+  campaignTarget?: string;
+  postingPeriodStart?: string;
+  postingPeriodEnd?: string;
+  postingMedia?: string[];
+  messageToConvey?: string;
+  shootingAngle?: string;
+  packagePhotography?: string;
+  referenceUrl?: string;
+  prohibitedMatters?: string;
+  hashtagInstruction?: string;
+  mentionInstruction?: string;
+  remarks?: string;
 }
 
 const ProjectsPage: React.FC = () => {
@@ -110,72 +132,13 @@ const ProjectsPage: React.FC = () => {
 
   const fetchProjects = async (currentUser?: any) => {
     try {
-      const userToCheck = currentUser || user;
-      if (userToCheck?.role === 'INFLUENCER') {
-        // インフルエンサー用のモックデータ
-        const mockInfluencerProjects: Project[] = [
-          {
-            id: '1',
-            title: '新商品コスメのPRキャンペーン',
-            description: '春の新作コスメを紹介していただけるインフルエンサーを募集しています',
-            category: '美容',
-            budget: 500000,
-            status: 'IN_PROGRESS',
-            targetPlatforms: ['Instagram', 'YouTube'],
-            targetPrefecture: '東京都',
-            targetAgeMin: 20,
-            targetAgeMax: 35,
-            targetFollowerMin: 10000,
-            targetFollowerMax: 100000,
-            startDate: '2024-03-01',
-            endDate: '2024-04-30',
-            createdAt: '2024-02-15T10:00:00Z',
-            applicationsCount: 0,
-            matchedInfluencer: {
-              id: 'influencer1',
-              displayName: 'あなた',
-            },
-            client: {
-              companyName: '株式会社ビューティーラボ',
-              contactName: '田中様'
-            },
-          },
-          {
-            id: '2',
-            title: 'ファッションブランド春コレクション',
-            description: '春の新作ファッションアイテムを着用していただける方を募集',
-            category: 'ファッション',
-            budget: 300000,
-            status: 'MATCHED',
-            targetPlatforms: ['Instagram', 'TikTok'],
-            targetPrefecture: '全国',
-            targetAgeMin: 18,
-            targetAgeMax: 30,
-            targetFollowerMin: 5000,
-            targetFollowerMax: 50000,
-            startDate: '2024-03-15',
-            endDate: '2024-05-15',
-            createdAt: '2024-02-20T10:00:00Z',
-            applicationsCount: 0,
-            matchedInfluencer: {
-              id: 'influencer1',
-              displayName: 'あなた',
-            },
-            client: {
-              companyName: 'ファッション株式会社',
-              contactName: '佐藤様'
-            },
-          },
-        ];
-        setProjects(mockInfluencerProjects);
-      } else {
-        const { getMyProjects } = await import('../../services/api');
-        const result = await getMyProjects();
-        setProjects(result.projects || []);
-      }
+      const { getMyProjects } = await import('../../services/api');
+      const result = await getMyProjects();
+      setProjects(result.projects || []);
     } catch (err: any) {
       console.error('Error fetching projects:', err);
       setError('プロジェクトの取得に失敗しました。');
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -221,26 +184,16 @@ const ProjectsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <PageLayout title="プロジェクト管理" subtitle="読み込み中...">
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-        </div>
-      </PageLayout>
+      <DashboardLayout title="プロジェクト管理" subtitle="読み込み中...">
+        <LoadingState />
+      </DashboardLayout>
     );
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   return (
-    <PageLayout
+    <DashboardLayout
       title={user?.role === 'INFLUENCER' ? "進行中のプロジェクト" : "プロジェクト管理"}
       subtitle={user?.role === 'INFLUENCER' ? "参加中のプロジェクトを確認" : "あなたのインフルエンサーマーケティングプロジェクトを一元管理"}
-      userEmail={user?.email}
-      onLogout={handleLogout}
     >
       {user?.role !== 'INFLUENCER' && (
         <div className="mb-8 flex justify-end">
@@ -255,7 +208,7 @@ const ProjectsPage: React.FC = () => {
         </div>
       )}
       {/* 検索・フィルター */}
-      <Card className="mb-8" padding="lg">
+      <Card className="mb-4" padding="lg">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <input
@@ -268,10 +221,8 @@ const ProjectsPage: React.FC = () => {
           </div>
           <div className="flex gap-2 flex-wrap">
             {statusOptions.map(option => (
-              <motion.button
+              <button
                 key={option.value}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
                 onClick={() => setStatusFilter(option.value)}
                 className={`px-4 py-2 rounded-xl font-medium transition-all ${
                   statusFilter === option.value
@@ -280,7 +231,7 @@ const ProjectsPage: React.FC = () => {
                 }`}
               >
                 {option.label}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
@@ -288,44 +239,28 @@ const ProjectsPage: React.FC = () => {
 
       {/* エラーメッセージ */}
       {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-        >
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
           {error}
-        </motion.div>
+        </div>
       )}
 
       {/* プロジェクト一覧 */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {filteredProjects.length === 0 ? (
-          <Card className="text-center py-12">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトが見つかりません</h3>
-            <p className="text-gray-600 mb-4">
-              {user?.role === 'INFLUENCER' 
+          <Card>
+            <EmptyState
+              icon="📋"
+              title="プロジェクトが見つかりません"
+              description={user?.role === 'INFLUENCER' 
                 ? '現在進行中のプロジェクトはありません。' 
                 : (statusFilter === 'all' ? '新しいプロジェクトを作成してみましょう。' : '条件に合うプロジェクトがありません。')}
-            </p>
-            {user?.role !== 'INFLUENCER' && (
-              <Button
-                onClick={() => router.push('/projects/create')}
-                variant="primary"
-                size="lg"
-              >
-                新しいプロジェクトを作成
-              </Button>
-            )}
+              actionLabel={user?.role !== 'INFLUENCER' ? "新しいプロジェクトを作成" : undefined}
+              onAction={user?.role !== 'INFLUENCER' ? () => router.push('/projects/create') : undefined}
+            />
           </Card>
         ) : (
-          filteredProjects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
+          filteredProjects.map((project) => (
+            <div key={project.id}>
               <Card hover={true} padding="lg">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
                   <div className="flex-1">
@@ -472,8 +407,10 @@ const ProjectsPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  // 通常のプロジェクト情報表示
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  // 企業が登録した詳細情報を表示
+                  <div className="space-y-4">
+                    {/* 基本情報 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h4 className="font-semibold text-gray-900 mb-2">対象プラットフォーム</h4>
                       <div className="flex space-x-2">
@@ -509,52 +446,105 @@ const ProjectsPage: React.FC = () => {
                         }
                       </p>
                     </div>
+                    </div>
+
+                    {/* 企業が登録した詳細情報 */}
+                    {(project.brandName || project.productName || project.campaignObjective) && (
+                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                        <h4 className="font-bold text-blue-900 mb-3">📝 プロジェクト詳細情報</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {project.advertiserName && (
+                            <div>
+                              <p className="text-sm font-semibold text-gray-700">広告主名</p>
+                              <p className="text-gray-900">{project.advertiserName}</p>
+                            </div>
+                          )}
+                          {project.brandName && (
+                            <div>
+                              <p className="text-sm font-semibold text-gray-700">ブランド名</p>
+                              <p className="text-gray-900">{project.brandName}</p>
+                            </div>
+                          )}
+                          {project.productName && (
+                            <div>
+                              <p className="text-sm font-semibold text-gray-700">商品名</p>
+                              <p className="text-gray-900">{project.productName}</p>
+                            </div>
+                          )}
+                          {project.productPrice && (
+                            <div>
+                              <p className="text-sm font-semibold text-gray-700">商品価格</p>
+                              <p className="text-gray-900">{formatPrice(project.productPrice)}</p>
+                            </div>
+                          )}
+                          {project.campaignObjective && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm font-semibold text-gray-700">キャンペーン目的</p>
+                              <p className="text-gray-900">{project.campaignObjective}</p>
+                            </div>
+                          )}
+                          {project.campaignTarget && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm font-semibold text-gray-700">ターゲット</p>
+                              <p className="text-gray-900">{project.campaignTarget}</p>
+                            </div>
+                          )}
+                          {project.messageToConvey && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm font-semibold text-gray-700">伝えたいメッセージ</p>
+                              <p className="text-gray-900">{project.messageToConvey}</p>
+                            </div>
+                          )}
+                          {project.productUrl && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm font-semibold text-gray-700">商品URL</p>
+                              <a href={project.productUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                                {project.productUrl}
+                              </a>
+                            </div>
+                          )}
+                          {project.postingMedia && project.postingMedia.length > 0 && (
+                            <div>
+                              <p className="text-sm font-semibold text-gray-700">投稿媒体</p>
+                              <p className="text-gray-900">{project.postingMedia.join(', ')}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>
-            </motion.div>
+            </div>
           ))
         )}
       </div>
 
       {/* 統計情報 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-        className="mt-8"
-      >
+      <div className="mt-6">
         <Card padding="xl">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">プロジェクト統計</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-emerald-600 mb-2">
-                {projects.length}
-              </div>
-              <div className="text-gray-600">総プロジェクト数</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">
-                {projects.filter(p => p.status === 'PENDING').length}
-              </div>
-              <div className="text-gray-600">募集中</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-teal-600 mb-2">
-                {projects.filter(p => p.status === 'IN_PROGRESS').length}
-              </div>
-              <div className="text-gray-600">進行中</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
-                {projects.filter(p => p.status === 'COMPLETED').length}
-              </div>
-              <div className="text-gray-600">完了済み</div>
-            </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">プロジェクト統計</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <StatsCard
+              title="総プロジェクト数"
+              value={projects.length}
+            />
+            <StatsCard
+              title="募集中"
+              value={projects.filter(p => p.status === 'PENDING').length}
+            />
+            <StatsCard
+              title="進行中"
+              value={projects.filter(p => p.status === 'IN_PROGRESS').length}
+            />
+            <StatsCard
+              title="完了済み"
+              value={projects.filter(p => p.status === 'COMPLETED').length}
+            />
           </div>
         </Card>
-      </motion.div>
-    </PageLayout>
+      </div>
+    </DashboardLayout>
   );
 };
 

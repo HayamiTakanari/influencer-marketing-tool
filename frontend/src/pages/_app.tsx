@@ -5,6 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { initializeSecurityMonitoring, monitorDOMChanges } from '../utils/security-monitor';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
+import { ErrorProvider } from '../contexts/ErrorContext';
+import ErrorToast from '../components/common/ErrorToast';
 import { setUserContext, trackPageView } from '../utils/error-tracking';
 
 
@@ -50,18 +52,21 @@ export default function App({ Component, pageProps, router }: AppProps & { route
     // DOM変更の監視を開始
     monitorDOMChanges();
     
-    // Console警告の追加（開発者ツールでの攻撃対策）
-    if (typeof window !== 'undefined') {
+    // 初期ページビューを追跡
+    trackPageView(router.pathname);
+  }, [router.pathname]);
+
+  // Console警告は1回のみ表示（マウント時のみ）
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.sessionStorage.getItem('consoleWarningShown')) {
       console.warn(
         '%c⚠️ 警告: Developer Console Attack対策',
         'color: red; font-size: 16px; font-weight: bold;',
         '\n悪意のあるコードをここに貼り付けないでください。\nアカウントが乗っ取られる可能性があります。'
       );
+      window.sessionStorage.setItem('consoleWarningShown', 'true');
     }
-    
-    // 初期ページビューを追跡
-    trackPageView(router.pathname);
-  }, [router.pathname]);
+  }, []);
 
   return (
     <>
@@ -69,21 +74,20 @@ export default function App({ Component, pageProps, router }: AppProps & { route
         <title>インフルエンサーマーケティングツール</title>
         <meta name="description" content="インフルエンサーとクライアントをつなぐマーケティングプラットフォーム" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         
-        {/* XSS対策: 追加のセキュリティメタタグ */}
+        {/* セキュリティメタタグ（metaタグで設定可能なもののみ） */}
         <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-        <meta httpEquiv="X-Frame-Options" content="DENY" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />
-        
-        {/* CSP違反レポート用のmeta（ブラウザサポートがある場合） */}
-        <meta httpEquiv="Content-Security-Policy-Report-Only" content="default-src 'self'; report-uri /api/security/csp-report" />
       </Head>
       <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <Component {...pageProps} />
-        </QueryClientProvider>
+        <ErrorProvider>
+          <QueryClientProvider client={queryClient}>
+            <ErrorToast />
+            <Component {...pageProps} />
+          </QueryClientProvider>
+        </ErrorProvider>
       </ErrorBoundary>
     </>
   );

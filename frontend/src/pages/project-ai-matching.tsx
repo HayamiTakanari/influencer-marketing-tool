@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { getAIRecommendedInfluencersForProject } from '../services/api';
@@ -385,23 +384,14 @@ const ProjectAIMatchingPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
             {error}
-          </motion.div>
+          </div>
         )}
 
         {/* プロジェクト情報 */}
         {project && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-          >
+          <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">{project.title}</h2>
               <div className="flex items-center space-x-2">
@@ -424,17 +414,12 @@ const ProjectAIMatchingPage: React.FC = () => {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* AI分析結果 */}
         {aiAnalysis && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-3xl p-8 shadow-xl mb-8"
-          >
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-3xl p-8 shadow-xl mb-8">
             <div className="flex items-center space-x-2 mb-4">
               <span className="text-2xl">🤖</span>
               <h3 className="text-2xl font-bold text-purple-900">AI分析結果</h3>
@@ -452,16 +437,11 @@ const ProjectAIMatchingPage: React.FC = () => {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* AIレコメンド結果 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-gray-900">
               おすすめインフルエンサー ({applyFilters(recommendedInfluencers).length}/{recommendedInfluencers.length}人)
@@ -519,12 +499,7 @@ const ProjectAIMatchingPage: React.FC = () => {
 
           {/* フィルターセクション */}
           {showFilters && !aiLoading && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="bg-gray-50 rounded-xl p-6 mb-6"
-            >
+            <div className="bg-gray-50 rounded-xl p-6 mb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 {/* フォロワー数フィルター */}
                 <div>
@@ -630,7 +605,7 @@ const ProjectAIMatchingPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {!aiLoading && recommendedInfluencers.length > 0 && (
@@ -692,11 +667,8 @@ const ProjectAIMatchingPage: React.FC = () => {
                   : Math.round(influencer.socialAccounts[0]?.followerCount * (influencer.socialAccounts[0]?.engagementRate / 100) || 0);
 
                 return (
-                  <motion.div
+                  <div
                     key={influencer.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
                     className={`bg-white border rounded-lg hover:shadow-md transition-all ${
                       influencer.isRecommended ? 'border-green-400' : 'border-gray-200'
                     }`}
@@ -852,7 +824,7 @@ const ProjectAIMatchingPage: React.FC = () => {
                         </button>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -865,15 +837,10 @@ const ProjectAIMatchingPage: React.FC = () => {
               <p className="text-gray-600">プロジェクトの条件を調整して再度お試しください。</p>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* アクション */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="flex justify-center space-x-4 mt-8"
-        >
+        <div className="flex justify-center space-x-4 mt-8">
           <button
             onClick={() => router.push(`/project-detail?id=${projectId}`)}
             className="px-8 py-3 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
@@ -887,7 +854,7 @@ const ProjectAIMatchingPage: React.FC = () => {
           >
             {aiLoading ? 'AI分析中...' : '再分析'}
           </button>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { FaInstagram, FaYoutube, FaTiktok, FaTwitter, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
+import LoadingState from '../components/common/LoadingState';
+import ProfileCompletionCard from '../components/common/ProfileCompletionCard';
 import { validateInfluencerInvoiceInfo } from '../utils/invoiceValidation';
 import { WorkingStatus, Platform } from '../types';
 import api from '../services/api';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 interface SocialAccount {
   id: string;
@@ -68,6 +70,7 @@ const ProfilePage: React.FC = () => {
   const [connecting, setConnecting] = useState<Platform | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const router = useRouter();
+  const { handleError, handleSuccess } = useErrorHandler();
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -238,7 +241,7 @@ const ProfilePage: React.FC = () => {
         });
       }
     } catch (err: any) {
-      console.error('Error fetching profile:', err);
+      handleError(err, 'プロフィールの取得');
       setError('プロフィールの取得に失敗しました。');
     } finally {
       setLoading(false);
@@ -248,10 +251,10 @@ const ProfilePage: React.FC = () => {
   // OAuth連携状態を取得
   const fetchOAuthConnectionStatus = async () => {
     try {
-      const response = await api.get('/api/oauth/status');
+      const response = await api.get('/oauth/status');
       setOauthConnectionStatus(response.data.connectionStatus || []);
     } catch (error) {
-      console.error('Failed to fetch OAuth status:', error);
+      handleError(error, 'OAuth状態の取得');
     }
   };
 
@@ -339,9 +342,9 @@ const ProfilePage: React.FC = () => {
       const { updateProfile } = await import('../services/api');
       await updateProfile(formData);
       await fetchProfile();
-      alert('プロフィールが更新されました！');
+      handleSuccess('プロフィールが更新されました！');
     } catch (err: any) {
-      console.error('Error updating profile:', err);
+      handleError(err, 'プロフィールの更新');
       setError('プロフィールの更新に失敗しました。');
     } finally {
       setSaving(false);
@@ -372,9 +375,9 @@ const ProfilePage: React.FC = () => {
         engagementRate: 0,
         isVerified: false
       });
-      alert('SNSアカウントが保存されました！');
+      handleSuccess('SNSアカウントが保存されました！');
     } catch (err: any) {
-      console.error('Error saving social account:', err);
+      handleError(err, 'SNSアカウントの保存');
       setError('SNSアカウントの保存に失敗しました。');
     } finally {
       setSaving(false);
@@ -404,9 +407,9 @@ const ProfilePage: React.FC = () => {
         link: '',
         platform: ''
       });
-      alert('ポートフォリオが保存されました！');
+      handleSuccess('ポートフォリオが保存されました！');
     } catch (err: any) {
-      console.error('Error saving portfolio:', err);
+      handleError(err, 'ポートフォリオの保存');
       setError('ポートフォリオの保存に失敗しました。');
     } finally {
       setSaving(false);
@@ -428,8 +431,9 @@ const ProfilePage: React.FC = () => {
         const { deleteSocialAccount } = await import('../services/api');
         await deleteSocialAccount(id);
         await fetchProfile();
-        alert('SNSアカウントが削除されました。');
+        handleSuccess('SNSアカウントが削除されました');
       } catch (err) {
+        handleError(err, 'SNSアカウントの削除');
         setError('SNSアカウントの削除に失敗しました。');
       }
     }
@@ -441,8 +445,9 @@ const ProfilePage: React.FC = () => {
         const { deletePortfolio } = await import('../services/api');
         await deletePortfolio(id);
         await fetchProfile();
-        alert('ポートフォリオが削除されました。');
+        handleSuccess('ポートフォリオが削除されました');
       } catch (err) {
+        handleError(err, 'ポートフォリオの削除');
         setError('ポートフォリオの削除に失敗しました。');
       }
     }
@@ -474,11 +479,10 @@ const ProfilePage: React.FC = () => {
       
       // Mock sync if API not available
       await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('SNSアカウントの同期が完了しました！（モック）');
+      handleSuccess('SNSアカウントの同期が完了しました！');
       
     } catch (err: any) {
-      console.error('Error syncing social account:', err);
-      alert('SNSアカウントの同期に失敗しました。');
+      handleError(err, 'SNSアカウントの同期');
     } finally {
       setSyncingAccountId(null);
     }
@@ -511,11 +515,10 @@ const ProfilePage: React.FC = () => {
       
       // Mock sync all if API not available
       await new Promise(resolve => setTimeout(resolve, 3000));
-      alert('全てのSNSアカウントの同期が完了しました！（モック）\n成功: 3件\n失敗: 0件');
+      handleSuccess('全てのSNSアカウントの同期が完了しました！');
       
     } catch (err: any) {
-      console.error('Error syncing all accounts:', err);
-      alert('SNSアカウントの一括同期に失敗しました。');
+      handleError(err, 'SNSアカウントの一括同期');
     } finally {
       setSyncing(false);
     }
@@ -557,9 +560,9 @@ const ProfilePage: React.FC = () => {
         }
       }
       
-      alert('稼働状況を更新しました！');
+      handleSuccess('稼働状況を更新しました！');
     } catch (err: any) {
-      console.error('Error updating working status:', err);
+      handleError(err, '稼働状況の更新');
       setError('稼働状況の更新に失敗しました。');
     } finally {
       setSaving(false);
@@ -612,10 +615,10 @@ const ProfilePage: React.FC = () => {
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
       
-      alert('インボイス情報が正常に保存されました。');
+      handleSuccess('インボイス情報が正常に保存されました');
       
     } catch (err: any) {
-      console.error('Error saving invoice info:', err);
+      handleError(err, 'インボイス情報の保存');
       setError('インボイス情報の保存に失敗しました。');
     } finally {
       setSaving(false);
@@ -640,96 +643,204 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   if (loading) {
     return (
-      <PageLayout title="プロフィール管理" subtitle="読み込み中..." showNavigation={false}>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">読み込み中...</p>
-          </div>
-        </div>
-      </PageLayout>
+      <DashboardLayout title="プロフィール管理" subtitle="読み込み中...">
+        <LoadingState />
+      </DashboardLayout>
     );
   }
 
   return (
-    <PageLayout
+    <DashboardLayout
       title="プロフィール管理"
-      subtitle="あなたの情報を管理して、より多くの企業にアピールしましょう"
-      userEmail={user?.email}
-      onLogout={handleLogout}
-      maxWidth="6xl"
+      subtitle="あなたの情報を管理しましょう"
     >
-      <div className="space-y-8">
+      <div className="space-y-4">
+        {user?.role === 'INFLUENCER' && (
+          <ProfileCompletionCard />
+        )}
+        
         {/* タブナビゲーション */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <Card padding="sm" className="mb-8">
-            <div className="flex space-x-2">
-              {[
-                { key: 'basic', label: '基本情報', icon: '👤' },
-                { key: 'social', label: 'SNSアカウント', icon: '📱' },
-                { key: 'portfolio', label: 'ポートフォリオ', icon: '📊' },
-                ...(user?.role === 'INFLUENCER' ? [
-                  { key: 'invoice', label: 'インボイス情報', icon: '📜' },
-                  { key: 'working', label: '稼働状況', icon: '⚡' }
-                ] : [])
-              ].map(tab => (
-                <motion.button
-                  key={tab.key}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setActiveTab(tab.key as any)}
-                  className={`flex-1 px-6 py-3 rounded-2xl font-semibold transition-all ${
-                    activeTab === tab.key
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:bg-gray-100'
+        <div className="border-b border-gray-200">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setActiveTab('basic')}
+              className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === 'basic'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              基本情報
+            </button>
+            <button
+              onClick={() => setActiveTab('social')}
+              className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === 'social'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              SNS
+            </button>
+            <button
+              onClick={() => setActiveTab('portfolio')}
+              className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === 'portfolio'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              実績
+            </button>
+            {user?.role === 'INFLUENCER' && (
+              <>
+                <button
+                  onClick={() => setActiveTab('invoice')}
+                  className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+                    activeTab === 'invoice'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </motion.button>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
+                  請求先
+                </button>
+                <button
+                  onClick={() => setActiveTab('working')}
+                  className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+                    activeTab === 'working'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  稼働状況
+                </button>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
           >
             <Card className="bg-red-50 border-red-200">
               <div className="text-red-700">
                 {error}
               </div>
             </Card>
-          </motion.div>
+          </div>
         )}
 
-        {/* 基本情報タブ */}
+        {/* 基本情報 */}
         {activeTab === 'basic' && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+          <div
           >
             <Card>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">基本情報</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">基本情報</h2>
               
-              <form onSubmit={handleBasicInfoSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <form onSubmit={handleBasicInfoSubmit} className="space-y-4">
+              {/* プロフィール画像 */}
+              <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
+                  {profile?.user?.profileImage || user?.profileImage ? (
+                    <img 
+                      src={profile?.user?.profileImage || user?.profileImage} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover" 
+                    />
+                  ) : (
+                    <span>{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    プロフィール画像
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          const formData = new FormData();
+                          formData.append('image', file);
+                          
+                          const token = localStorage.getItem('token');
+                          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/upload/profile-image`, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`
+                            },
+                            body: formData
+                          });
+                          
+                          if (!response.ok) {
+                            throw new Error('Failed to upload image');
+                          }
+                          
+                          const data = await response.json();
+                          const imageUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002'}${data.imageUrl}`;
+                          
+                          const updatedUser = { ...user, profileImage: imageUrl };
+                          setUser(updatedUser);
+                          localStorage.setItem('user', JSON.stringify(updatedUser));
+                        } catch (error) {
+                          handleError(error, '画像のアップロード');
+                        }
+                      }
+                    }}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF（最大5MB）</p>
+                </div>
+              </div>
+
+              {/* アカウント情報 */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">アカウント情報</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      メールアドレス <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      onChange={(e) => {
+                        const updatedUser = { ...user, email: e.target.value };
+                        setUser(updatedUser);
+                        localStorage.setItem('user', JSON.stringify(updatedUser));
+                      }}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ユーザーID</label>
+                    <input
+                      type="text"
+                      value={user?.id || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 font-mono text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ロール</label>
+                    <input
+                      type="text"
+                      value={user?.role || ''}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">表示名</label>
                   <input
@@ -837,7 +948,7 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">最低料金 (円)</label>
                   <input
@@ -872,19 +983,16 @@ const ProfilePage: React.FC = () => {
                 </Button>
               </form>
             </Card>
-          </motion.div>
+          </div>
         )}
 
         {/* SNSアカウントタブ */}
         {activeTab === 'social' && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+          <div
           >
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">SNSアカウント</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">SNSアカウント</h2>
                 <div className="flex space-x-3">
                   <Button
                     onClick={handleSyncAllAccounts}
@@ -1014,13 +1122,10 @@ const ProfilePage: React.FC = () => {
               {/* 既存のSNSアカウント */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">登録済みアカウント</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {profile?.socialAccounts?.map((account, index) => (
-                  <motion.div
+                  <div
                     key={account.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <Card padding="md" className="bg-gray-50"
                     >
@@ -1094,7 +1199,7 @@ const ProfilePage: React.FC = () => {
                     </div>
                     )}
                     </Card>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
@@ -1113,19 +1218,16 @@ const ProfilePage: React.FC = () => {
               )}
               </div>
             </Card>
-          </motion.div>
+          </div>
         )}
 
         {/* ポートフォリオタブ */}
         {activeTab === 'portfolio' && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+          <div
           >
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">ポートフォリオ</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">ポートフォリオ</h2>
                 <Button
                   onClick={() => setShowPortfolioForm(true)}
                   icon="+"
@@ -1136,11 +1238,8 @@ const ProfilePage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {profile?.portfolio?.map((item, index) => (
-                  <motion.div
+                  <div
                     key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <Card padding="md" className="bg-gray-50">
                       {item.imageUrl && (
@@ -1187,7 +1286,7 @@ const ProfilePage: React.FC = () => {
                         )}
                       </div>
                     </Card>
-                  </motion.div>
+                  </div>
               ))}
             </div>
 
@@ -1205,16 +1304,14 @@ const ProfilePage: React.FC = () => {
                 </div>
               )}
             </Card>
-          </motion.div>
+          </div>
         )}
       </div>
 
       {/* SNSアカウントフォーム */}
       {showSocialForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+          <div
             className="bg-white rounded-3xl p-8 max-w-md w-full relative"
           >
             <button
@@ -1327,16 +1424,14 @@ const ProfilePage: React.FC = () => {
                 {editingItem ? '更新' : '追加'}
               </Button>
             </form>
-          </motion.div>
+          </div>
         </div>
       )}
 
       {/* ポートフォリオフォーム */}
       {showPortfolioForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+          <div
             className="bg-white rounded-3xl p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto"
           >
             <button
@@ -1431,20 +1526,17 @@ const ProfilePage: React.FC = () => {
                 {editingItem ? '更新' : '追加'}
               </Button>
             </form>
-          </motion.div>
+          </div>
         </div>
       )}
 
         {/* インボイス情報タブ */}
-        {activeTab === 'invoice' && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+        {activeTab === 'invoice' && user?.role === 'INFLUENCER' && (
+          <div
           >
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">インボイス情報</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">インボイス情報</h2>
                 <div className="flex items-center space-x-2">
                   {(() => {
                     const validation = validateInfluencerInvoiceInfo({ ...user, hasInvoiceInfo: true, invoiceInfo: invoiceFormData });
@@ -1474,7 +1566,7 @@ const ProfilePage: React.FC = () => {
               </div>
 
               <form onSubmit={handleInvoiceSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">会社名/屋号 *</label>
                     <input
@@ -1536,7 +1628,7 @@ const ProfilePage: React.FC = () => {
 
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">銀行口座情報</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">銀行名 *</label>
                       <input
@@ -1611,19 +1703,16 @@ const ProfilePage: React.FC = () => {
                 </Button>
               </form>
             </Card>
-          </motion.div>
+          </div>
         )}
 
         {/* 稼働状況タブ */}
-        {activeTab === 'working' && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+        {activeTab === 'working' && user?.role === 'INFLUENCER' && (
+          <div
           >
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">稼働状況設定</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">稼働状況</h2>
                 <div className="flex items-center space-x-2">
                   {profile?.workingStatus && (
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getWorkingStatusInfo(profile.workingStatus).color}`}>
@@ -1653,9 +1742,8 @@ const ProfilePage: React.FC = () => {
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {workingStatusOptions.map(option => (
-                      <motion.label
+                      <label
                         key={option.value}
-                        whileHover={{ scale: 1.02 }}
                         className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
                           workingFormData.workingStatus === option.value
                             ? 'border-emerald-500 bg-emerald-50'
@@ -1687,7 +1775,7 @@ const ProfilePage: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                      </motion.label>
+                      </label>
                     ))}
                   </div>
                 </div>
@@ -1731,9 +1819,9 @@ const ProfilePage: React.FC = () => {
                 </Button>
               </form>
             </Card>
-          </motion.div>
+          </div>
         )}
-    </PageLayout>
+    </DashboardLayout>
   );
 };
 

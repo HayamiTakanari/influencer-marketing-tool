@@ -73,7 +73,7 @@ const KNOWN_XSS_PAYLOADS = [
   
   // Filter bypass
   '<scr<script>ipt>alert(1)</scr</script>ipt>',
-  '<svg/onload=alert(1)//'>',
+  '<svg/onload=alert(1)//>',
   '<img src="x"onerror="alert(1)"/>',
   
   // Dom XSS

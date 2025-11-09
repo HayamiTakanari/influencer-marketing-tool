@@ -388,7 +388,7 @@ class AnomalyDetectionService {
     const checkText = logData.url;
     
     const pathPatterns = [
-      /\.\.\//g, /\.\.\\\/g, /\.\.%2f/gi, /\.\.%5c/gi,
+      /\.\.\//g, /\.\.\\/g, /\.\.%2f/gi, /\.\.%5c/gi,
       /%2e%2e%2f/gi, /%2e%2e%5c/gi, /%252e%252e%252f/gi,
       /\/etc\/passwd/i, /\/etc\/shadow/i, /\/etc\/hosts/i, /\/etc\/fstab/i,
       /\/proc\/self\/environ/i, /\/proc\/version/i, /\/proc\/cmdline/i,

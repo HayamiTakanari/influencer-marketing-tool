@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Header } from './common/Header';
 
 const SimpleLandingPage: React.FC = () => {
   // Remove the mounted state check as it causes hydration issues
@@ -106,50 +107,8 @@ const SimpleLandingPage: React.FC = () => {
           <path d="M0,0 Q600,0 1200,0 T2400,0" stroke="#000000" strokeWidth="1" fill="none" />
         </svg>
       </div>
-      {/* ナビゲーション */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.2 }}
-              className="text-2xl font-bold text-gray-900 relative"
-            >
-              <span className="relative z-10">
-                InfluenceLink
-              </span>
-              <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gray-900 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
-            </motion.div>
-            <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <span className="text-gray-700 hover:text-gray-900 font-medium cursor-pointer">
-                  ログイン
-                </span>
-              </Link>
-              <Link href="/register">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative text-white px-6 py-2.5 font-medium overflow-hidden group"
-                  style={{ 
-                    clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)',
-                    background: 'linear-gradient(135deg, #10b981, #059669, #047857)'
-                  }}
-                >
-                  <span className="relative z-10">まずは無料で始める</span>
-                  <motion.div 
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ background: 'linear-gradient(135deg, #047857, #065f46, #064e3b)' }}
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </motion.button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+
+      <Header />
 
       {/* ヒーローセクション */}
       <section className="pt-32 pb-20 px-4 relative z-10">

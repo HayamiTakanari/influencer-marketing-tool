@@ -12,7 +12,7 @@ const validate = (schema) => {
             if (error instanceof zod_1.z.ZodError) {
                 res.status(400).json({
                     error: 'Validation error',
-                    details: error.errors,
+                    details: error.issues,
                 });
                 return;
             }

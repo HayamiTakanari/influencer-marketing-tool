@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Sidebar from '../components/shared/Sidebar';
+import LoadingState from '../components/common/LoadingState';
+import ErrorState from '../components/common/ErrorState';
 
 interface CompanyProfile {
   id: string;
@@ -153,10 +154,7 @@ const CompanyProfilePage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
+        <LoadingState />
       </div>
     );
   }
@@ -207,19 +205,12 @@ const CompanyProfilePage: React.FC = () => {
         <div className="pt-20 pb-12 px-4">
           <div className="max-w-4xl mx-auto">
             {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-              >
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
                 {error}
-              </motion.div>
+              </div>
             )}
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+            <div
               className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden mb-8"
               style={{
                 background: `
@@ -281,12 +272,9 @@ const CompanyProfilePage: React.FC = () => {
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+            <div
               className="relative bg-white border border-gray-200 p-8 transition-all overflow-hidden"
               style={{
                 background: `
@@ -501,24 +489,19 @@ const CompanyProfilePage: React.FC = () => {
                   </div>
                 </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   type="submit"
                   disabled={saving}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? '保存中...' : 'プロフィールを保存'}
-                </motion.button>
+                </button>
               </form>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+            <div
               className="relative bg-blue-50 border border-blue-200 p-8 transition-all overflow-hidden mt-8"
-              style={{
+              style{{
                 background: `
                   linear-gradient(135deg, transparent 10px, #eff6ff 10px),
                   linear-gradient(-135deg, transparent 10px, #eff6ff 10px),
@@ -554,7 +537,7 @@ const CompanyProfilePage: React.FC = () => {
                   <p>口座情報を登録することで、インフルエンサーへのスムーズな報酬支払いが可能になります</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

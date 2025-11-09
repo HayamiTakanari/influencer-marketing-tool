@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import BackButton from '../components/BackButton';
 
@@ -63,25 +62,16 @@ const DemoPage: React.FC = () => {
             <BackButton text="ホームに戻る" fallbackUrl="/" />
           </div>
           <Link href="/register">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-xl font-semibold"
-            >
+            <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all">
               始める
-            </motion.button>
+            </button>
           </Link>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-16">
         {/* タイトル */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-black mb-4">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               プラットフォームデモ
@@ -90,7 +80,7 @@ const DemoPage: React.FC = () => {
           <p className="text-xl text-gray-600">
             インフルエンサーマッチングツールの使い方をご紹介
           </p>
-        </motion.div>
+        </div>
 
         {/* プログレスバー */}
         <div className="mb-12">
@@ -118,11 +108,8 @@ const DemoPage: React.FC = () => {
         {/* メインコンテンツ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* 左側：説明 */}
-          <motion.div
+          <div
             key={currentStep}
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
             className="space-y-6"
           >
             <div className="text-8xl text-center lg:text-left">
@@ -137,14 +124,11 @@ const DemoPage: React.FC = () => {
             <p className="text-gray-700 text-lg leading-relaxed">
               {demoSteps[currentStep].content}
             </p>
-          </motion.div>
+          </div>
 
           {/* 右側：デモ画面 */}
-          <motion.div
+          <div
             key={currentStep}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
             className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
           >
             <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
@@ -158,14 +142,12 @@ const DemoPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* ナビゲーション */}
         <div className="flex justify-between items-center mt-16">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={prevStep}
             disabled={currentStep === 0}
             className={`px-8 py-4 rounded-2xl font-semibold transition-all ${
@@ -175,23 +157,17 @@ const DemoPage: React.FC = () => {
             }`}
           >
             ← 前へ
-          </motion.button>
+          </button>
 
           <div className="flex space-x-4">
             <Link href="/register">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 border-2 border-blue-500 text-blue-500 rounded-2xl font-semibold hover:bg-blue-50"
-              >
+              <button className="px-8 py-4 border-2 border-blue-500 text-blue-500 rounded-2xl font-semibold hover:bg-blue-50 hover:scale-105 transition-all">
                 今すぐ始める
-              </motion.button>
+              </button>
             </Link>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={nextStep}
             disabled={currentStep === demoSteps.length - 1}
             className={`px-8 py-4 rounded-2xl font-semibold transition-all ${
@@ -201,7 +177,7 @@ const DemoPage: React.FC = () => {
             }`}
           >
             次へ →
-          </motion.button>
+          </button>
         </div>
 
         {/* 機能一覧 */}
@@ -211,11 +187,8 @@ const DemoPage: React.FC = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {demoSteps.map((step, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
                 onClick={() => setCurrentStep(index)}
                 className={`cursor-pointer p-6 rounded-2xl border-2 transition-all ${
                   index === currentStep
@@ -227,7 +200,7 @@ const DemoPage: React.FC = () => {
                 <h4 className="font-semibold text-center text-gray-900">
                   {step.title}
                 </h4>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

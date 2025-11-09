@@ -212,6 +212,27 @@ model Project {
   endDate         DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  
+  // 追加情報（企業が登録する詳細）
+  advertiserName  String?
+  brandName       String?
+  productName     String?
+  productUrl      String?
+  productPrice    Int?
+  productFeatures String?
+  campaignObjective String?
+  campaignTarget  String?
+  postingPeriodStart DateTime?
+  postingPeriodEnd DateTime?
+  postingMedia    String[]  @default([])
+  messageToConvey String?
+  shootingAngle   String?
+  packagePhotography String?
+  referenceUrl    String?
+  prohibitedMatters String?
+  hashtagInstruction String?
+  mentionInstruction String?
+  remarks         String?
 
   // Relations
   client          Client    @relation(fields: [clientId], references: [id])

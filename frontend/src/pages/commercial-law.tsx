@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 
 const CommercialLawPage: React.FC = () => {
@@ -15,24 +14,12 @@ const CommercialLawPage: React.FC = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   return (
-    <PageLayout
+    <DashboardLayout
       title="特定商取引法に基づく表記"
       subtitle="電子商取引に関する法的表記"
-      userEmail={user?.email}
-      onLogout={user ? handleLogout : undefined}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
+      <div>
         <Card padding="xl">
           <div className="prose prose-gray max-w-none">
             <div className="mb-8 text-sm text-gray-500">
@@ -212,14 +199,12 @@ const CommercialLawPage: React.FC = () => {
                     個人情報保護の詳細については、プライバシーポリシーをご確認ください。
                   </p>
                   <div className="mt-3">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    <button
                       onClick={() => router.push('/privacy')}
-                      className="text-emerald-600 hover:text-emerald-700 underline"
+                      className="text-emerald-600 hover:text-emerald-700 underline transition-colors"
                     >
                       プライバシーポリシーを確認する →
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
               </section>
@@ -247,14 +232,12 @@ const CommercialLawPage: React.FC = () => {
                     <li>本表記に関するお問い合わせは、上記連絡先までご連絡ください</li>
                   </ul>
                   <div className="mt-4">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    <button
                       onClick={() => router.push('/terms')}
-                      className="text-emerald-600 hover:text-emerald-700 underline mr-4"
+                      className="text-emerald-600 hover:text-emerald-700 underline mr-4 transition-colors"
                     >
                       利用規約を確認する →
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
               </section>
@@ -285,17 +268,15 @@ const CommercialLawPage: React.FC = () => {
         </Card>
 
         <div className="mt-8 text-center">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => router.push('/dashboard')}
             className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-colors"
           >
             ダッシュボードに戻る
-          </motion.button>
+          </button>
         </div>
-      </motion.div>
-    </PageLayout>
+      </div>
+    </DashboardLayout>
   );
 };
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import PageLayout from '../components/shared/PageLayout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
 import { NDA_CONTENT, CURRENT_NDA_VERSION } from '../utils/ndaValidation';
@@ -96,34 +95,22 @@ const NDAConsentPage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   if (!user) {
     return (
-      <PageLayout title="読み込み中..." subtitle="">
+      <DashboardLayout title="読み込み中..." subtitle="">
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <PageLayout
+    <DashboardLayout
       title="秘密保持契約（NDA）への同意"
       subtitle="本サービスの利用には、秘密保持契約への同意が必要です"
-      userEmail={user?.email}
-      onLogout={handleLogout}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div>
         <Card padding="xl">
           <div className="mb-6">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -207,8 +194,8 @@ const NDAConsentPage: React.FC = () => {
             </p>
           </div>
         </Card>
-      </motion.div>
-    </PageLayout>
+      </div>
+    </DashboardLayout>
   );
 };
 

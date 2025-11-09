@@ -21,7 +21,7 @@ const applyToProjectSchema = zod_1.z.object({
 });
 const getAvailableProjects = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         if (userRole !== 'INFLUENCER') {
             return res.status(403).json({ error: 'Only influencers can view available projects' });
@@ -59,6 +59,21 @@ const getAvailableProjects = async (req, res) => {
         }
         if (query.prefecture) {
             where.targetPrefecture = query.prefecture;
+        }
+        // インフルエンサーが連携しているプラットフォームを取得
+        const connectedPlatforms = influencer.socialAccounts
+            .filter(acc => acc.isConnected)
+            .map(acc => acc.platform);
+        // 連携しているプラットフォームを使用する案件のみ表示
+        if (connectedPlatforms.length > 0) {
+            where.OR = [
+                { targetPlatforms: { isEmpty: true } }, // プラットフォーム指定なしの案件
+                { targetPlatforms: { hasSome: connectedPlatforms } } // 連携済みプラットフォームを含む案件
+            ];
+        }
+        else {
+            // 連携していない場合はプラットフォーム指定なしの案件のみ
+            where.targetPlatforms = { isEmpty: true };
         }
         const [projects, total] = await Promise.all([
             prisma.project.findMany({
@@ -106,10 +121,12 @@ const getAvailableProjects = async (req, res) => {
                 project.targetPrefecture !== influencer.prefecture) {
                 matchesProfile = false;
             }
-            // Check platform requirements
+            // Check platform requirements - インフルエンサーが連携していないSNSを使用する案件は除外
             if (project.targetPlatforms.length > 0) {
-                const influencerPlatforms = influencer.socialAccounts.map(acc => acc.platform);
-                const hasMatchingPlatform = project.targetPlatforms.some(platform => influencerPlatforms.includes(platform));
+                const connectedPlatforms = influencer.socialAccounts
+                    .filter(acc => acc.isConnected)
+                    .map(acc => acc.platform);
+                const hasMatchingPlatform = project.targetPlatforms.some(platform => connectedPlatforms.includes(platform));
                 if (!hasMatchingPlatform) {
                     matchesProfile = false;
                 }
@@ -150,7 +167,7 @@ const getAvailableProjects = async (req, res) => {
 exports.getAvailableProjects = getAvailableProjects;
 const applyToProject = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         if (userRole !== 'INFLUENCER') {
             return res.status(403).json({ error: 'Only influencers can apply to projects' });
@@ -243,7 +260,7 @@ const applyToProject = async (req, res) => {
 exports.applyToProject = applyToProject;
 const getMyApplications = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         if (userRole !== 'INFLUENCER') {
             return res.status(403).json({ error: 'Only influencers can view their applications' });
@@ -286,7 +303,7 @@ const getMyApplications = async (req, res) => {
 exports.getMyApplications = getMyApplications;
 const getApplicationsForMyProjects = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         if (userRole !== 'CLIENT') {
             return res.status(403).json({ error: 'Only clients can view applications for their projects' });
@@ -327,7 +344,7 @@ const getApplicationsForMyProjects = async (req, res) => {
 exports.getApplicationsForMyProjects = getApplicationsForMyProjects;
 const acceptApplication = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         const { applicationId } = req.params;
         if (userRole !== 'CLIENT') {
@@ -371,6 +388,7 @@ const acceptApplication = async (req, res) => {
                         include: {
                             user: {
                                 select: {
+                                    id: true,
                                     email: true,
                                 },
                             },
@@ -422,7 +440,7 @@ const acceptApplication = async (req, res) => {
 exports.acceptApplication = acceptApplication;
 const rejectApplication = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         const { applicationId } = req.params;
         if (userRole !== 'CLIENT') {
@@ -499,7 +517,7 @@ const createProjectSchema = zod_1.z.object({
 const updateProjectSchema = createProjectSchema.partial();
 const createProject = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         if (userRole !== 'CLIENT') {
             return res.status(403).json({ error: 'Only clients can create projects' });
@@ -569,7 +587,7 @@ const createProject = async (req, res) => {
 exports.createProject = createProject;
 const getMyProjects = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         if (userRole !== 'CLIENT') {
             return res.status(403).json({ error: 'Only clients can view their projects' });
@@ -633,7 +651,7 @@ const getMyProjects = async (req, res) => {
 exports.getMyProjects = getMyProjects;
 const getProjectById = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         const { projectId } = req.params;
         const project = await prisma.project.findUnique({
@@ -730,7 +748,7 @@ const getProjectById = async (req, res) => {
 exports.getProjectById = getProjectById;
 const updateProject = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         const { projectId } = req.params;
         if (userRole !== 'CLIENT') {
@@ -858,7 +876,7 @@ const updateProject = async (req, res) => {
 exports.updateProject = updateProject;
 const deleteProject = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         const { projectId } = req.params;
         if (userRole !== 'CLIENT') {
@@ -907,7 +925,7 @@ const deleteProject = async (req, res) => {
 exports.deleteProject = deleteProject;
 const updateProjectStatus = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userRole = req.user.role;
         const { projectId } = req.params;
         const { status } = zod_1.z.object({ status: zod_1.z.nativeEnum(client_1.ProjectStatus) }).parse(req.body);

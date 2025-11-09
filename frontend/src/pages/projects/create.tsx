@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import PageLayout from '../../components/shared/PageLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 // 各項目の説明文
 const fieldDescriptions: Record<string, string> = {
@@ -87,6 +87,7 @@ const CreateProjectPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { handleError, handleSuccess } = useErrorHandler();
 
   // カスタムフィールドの型定義
   interface CustomField {
@@ -328,9 +329,10 @@ const CreateProjectPage: React.FC = () => {
       localStorage.setItem('recentProject', JSON.stringify(projectForAI));
       
       // AIマッチングページにリダイレクト
+      handleSuccess('プロジェクトを作成しました！');
       router.push(`/project-ai-matching?projectId=${result.project.id}`);
     } catch (err: any) {
-      console.error('Error creating project:', err);
+      handleError(err, 'プロジェクトの作成');
       setError(err.response?.data?.error || 'プロジェクトの作成に失敗しました。');
     } finally {
       setLoading(false);
@@ -345,19 +347,10 @@ const CreateProjectPage: React.FC = () => {
     }).format(price);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   return (
-    <PageLayout
+    <DashboardLayout
       title="新規プロジェクト作成"
       subtitle="インフルエンサーマーケティングプロジェクトを簡単に作成してミッションを実現しましょう"
-      userEmail={user?.email}
-      onLogout={handleLogout}
-      maxWidth="xl"
     >
       <div className="text-center mb-8">
         <Link href="/projects">
@@ -368,13 +361,9 @@ const CreateProjectPage: React.FC = () => {
       </div>
       {/* エラーメッセージ */}
       {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-        >
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
           {error}
-        </motion.div>
+        </div>
       )}
 
       {/* プロジェクト作成フォーム */}
@@ -476,10 +465,8 @@ const CreateProjectPage: React.FC = () => {
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {platforms.map(platform => (
-                  <motion.div
+                  <div
                     key={platform.value}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => handlePlatformToggle(platform.value)}
                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
                       formData.targetPlatforms.includes(platform.value)
@@ -489,7 +476,7 @@ const CreateProjectPage: React.FC = () => {
                   >
                     <div className="text-3xl mb-2">{platform.icon}</div>
                     <div className="font-medium text-gray-900">{platform.label}</div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -862,11 +849,9 @@ const CreateProjectPage: React.FC = () => {
                   </label>
                   <div className="flex flex-wrap gap-3">
                     {platforms.map(platform => (
-                      <motion.button
+                      <button
                         key={platform.value}
                         type="button"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
                         onClick={() => handlePostingMediaToggle(platform.value)}
                         className={`flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all ${
                           formData.postingMedia.includes(platform.value)
@@ -876,7 +861,7 @@ const CreateProjectPage: React.FC = () => {
                       >
                         <span>{platform.icon}</span>
                         <span>{platform.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -1268,12 +1253,7 @@ const CreateProjectPage: React.FC = () => {
       </Card>
 
       {/* 作成のコツ */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-        className="mt-8"
-      >
+      <div className="mt-8">
         <Card padding="xl" className="bg-emerald-50/50">
           <h3 className="text-xl font-bold text-gray-900 mb-4">💡 効果的なプロジェクトを作るコツ</h3>
           <div className="space-y-3 text-gray-700">
@@ -1295,8 +1275,8 @@ const CreateProjectPage: React.FC = () => {
             </div>
           </div>
         </Card>
-      </motion.div>
-    </PageLayout>
+      </div>
+    </DashboardLayout>
   );
 };
 

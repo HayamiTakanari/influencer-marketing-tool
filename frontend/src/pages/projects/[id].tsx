@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import PageLayout from '../../components/shared/PageLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
+import LoadingState from '../../components/common/LoadingState';
+import EmptyState from '../../components/common/EmptyState';
 
 interface ProjectDetails {
   id: string;
@@ -49,28 +50,62 @@ const ProjectDetailPage: React.FC = () => {
       }
       
       if (id) {
-        // Temporary mock data
-        setProject({
-          id: id as string,
-          title: '新商品コスメのPRキャンペーン',
-          description: '新発売のファンデーションを使用した投稿をお願いします。',
-          category: '美容・化粧品',
-          budget: 300000,
-          status: 'PENDING',
-          targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-          targetPrefecture: '東京都',
-          targetCity: '渋谷区、新宿区',
-          targetGender: 'FEMALE',
-          targetAgeMin: 20,
-          targetAgeMax: 35,
-          targetFollowerMin: 10000,
-          targetFollowerMax: 100000,
-          startDate: '2024-02-01',
-          endDate: '2024-02-28',
-          createdAt: '2024-01-15',
-          applications: []
-        });
-        setLoading(false);
+        fetchProjectDetails();
+      }
+    } else {
+      router.push('/login');
+    }
+  }, [id, router]);
+
+  const fetchProjectDetails = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/projects/${id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch project');
+      }
+
+      const data = await response.json();
+      setProject(data.project);
+      setError('');
+    } catch (err: any) {
+      console.error('Error fetching project:', err);
+      setError('プロジェクトの取得に失敗しました。');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (userData && token) {
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      
+      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
+        router.push('/dashboard');
+        return;
+      }
+      
+      if (id) {
+        fetchProjectDetails();
       }
     } else {
       router.push('/login');
@@ -85,17 +120,15 @@ const ProjectDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <PageLayout title="プロジェクト詳細" subtitle="読み込み中...">
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-        </div>
-      </PageLayout>
+      <DashboardLayout title="プロジェクト詳細" subtitle="読み込み中...">
+        <LoadingState />
+      </DashboardLayout>
     );
   }
 
   if (error || !project) {
     return (
-      <PageLayout title="エラー" subtitle="プロジェクトの読み込みに失敗しました">
+      <DashboardLayout title="エラー" subtitle="プロジェクトの読み込みに失敗しました">
         <Card className="text-center py-12">
           <div className="text-6xl mb-4">❌</div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h3>
@@ -106,7 +139,7 @@ const ProjectDetailPage: React.FC = () => {
             </Button>
           </Link>
         </Card>
-      </PageLayout>
+      </DashboardLayout>
     );
   }
 
@@ -188,7 +221,7 @@ const ProjectDetailPage: React.FC = () => {
       <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <motion.div
+            <div
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
               className="text-2xl font-bold text-gray-900 relative"
@@ -197,7 +230,7 @@ const ProjectDetailPage: React.FC = () => {
                 InfluenceLink
               </span>
               <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gray-900 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
-            </motion.div>
+            </div>
             <div className="flex items-center space-x-4">
               <span className="text-gray-700 font-medium">{user?.email}</span>
               <motion.button
@@ -221,7 +254,7 @@ const ProjectDetailPage: React.FC = () => {
       <div className="pt-20 pb-12 px-4 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* ページタイトル */}
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -242,7 +275,7 @@ const ProjectDetailPage: React.FC = () => {
                   }}
                 >
                   <span className="relative z-10">← プロジェクト一覧に戻る</span>
-                  <motion.div 
+                  <div 
                     className="absolute inset-0 pointer-events-none"
                     style={{ background: 'linear-gradient(135deg, #f9fafb, #f3f4f6)' }}
                     initial={{ x: "-100%" }}
@@ -255,10 +288,10 @@ const ProjectDetailPage: React.FC = () => {
                 {getStatusInfo(project.status).label}
               </span>
             </div>
-          </motion.div>
+          </div>
 
           {/* プロジェクト詳細カード */}
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -347,7 +380,7 @@ const ProjectDetailPage: React.FC = () => {
 
             {/* ホバー時のアクセント */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" style={{ background: 'linear-gradient(90deg, #34d399, #14b8a6, #10b981, #059669)' }} />
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

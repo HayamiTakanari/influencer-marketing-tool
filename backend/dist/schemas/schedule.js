@@ -7,18 +7,14 @@ exports.projectScheduleSchema = zod_1.z.object({
     projectId: zod_1.z.string().cuid('有効なプロジェクトIDを指定してください'),
     publishDate: zod_1.z.string().datetime('有効な投稿日を指定してください'),
     milestones: zod_1.z.array(zod_1.z.object({
-        type: zod_1.z.enum(['CONCEPT_APPROVAL', 'VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], {
-            required_error: 'マイルストーンタイプを選択してください',
-        }),
+        type: zod_1.z.enum(['VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], 'マイルストーンタイプを選択してください'),
         title: zod_1.z.string().min(1, 'タイトルは必須です'),
         description: zod_1.z.string().optional(),
         dueDate: zod_1.z.string().datetime('有効な期限を指定してください'),
     })).min(1, '少なくとも1つのマイルストーンを設定してください'),
 });
 exports.milestoneSchema = zod_1.z.object({
-    type: zod_1.z.enum(['CONCEPT_APPROVAL', 'VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], {
-        required_error: 'マイルストーンタイプを選択してください',
-    }),
+    type: zod_1.z.enum(['VIDEO_COMPLETION', 'FINAL_APPROVAL', 'PUBLISH_DATE'], 'マイルストーンタイプを選択してください'),
     title: zod_1.z.string().min(1, 'タイトルは必須です'),
     description: zod_1.z.string().optional(),
     dueDate: zod_1.z.string().datetime('有効な期限を指定してください'),

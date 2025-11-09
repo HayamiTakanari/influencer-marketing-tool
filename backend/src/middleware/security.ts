@@ -21,17 +21,17 @@ export const createRateLimit = (options: {
   });
 };
 
-// 一般的なAPI用レート制限
+// 一般的なAPI用レート制限（開発環境では緩和）
 export const generalRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000, // 15分
-  max: 100, // 15分間に100リクエスト
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 本番:100回、開発:1000回
   message: 'Too many requests from this IP, please try again later.'
 });
 
-// 認証関連のレート制限（より厳しく）
+// 認証関連のレート制限（開発環境では緩和）
 export const authRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000, // 15分
-  max: 5, // 15分間に5回まで
+  max: process.env.NODE_ENV === 'production' ? 10 : 100, // 本番:10回、開発:100回
   message: 'Too many authentication attempts, please try again later.'
 });
 

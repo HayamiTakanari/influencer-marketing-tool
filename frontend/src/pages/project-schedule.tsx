@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { getMyProjects, getProjectSchedule, generateInvoiceFromProject } from '../services/api';
 import GanttChart from '../components/GanttChart';
@@ -115,29 +114,8 @@ const ProjectSchedulePage: React.FC = () => {
         setSelectedProject(projectList[0].id);
         await fetchSchedules(projectList);
       } else {
-        console.log('プロジェクトが見つからないため、モックプロジェクトを生成します');
-        // モックプロジェクトを生成
-        const mockProjects: Project[] = [
-          {
-            id: 'mock-project-1',
-            title: 'サンプルプロジェクト 1',
-            description: 'デモ用のサンプルプロジェクトです',
-            status: 'IN_PROGRESS',
-            createdAt: new Date().toISOString(),
-            clientId: 'mock-client-1'
-          },
-          {
-            id: 'mock-project-2', 
-            title: 'サンプルプロジェクト 2',
-            description: 'デモ用のサンプルプロジェクトです',
-            status: 'PLANNING',
-            createdAt: new Date().toISOString(),
-            clientId: 'mock-client-1'
-          }
-        ];
-        setProjects(mockProjects);
-        setSelectedProject(mockProjects[0].id);
-        await fetchSchedules(mockProjects);
+        console.log('プロジェクトが見つかりませんでした');
+        setError('プロジェクトが見つかりませんでした。');
       }
     } catch (err: any) {
       console.error('Error fetching data:', err);
@@ -416,10 +394,8 @@ const ProjectSchedulePage: React.FC = () => {
         
         {/* データ取得警告バナー */}
         {projects.length > 0 && (projects[0]?.id?.includes('mock-project') || projects[0]?.id === '1') && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-r-lg"
+          <div
+            className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-r-lg transition-all duration-500"
           >
             <div className="flex items-center">
               <svg className="w-5 h-5 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -434,7 +410,7 @@ const ProjectSchedulePage: React.FC = () => {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-8">
@@ -448,13 +424,11 @@ const ProjectSchedulePage: React.FC = () => {
               </svg>
               <span className="font-medium">ダッシュボードに戻る</span>
             </button>
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+            <h1 
+              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent transition-all duration-500"
             >
               プロジェクトスケジュール
-            </motion.h1>
+            </h1>
           </div>
         </div>
 
@@ -521,10 +495,8 @@ const ProjectSchedulePage: React.FC = () => {
 
         {/* プロジェクト別タブ */}
         {activeTab === 'project' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+          <div
+            className="space-y-6 transition-all duration-500"
           >
             {/* プロジェクト選択 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -533,11 +505,9 @@ const ProjectSchedulePage: React.FC = () => {
                 const completed = isProjectCompleted(project.id);
                 
                 return (
-                  <motion.div
+                  <div
                     key={project.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg transition-all ${
+                    className={`bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:scale-105 transition-all ${
                       selectedProject === project.id ? 'ring-2 ring-blue-500' : ''
                     }`}
                   >
@@ -594,7 +564,7 @@ const ProjectSchedulePage: React.FC = () => {
                         </button>
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -609,11 +579,9 @@ const ProjectSchedulePage: React.FC = () => {
                 {viewMode === 'calendar' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {schedules[selectedProject].phases.map((phase) => (
-                      <motion.div
+                      <div
                         key={phase.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`${phase.color} rounded-xl p-4 text-white shadow-lg`}
+                        className={`${phase.color} rounded-xl p-4 text-white shadow-lg transition-all duration-300`}
                       >
                         <div className="flex items-center mb-2">
                           <span className="text-2xl mr-2">{phase.icon}</span>
@@ -634,17 +602,15 @@ const ProjectSchedulePage: React.FC = () => {
                              phase.status === 'in_progress' ? '進行中' : '待機中'}
                           </span>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {schedules[selectedProject].phases.map((phase) => (
-                      <motion.div
+                      <div
                         key={phase.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl transition-all duration-300"
                       >
                         <div className="flex items-center space-x-4">
                           <div className={`w-4 h-4 rounded-full ${
@@ -671,21 +637,19 @@ const ProjectSchedulePage: React.FC = () => {
                              phase.status === 'in_progress' ? '進行中' : '待機中'}
                           </span>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* 全体スケジュールタブ */}
         {activeTab === 'overview' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+          <div
+            className="space-y-6 transition-all duration-500"
           >
             {/* プロジェクト凡例 */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
@@ -719,11 +683,9 @@ const ProjectSchedulePage: React.FC = () => {
                       const textColor = getProjectTextColor(schedule);
                       
                       return (
-                        <motion.div
+                        <div
                           key={`${phase.projectId}-${phase.id}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`${phase.color} rounded-xl p-4 text-white shadow-lg border-l-8 ${borderColor}`}
+                          className={`${phase.color} rounded-xl p-4 text-white shadow-lg border-l-8 ${borderColor} transition-all duration-300`}
                         >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center">
@@ -749,7 +711,7 @@ const ProjectSchedulePage: React.FC = () => {
                                phase.status === 'in_progress' ? '進行中' : '待機中'}
                             </span>
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     });
                   })()}
@@ -764,11 +726,9 @@ const ProjectSchedulePage: React.FC = () => {
                       const textColor = getProjectTextColor(schedule);
                       
                       return (
-                        <motion.div
+                        <div
                           key={`${phase.projectId}-${phase.id}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl border-l-4 ${borderColor}`}
+                          className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl border-l-4 ${borderColor} transition-all duration-300`}
                         >
                           <div className="flex items-center space-x-4">
                             <div className={`w-4 h-4 rounded-full ${
@@ -800,22 +760,20 @@ const ProjectSchedulePage: React.FC = () => {
                                phase.status === 'in_progress' ? '進行中' : '待機中'}
                             </span>
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     });
                   })()}
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* ガントチャートタブ */}
         {activeTab === 'gantt' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+          <div
+            className="space-y-6 transition-all duration-500"
           >
             {/* プロジェクト選択（ガントチャート用） */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
@@ -898,7 +856,7 @@ const ProjectSchedulePage: React.FC = () => {
                 <p>• プロジェクトボタンで特定のプロジェクトのみ表示することもできます</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

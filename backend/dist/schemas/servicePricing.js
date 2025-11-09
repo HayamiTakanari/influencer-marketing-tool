@@ -13,9 +13,7 @@ exports.servicePricingSchema = zod_1.z.object({
         'CONSULTATION',
         'LIVE_STREAMING',
         'EVENT_APPEARANCE'
-    ], {
-        required_error: 'サービスタイプを選択してください',
-    }),
+    ], 'サービスタイプを選択してください'),
     price: zod_1.z.number().min(1, '料金は1円以上で設定してください'),
     unit: zod_1.z.string().default('per_post'),
     description: zod_1.z.string().optional(),

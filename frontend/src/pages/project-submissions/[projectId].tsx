@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { checkYakujihoViolations, YakujihoCheckResult } from '../../services/yakujiho-checker';
@@ -265,11 +264,7 @@ const ProjectSubmissionsPage: React.FC = () => {
       <div className="pt-20 pb-12 px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* ページタイトル */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
+          <div className="mb-8 transition-all">
             <div className="flex items-center gap-4 mb-4">
               <Link href="/projects">
                 <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
@@ -279,16 +274,12 @@ const ProjectSubmissionsPage: React.FC = () => {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">動画投稿・管理</h1>
             <h2 className="text-2xl text-gray-600">{project.title}</h2>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* 新規投稿フォーム */}
             <div className="lg:col-span-2">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8"
-              >
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8 transition-all">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">新規動画投稿</h3>
                 
                 <div className="space-y-6">
@@ -413,17 +404,12 @@ const ProjectSubmissionsPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* プロジェクト情報 */}
             <div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-6"
-              >
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-6 transition-all">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">プロジェクト詳細</h3>
                 <div className="space-y-3 text-sm">
                   <div>
@@ -443,15 +429,10 @@ const ProjectSubmissionsPage: React.FC = () => {
                     <p className="text-gray-900">{project.description}</p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* 投稿ガイドライン */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-amber-50 p-6 rounded-xl border border-amber-200"
-              >
+              <div className="bg-amber-50 p-6 rounded-xl border border-amber-200 transition-all">
                 <h4 className="text-lg font-semibold text-amber-800 mb-3">📝 投稿ガイドライン</h4>
                 <ul className="text-sm text-amber-700 space-y-2">
                   <li>• 薬機法チェックを必ず実行してください</li>
@@ -460,17 +441,12 @@ const ProjectSubmissionsPage: React.FC = () => {
                   <li>• 商品の効果・効能に関する表現にご注意ください</li>
                   <li>• 投稿後、24時間以内に承認結果をお知らせします</li>
                 </ul>
-              </motion.div>
+              </div>
             </div>
           </div>
 
           {/* 投稿履歴 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-8"
-          >
+          <div className="mt-8 transition-all">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">投稿履歴</h3>
             
             {submissions.length > 0 ? (
@@ -515,7 +491,7 @@ const ProjectSubmissionsPage: React.FC = () => {
                 <p className="text-gray-600">上記のフォームから最初の動画を投稿してみましょう！</p>
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

@@ -18,6 +18,7 @@ import { protectFromCommandInjection, preventSystemCommands } from './middleware
 //   setupGlobalErrorHandlers 
 // } from './middleware/error-tracking';
 import authRoutes from './routes/auth.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import influencerRoutes from './routes/influencer.routes';
 import profileRoutes from './routes/profile.routes';
 import chatRoutes from './routes/chat.routes';
@@ -33,6 +34,7 @@ import bulkInquiryRoutes from './routes/bulkInquiry.routes';
 import scheduleRoutes from './routes/schedule.routes';
 import securityRoutes from './routes/security.routes';
 import oauthRoutes from './routes/oauth';
+import uploadRoutes from './routes/upload.routes';
 
 dotenv.config();
 
@@ -63,6 +65,16 @@ try {
 
 const PORT = Number(process.env.PORT) || 5002;
 
+// CORS設定 - セキュリティヘッダーより先に適用
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+
 // セキュリティミドルウェアの適用
 app.use(securityHeaders);
 
@@ -70,20 +82,12 @@ app.use(securityHeaders);
 app.use(protectFromCommandInjection);
 app.use(preventSystemCommands);
 
-// CORS設定
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
-
 // Special handling for Stripe webhooks (raw body)
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 
 // JSON parsing for all other routes with size limit
 app.use(express.json({ 
-  limit: '10mb',
+  limit: '50mb',
   verify: (req: any, res, buf) => {
     // JSONの構造をチェック
     try {
@@ -110,6 +114,7 @@ app.use(generalRateLimit);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/influencers', influencerRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/chat', chatRoutes);
@@ -125,6 +130,9 @@ app.use('/api/bulk-inquiries', bulkInquiryRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/oauth', oauthRoutes);
+app.use('/api/upload', uploadRoutes);
+
+app.use('/uploads', express.static('uploads'));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

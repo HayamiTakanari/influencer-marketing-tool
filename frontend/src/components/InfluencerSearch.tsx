@@ -151,12 +151,12 @@ const InfluencerSearch: React.FC = () => {
     { value: 'NOT_SPECIFIED', label: '指定なし' },
   ];
 
-  const categoryOptions = categories.map(cat => ({
+  const categoryOptions = categories.map((cat: string) => ({
     value: cat,
     label: cat,
   }));
 
-  const prefectureOptions = prefectures.map(pref => ({
+  const prefectureOptions = prefectures.map((pref: string) => ({
     value: pref,
     label: pref,
   }));
@@ -191,7 +191,7 @@ const InfluencerSearch: React.FC = () => {
               <Select
                 isMulti
                 options={categoryOptions}
-                value={categoryOptions.filter(opt => filters.categories.includes(opt.value))}
+                value={categoryOptions.filter((opt: { value: string; label: string }) => filters.categories.includes(opt.value))}
                 onChange={(selected) => setFilters(prev => ({
                   ...prev,
                   categories: selected ? selected.map(s => s.value) : []
@@ -209,7 +209,7 @@ const InfluencerSearch: React.FC = () => {
               <Select
                 isMulti
                 options={platformOptions}
-                value={platformOptions.filter(opt => filters.platforms.includes(opt.value as Platform))}
+                value={platformOptions.filter((opt: { value: string; label: string }) => filters.platforms.includes(opt.value as Platform))}
                 onChange={(selected) => setFilters(prev => ({
                   ...prev,
                   platforms: selected ? selected.map(s => s.value as Platform) : []
@@ -292,7 +292,7 @@ const InfluencerSearch: React.FC = () => {
               </label>
               <Select
                 options={prefectureOptions}
-                value={prefectureOptions.find(opt => opt.value === filters.prefecture)}
+                value={prefectureOptions.find((opt: { value: string; label: string }) => opt.value === filters.prefecture)}
                 onChange={(selected) => setFilters(prev => ({
                   ...prev,
                   prefecture: selected?.value
@@ -397,6 +397,17 @@ const InfluencerCard: React.FC<{
   showFavoriteButton: boolean;
 }> = ({ influencer, isFavorited, onToggleFavorite, isUpdating, showFavoriteButton }) => {
   const router = useRouter();
+  
+  const getWorkingStatusInfo = (status?: WorkingStatus) => {
+    const statusMap = {
+      [WorkingStatus.AVAILABLE]: { label: '対応可能', color: 'bg-green-100 text-green-800', icon: '✅' },
+      [WorkingStatus.BUSY]: { label: '多忙', color: 'bg-yellow-100 text-yellow-800', icon: '⏰' },
+      [WorkingStatus.UNAVAILABLE]: { label: '対応不可', color: 'bg-red-100 text-red-800', icon: '❌' },
+      [WorkingStatus.BREAK]: { label: '休暇中', color: 'bg-blue-100 text-blue-800', icon: '🏖️' }
+    };
+    return statusMap[status || WorkingStatus.AVAILABLE] || statusMap[WorkingStatus.AVAILABLE];
+  };
+  
   const getPlatformIcon = (platform: Platform) => {
     switch (platform) {
       case 'INSTAGRAM':

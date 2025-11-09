@@ -21,9 +21,7 @@ exports.bulkInquirySchema = zod_1.z.object({
     targetInfluencers: zod_1.z.array(zod_1.z.string().cuid()).min(1, '問い合わせ対象のインフルエンサーを選択してください'),
 });
 exports.inquiryResponseSchema = zod_1.z.object({
-    status: zod_1.z.enum(['PENDING', 'ACCEPTED', 'DECLINED'], {
-        required_error: 'ステータスを選択してください',
-    }),
+    status: zod_1.z.enum(['PENDING', 'ACCEPTED', 'DECLINED'], 'ステータスを選択してください'),
     proposedPrice: zod_1.z.number().min(0).optional(),
     message: zod_1.z.string().optional(),
     availableFrom: zod_1.z.string().datetime().optional(),

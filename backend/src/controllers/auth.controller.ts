@@ -140,12 +140,12 @@ export const login = async (
       return;
     }
 
-    // アカウント検証チェック
-    if (!user.isVerified) {
-      console.warn(`Login attempt for unverified account: ${user.id} from IP: ${clientIP}`);
-      res.status(401).json({ error: 'Account not verified' });
-      return;
-    }
+    // アカウント検証チェック（一時的に無効化 - 自動承認に変更）
+    // if (!user.isVerified) {
+    //   console.warn(`Login attempt for unverified account: ${user.id} from IP: ${clientIP}`);
+    //   res.status(401).json({ error: 'Account not verified' });
+    //   return;
+    // }
 
     const isPasswordValid = await comparePassword(password, user.password);
 
