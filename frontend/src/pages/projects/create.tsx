@@ -65,11 +65,11 @@ const HelpButton: React.FC<{ field: string }> = ({ field }) => {
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         onClick={() => setShowTooltip(!showTooltip)}
-        className="inline-flex items-center justify-center w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors cursor-help"
+        className="inline-flex items-center justify-center w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors cursor-help text-xs"
         aria-label="ヘルプを表示"
         title={description}
       >
-        ?
+        ●
       </button>
       {showTooltip && (
         <div className="absolute z-50 w-56 p-2 mt-1 bg-gray-200 text-gray-800 text-xs rounded shadow left-6 top-0">
