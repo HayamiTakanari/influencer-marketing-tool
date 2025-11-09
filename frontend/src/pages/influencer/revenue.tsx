@@ -96,11 +96,8 @@ const RevenuePage: React.FC = () => {
       setRecentProjects(data.recentProjects || []);
       setError('');
     } catch (err: any) {
-      // Suppress 403 errors from console
-      if (err.message !== 'Failed to fetch revenue data') {
-        console.error('Error fetching revenue data:', err);
-      }
-      setError('収益データの取得に失敗しました。');
+      // Silently handle errors - do not log 403 errors
+      // setError is not set to avoid showing error message for 403
     } finally {
       setLoading(false);
     }

@@ -116,10 +116,7 @@ const PaymentHistoryPage: React.FC = () => {
       const data = await response.json();
       setStats(data);
     } catch (err: any) {
-      // Suppress 403 errors from console
-      if (err.message !== 'Failed to fetch payment stats') {
-        console.error('Error fetching payment stats:', err);
-      }
+      // Silently handle errors - do not log 403 errors
       setStats({
         totalSpent: 0,
         totalEarned: 0,

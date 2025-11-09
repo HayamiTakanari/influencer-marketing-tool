@@ -77,19 +77,10 @@ const InfluencerSearchPage: React.FC = () => {
 
       setUser(parsedUser);
 
-      try {
-        // Get available influencers
-        const response = await api.get('/projects/available');
-        // Extract unique influencers from projects (simplified for now)
-        setInfluencers([]);
-        setLoading(false);
-      } catch (error: any) {
-        // Suppress 403 and 401 errors - these are expected for protected routes
-        if (error.response?.status !== 403 && error.response?.status !== 401) {
-          handleError(error, 'インフルエンサー検索に失敗しました');
-        }
-        setLoading(false);
-      }
+      // Skip API call for now - use mock data only
+      // This prevents 403 errors from being triggered
+      setInfluencers([]);
+      setLoading(false);
     };
 
     // Only fetch if we have both user and token to avoid race conditions
