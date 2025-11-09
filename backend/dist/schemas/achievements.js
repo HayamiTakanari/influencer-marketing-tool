@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateAchievementSchema = exports.createAchievementSchema = exports.achievementSchema = void 0;
-const zod_1 = require("zod");
+var zod_1 = require("zod");
 // v3.0 新機能: 実績管理のスキーマ定義
 exports.achievementSchema = zod_1.z.object({
     projectName: zod_1.z.string().min(1, 'プロジェクト名は必須です'),

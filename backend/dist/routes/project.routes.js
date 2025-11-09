@@ -1,14 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const auth_1 = require("../middleware/auth");
-const sns_verification_1 = require("../middleware/sns-verification");
-const project_controller_1 = require("../controllers/project.controller");
-const schedule_controller_1 = require("../controllers/schedule.controller");
-const router = express_1.default.Router();
+var express_1 = require("express");
+var auth_1 = require("../middleware/auth");
+var sns_verification_1 = require("../middleware/sns-verification");
+var project_controller_1 = require("../controllers/project.controller");
+var schedule_controller_1 = require("../controllers/schedule.controller");
+var router = express_1.default.Router();
 // All routes require authentication
 router.use(auth_1.authenticate);
 // Get available projects (for influencers)

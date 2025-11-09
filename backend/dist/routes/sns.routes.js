@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_1 = require("../middleware/auth");
-const sns_controller_1 = require("../controllers/sns.controller");
-const router = (0, express_1.Router)();
+var express_1 = require("express");
+var auth_1 = require("../middleware/auth");
+var sns_controller_1 = require("../controllers/sns.controller");
+var router = (0, express_1.Router)();
 router.use(auth_1.authenticate);
 // Influencer routes
 router.post('/sync/:socialAccountId', (0, auth_1.authorizeRole)(['INFLUENCER']), sns_controller_1.syncSocialAccount);

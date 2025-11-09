@@ -322,6 +322,99 @@ const CreateProjectPage: React.FC = () => {
     setError('');
 
     try {
+      // バリデーション
+      const validationErrors: string[] = [];
+
+      if (!formData.title.trim()) {
+        validationErrors.push('プロジェクト名は必須です');
+      }
+
+      if (!formData.description.trim()) {
+        validationErrors.push('プロジェクト詳細は必須です');
+      }
+
+      if (!formData.category) {
+        validationErrors.push('カテゴリーは必須です');
+      }
+
+      if (formData.budget < 1000) {
+        validationErrors.push('予算は1,000円以上である必要があります');
+      }
+
+      if (formData.targetPlatforms.length === 0) {
+        validationErrors.push('対象プラットフォームを1つ以上選択してください');
+      }
+
+      if (!formData.startDate) {
+        validationErrors.push('開始日は必須です');
+      }
+
+      if (!formData.endDate) {
+        validationErrors.push('終了日は必須です');
+      }
+
+      if (formData.startDate && formData.endDate) {
+        const startDate = new Date(formData.startDate);
+        const endDate = new Date(formData.endDate);
+        if (startDate >= endDate) {
+          validationErrors.push('終了日は開始日より後である必要があります');
+        }
+      }
+
+      if (!formData.advertiserName.trim()) {
+        validationErrors.push('広告主名は必須です');
+      }
+
+      if (!formData.brandName.trim()) {
+        validationErrors.push('ブランド名は必須です');
+      }
+
+      if (!formData.productName.trim()) {
+        validationErrors.push('商品正式名称は必須です');
+      }
+
+      if (!formData.campaignObjective.trim()) {
+        validationErrors.push('施策の目的は必須です');
+      }
+
+      if (!formData.campaignTarget.trim()) {
+        validationErrors.push('施策ターゲットは必須です');
+      }
+
+      if (!formData.postingPeriodStart) {
+        validationErrors.push('投稿期間（開始日）は必須です');
+      }
+
+      if (!formData.postingPeriodEnd) {
+        validationErrors.push('投稿期間（終了日）は必須です');
+      }
+
+      if (formData.postingPeriodStart && formData.postingPeriodEnd) {
+        const postingStart = new Date(formData.postingPeriodStart);
+        const postingEnd = new Date(formData.postingPeriodEnd);
+        if (postingStart >= postingEnd) {
+          validationErrors.push('投稿期間の終了日は開始日より後である必要があります');
+        }
+      }
+
+      if (formData.postingMedia.length === 0) {
+        validationErrors.push('投稿メディアを1つ以上選択してください');
+      }
+
+      if (!formData.messageToConvey[0]?.trim()) {
+        validationErrors.push('伝えたいこと（1つ目）は必須です');
+      }
+
+      if (!formData.secondaryUsage) {
+        validationErrors.push('二次利用有無を選択してください');
+      }
+
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join('\n'));
+        setLoading(false);
+        return;
+      }
+
       // バックエンドスキーマに必要なフィールドのみを抽出
       const projectData = {
         title: formData.title,
@@ -404,7 +497,15 @@ const CreateProjectPage: React.FC = () => {
       {/* エラーメッセージ */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
-          {error}
+          {error.includes('\n') ? (
+            <ul className="list-disc list-inside">
+              {error.split('\n').map((err, idx) => (
+                <li key={idx} className="mb-1">{err}</li>
+              ))}
+            </ul>
+          ) : (
+            error
+          )}
         </div>
       )}
 

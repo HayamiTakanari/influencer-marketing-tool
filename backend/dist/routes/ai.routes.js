@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var express_1 = require("express");
+var auth_1 = require("../middleware/auth");
+var ai_controller_1 = require("../controllers/ai.controller");
+var router = express_1.default.Router();
+// All routes require authentication
+router.use(auth_1.authenticate);
+// Get AI recommendations for a project
+router.post('/recommend-influencers-for-project', ai_controller_1.recommendInfluencersForProject);
+exports.default = router;

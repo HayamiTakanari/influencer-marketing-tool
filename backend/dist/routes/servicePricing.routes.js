@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_1 = require("../middleware/auth");
-const servicePricing_controller_1 = require("../controllers/servicePricing.controller");
-const router = (0, express_1.Router)();
+var express_1 = require("express");
+var auth_1 = require("../middleware/auth");
+var servicePricing_controller_1 = require("../controllers/servicePricing.controller");
+var router = (0, express_1.Router)();
 // v3.0 新機能: 料金体系管理ルート
 // 料金設定作成
 router.post('/', auth_1.authenticate, servicePricing_controller_1.createServicePricing);

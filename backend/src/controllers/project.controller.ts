@@ -637,13 +637,21 @@ export const createProject = async (req: Request, res: Response) => {
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
 
-    console.log('Start date:', startDate, 'End date:', endDate);
+    // UTC 00:00 に設定して、ローカルタイムゾーンの影響を避ける
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    console.log('Start date:', startDate, 'End date:', endDate, 'Today:', todayStart);
 
     if (startDate >= endDate) {
       return res.status(400).json({ error: 'End date must be after start date' });
     }
 
-    if (startDate < new Date()) {
+    // 本日以降の日付を許可（本日は許可）
+    if (startDate < todayStart) {
       return res.status(400).json({ error: 'Start date cannot be in the past' });
     }
 

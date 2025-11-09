@@ -1,16 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorizeRole = exports.authorize = exports.authenticate = void 0;
-const jwt_1 = require("../utils/jwt");
-const authenticate = (req, res, next) => {
+var jwt_1 = require("../utils/jwt");
+var authenticate = function (req, res, next) {
     try {
-        const authHeader = req.headers.authorization;
+        var authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             res.status(401).json({ error: 'No token provided' });
             return;
         }
-        const token = authHeader.substring(7);
-        const payload = (0, jwt_1.verifyToken)(token);
+        var token = authHeader.substring(7);
+        var payload = (0, jwt_1.verifyToken)(token);
         req.user = payload;
         next();
     }
@@ -19,8 +19,12 @@ const authenticate = (req, res, next) => {
     }
 };
 exports.authenticate = authenticate;
-const authorize = (...roles) => {
-    return (req, res, next) => {
+var authorize = function () {
+    var roles = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        roles[_i] = arguments[_i];
+    }
+    return function (req, res, next) {
         if (!req.user) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
@@ -33,8 +37,8 @@ const authorize = (...roles) => {
     };
 };
 exports.authorize = authorize;
-const authorizeRole = (roles) => {
-    return (req, res, next) => {
+var authorizeRole = function (roles) {
+    return function (req, res, next) {
         if (!req.user) {
             res.status(401).json({ error: 'Unauthorized' });
             return;

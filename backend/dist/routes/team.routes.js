@@ -1,12 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const auth_1 = require("../middleware/auth");
-const team_controller_1 = require("../controllers/team.controller");
-const router = express_1.default.Router();
+var express_1 = require("express");
+var auth_1 = require("../middleware/auth");
+var team_controller_1 = require("../controllers/team.controller");
+var router = express_1.default.Router();
 // All routes require authentication
 router.use(auth_1.authenticate);
 // Create a new team

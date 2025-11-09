@@ -1,7 +1,4 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sanitizeByContext = void 0;
 exports.escapeHtml = escapeHtml;
@@ -14,17 +11,17 @@ exports.sanitizeJsonData = sanitizeJsonData;
 exports.sanitizeFileName = sanitizeFileName;
 exports.sanitizeCsvData = sanitizeCsvData;
 exports.sanitizeSqlString = sanitizeSqlString;
-const dompurify_1 = __importDefault(require("dompurify"));
-const sanitize_html_1 = __importDefault(require("sanitize-html"));
-const jsdom_1 = require("jsdom");
+var dompurify_1 = require("dompurify");
+var sanitize_html_1 = require("sanitize-html");
+var jsdom_1 = require("jsdom");
 // DOMPurifyをサーバーサイドで使用するためのJSDOMセットアップ
-const window = new jsdom_1.JSDOM('').window;
-const purify = (0, dompurify_1.default)(window);
+var window = new jsdom_1.JSDOM('').window;
+var purify = (0, dompurify_1.default)(window);
 /**
  * XSS対策のためのエスケープとサニタイゼーション機能
  */
 // HTMLエスケープのマッピング
-const HTML_ESCAPE_MAP = {
+var HTML_ESCAPE_MAP = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
@@ -41,7 +38,7 @@ function escapeHtml(text) {
     if (typeof text !== 'string') {
         return '';
     }
-    return text.replace(/[&<>"'`=\/]/g, (match) => {
+    return text.replace(/[&<>"'`=\/]/g, function (match) {
         return HTML_ESCAPE_MAP[match];
     });
 }
@@ -52,7 +49,7 @@ function unescapeHtml(text) {
     if (typeof text !== 'string') {
         return '';
     }
-    const UNESCAPE_MAP = {
+    var UNESCAPE_MAP = {
         '&amp;': '&',
         '&lt;': '<',
         '&gt;': '>',
@@ -62,7 +59,7 @@ function unescapeHtml(text) {
         '&#x60;': '`',
         '&#x3D;': '='
     };
-    return text.replace(/&(amp|lt|gt|quot|#x27|#x2F|#x60|#x3D);/g, (match) => {
+    return text.replace(/&(amp|lt|gt|quot|#x27|#x2F|#x60|#x3D);/g, function (match) {
         return UNESCAPE_MAP[match];
     });
 }
@@ -74,8 +71,8 @@ function sanitizeHtmlContent(dirty, options) {
         return '';
     }
     // デフォルト設定：非常に制限的
-    const defaultConfig = {
-        ALLOWED_TAGS: options?.allowedTags || [],
+    var defaultConfig = {
+        ALLOWED_TAGS: (options === null || options === void 0 ? void 0 : options.allowedTags) || [],
         ALLOWED_ATTR: [],
         KEEP_CONTENT: false,
         REMOVE_SCRIPT_TAG: true,
@@ -103,7 +100,7 @@ function sanitizeTextContent(input) {
         return '';
     }
     // HTMLタグを完全に除去
-    let cleaned = input.replace(/<[^>]*>/g, '');
+    var cleaned = input.replace(/<[^>]*>/g, '');
     // 基本的なHTMLエスケープ
     cleaned = escapeHtml(cleaned);
     // 制御文字を除去
@@ -119,7 +116,7 @@ function sanitizeRichText(input) {
     if (typeof input !== 'string') {
         return '';
     }
-    const options = {
+    var options = {
         allowedTags: [
             'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li',
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote'
@@ -151,20 +148,21 @@ function sanitizeUrl(url) {
         return '';
     }
     // 基本的なURL検証
-    const urlPattern = /^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+    var urlPattern = /^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
     if (!urlPattern.test(url)) {
         return '';
     }
     // 危険なプロトコルをチェック
-    const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:', 'ftp:'];
-    const lowerUrl = url.toLowerCase();
-    for (const protocol of dangerousProtocols) {
+    var dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:', 'ftp:'];
+    var lowerUrl = url.toLowerCase();
+    for (var _i = 0, dangerousProtocols_1 = dangerousProtocols; _i < dangerousProtocols_1.length; _i++) {
+        var protocol = dangerousProtocols_1[_i];
         if (lowerUrl.startsWith(protocol)) {
             return '';
         }
     }
     // URLエンコードされた危険な文字をチェック
-    const decodedUrl = decodeURIComponent(url);
+    var decodedUrl = decodeURIComponent(url);
     if (decodedUrl.includes('<script') || decodedUrl.includes('javascript:')) {
         return '';
     }
@@ -184,13 +182,14 @@ function sanitizeJsonData(data) {
         return data;
     }
     if (Array.isArray(data)) {
-        return data.map(item => sanitizeJsonData(item));
+        return data.map(function (item) { return sanitizeJsonData(item); });
     }
     if (typeof data === 'object') {
-        const sanitized = {};
-        for (const [key, value] of Object.entries(data)) {
+        var sanitized = {};
+        for (var _i = 0, _a = Object.entries(data); _i < _a.length; _i++) {
+            var _b = _a[_i], key = _b[0], value = _b[1];
             // キー名もサニタイズ
-            const cleanKey = sanitizeTextContent(key);
+            var cleanKey = sanitizeTextContent(key);
             sanitized[cleanKey] = sanitizeJsonData(value);
         }
         return sanitized;
@@ -205,26 +204,26 @@ function sanitizeFileName(fileName) {
         return '';
     }
     // 基本的なサニタイゼーション
-    let cleaned = fileName
+    var cleaned = fileName
         .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // 危険な文字を除去
         .replace(/^\.+/, '') // 先頭のドットを除去
         .replace(/\.+$/, '') // 末尾のドットを除去
         .trim();
     // 長さ制限
     if (cleaned.length > 255) {
-        const ext = cleaned.substring(cleaned.lastIndexOf('.'));
-        const name = cleaned.substring(0, cleaned.lastIndexOf('.'));
-        cleaned = name.substring(0, 255 - ext.length) + ext;
+        var ext = cleaned.substring(cleaned.lastIndexOf('.'));
+        var name_1 = cleaned.substring(0, cleaned.lastIndexOf('.'));
+        cleaned = name_1.substring(0, 255 - ext.length) + ext;
     }
     // 予約語チェック（Windows）
-    const reservedNames = [
+    var reservedNames = [
         'CON', 'PRN', 'AUX', 'NUL',
         'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
         'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
     ];
-    const nameWithoutExt = cleaned.substring(0, cleaned.lastIndexOf('.'));
+    var nameWithoutExt = cleaned.substring(0, cleaned.lastIndexOf('.'));
     if (reservedNames.includes(nameWithoutExt.toUpperCase())) {
-        cleaned = `file_${cleaned}`;
+        cleaned = "file_".concat(cleaned);
     }
     return cleaned || 'untitled';
 }
@@ -236,10 +235,11 @@ function sanitizeCsvData(data) {
         return '';
     }
     // CSV injection攻撃を防ぐため、特定の文字で始まる場合は先頭に'を追加
-    const dangerousStarts = ['=', '+', '-', '@', '\t', '\r'];
-    for (const start of dangerousStarts) {
+    var dangerousStarts = ['=', '+', '-', '@', '\t', '\r'];
+    for (var _i = 0, dangerousStarts_1 = dangerousStarts; _i < dangerousStarts_1.length; _i++) {
+        var start = dangerousStarts_1[_i];
         if (data.startsWith(start)) {
-            return `'${data}`;
+            return "'".concat(data);
         }
     }
     // 基本的なサニタイゼーション
@@ -277,12 +277,12 @@ exports.sanitizeByContext = {
     // HTMLコンテンツ内のテキスト
     htmlText: sanitizeTextContent,
     // HTML属性値
-    htmlAttribute: (value) => {
+    htmlAttribute: function (value) {
         return escapeHtml(sanitizeTextContent(value));
     },
     // JavaScript文字列
-    jsString: (value) => {
-        const escaped = sanitizeTextContent(value)
+    jsString: function (value) {
+        var escaped = sanitizeTextContent(value)
             .replace(/\\/g, '\\\\')
             .replace(/'/g, "\\'")
             .replace(/"/g, '\\"')
@@ -292,7 +292,7 @@ exports.sanitizeByContext = {
         return escaped;
     },
     // CSS値
-    cssValue: (value) => {
+    cssValue: function (value) {
         return sanitizeTextContent(value)
             .replace(/[<>"'`]/g, '')
             .replace(/expression\(/gi, '')
@@ -307,15 +307,15 @@ exports.sanitizeByContext = {
     richText: sanitizeRichText
 };
 exports.default = {
-    escapeHtml,
-    unescapeHtml,
-    sanitizeHtmlContent,
-    sanitizeTextContent,
-    sanitizeRichText,
-    sanitizeUrl,
-    sanitizeJsonData,
-    sanitizeFileName,
-    sanitizeCsvData,
-    sanitizeSqlString,
+    escapeHtml: escapeHtml,
+    unescapeHtml: unescapeHtml,
+    sanitizeHtmlContent: sanitizeHtmlContent,
+    sanitizeTextContent: sanitizeTextContent,
+    sanitizeRichText: sanitizeRichText,
+    sanitizeUrl: sanitizeUrl,
+    sanitizeJsonData: sanitizeJsonData,
+    sanitizeFileName: sanitizeFileName,
+    sanitizeCsvData: sanitizeCsvData,
+    sanitizeSqlString: sanitizeSqlString,
     sanitizeByContext: exports.sanitizeByContext
 };
