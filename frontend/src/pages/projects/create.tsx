@@ -7,6 +7,7 @@ import Button from '../../components/shared/Button';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import { FaInstagram, FaYoutube, FaTiktok } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
+import { AiOutlineQuestionCircle } from 'react-icons/ai';
 
 // 各項目の説明文
 const fieldDescriptions: Record<string, string> = {
@@ -65,11 +66,11 @@ const HelpButton: React.FC<{ field: string }> = ({ field }) => {
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         onClick={() => setShowTooltip(!showTooltip)}
-        className="inline-flex items-center justify-center w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors cursor-help text-xs"
+        className="inline-flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-help"
         aria-label="ヘルプを表示"
         title={description}
       >
-        ●
+        <AiOutlineQuestionCircle size={16} />
       </button>
       {showTooltip && (
         <div className="absolute z-50 w-56 p-2 mt-1 bg-gray-200 text-gray-800 text-xs rounded shadow left-6 top-0">
