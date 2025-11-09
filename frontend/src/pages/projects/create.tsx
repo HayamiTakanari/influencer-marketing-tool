@@ -1297,30 +1297,6 @@ const CreateProjectPage: React.FC = () => {
           </form>
       </Card>
 
-      {/* 作成のコツ */}
-      <div className="mt-8">
-        <Card padding="xl" className="bg-emerald-50/50">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">💡 効果的なプロジェクトを作るコツ</h3>
-          <div className="space-y-3 text-gray-700">
-            <div className="flex items-start space-x-3">
-              <span className="text-emerald-600 font-bold">•</span>
-              <p>明確な目標設定：具体的な数値目標（インプレッション数、エンゲージメント率など）を設定</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <span className="text-emerald-600 font-bold">•</span>
-              <p>詳細な商品説明：商品の特徴、使用方法、ターゲット層を詳しく記載</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <span className="text-emerald-600 font-bold">•</span>
-              <p>適切な予算設定：インフルエンサーのフォロワー数や影響力に見合った予算を設定</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <span className="text-emerald-600 font-bold">•</span>
-              <p>柔軟な条件設定：過度に厳しい条件はマッチング率を下げる可能性があります</p>
-            </div>
-          </div>
-        </Card>
-      </div>
     </DashboardLayout>
   );
 };
