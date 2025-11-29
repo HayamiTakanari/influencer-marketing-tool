@@ -9,3 +9,4 @@ router.get('/prefectures', influencer_controller_1.getPrefectures);
 router.get('/:id', influencer_controller_1.getInfluencerById);
 router.get('/:id/stats', influencer_controller_1.getInfluencerStats);
 exports.default = router;
+//# sourceMappingURL=influencer.routes.js.map

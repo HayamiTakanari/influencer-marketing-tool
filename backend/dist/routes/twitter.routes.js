@@ -22,3 +22,4 @@ router.use(auth_1.authenticate);
 // Verify and add Twitter account to influencer profile
 router.post('/verify-account', twitter_controller_1.verifyAndAddAccount);
 exports.default = router;
+//# sourceMappingURL=twitter.routes.js.map

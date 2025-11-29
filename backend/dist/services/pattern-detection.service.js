@@ -30,11 +30,11 @@ var AttackType;
     AttackType["BLIND_ATTACK"] = "blind_attack";
 })(AttackType || (exports.AttackType = AttackType = {}));
 class PatternDetectionService {
-    patternRules = new Map();
-    behaviorPatterns = new Map();
-    mlModel = null; // ML model placeholder
-    requestHistory = new Map();
     constructor() {
+        this.patternRules = new Map();
+        this.behaviorPatterns = new Map();
+        this.mlModel = null; // ML model placeholder
+        this.requestHistory = new Map();
         this.initializePatternRules();
         this.initializeBehaviorPatterns();
         this.initializeMLModel();
@@ -849,3 +849,4 @@ class PatternDetectionService {
 // シングルトンインスタンス
 exports.patternDetectionService = new PatternDetectionService();
 exports.default = PatternDetectionService;
+//# sourceMappingURL=pattern-detection.service.js.map

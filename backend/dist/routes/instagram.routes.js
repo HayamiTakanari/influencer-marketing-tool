@@ -22,3 +22,4 @@ router.use(auth_1.authenticate);
 // Verify and add Instagram account to influencer profile
 router.post('/verify-account', instagram_controller_1.verifyAndAddAccount);
 exports.default = router;
+//# sourceMappingURL=instagram.routes.js.map

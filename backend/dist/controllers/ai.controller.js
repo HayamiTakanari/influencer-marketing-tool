@@ -126,3 +126,4 @@ const recommendInfluencersForProject = async (req, res) => {
     }
 };
 exports.recommendInfluencersForProject = recommendInfluencersForProject;
+//# sourceMappingURL=ai.controller.js.map

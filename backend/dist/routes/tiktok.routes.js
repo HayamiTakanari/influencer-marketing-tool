@@ -36,3 +36,4 @@ router.post('/sync/:socialAccountId', tiktok_controller_1.syncAccount);
 // Delete TikTok account
 router.delete('/account/:socialAccountId', tiktok_controller_1.deleteAccount);
 exports.default = router;
+//# sourceMappingURL=tiktok.routes.js.map

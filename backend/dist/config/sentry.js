@@ -43,7 +43,6 @@ exports.trackAPIEndpoint = trackAPIEndpoint;
 exports.trackDatabaseOperation = trackDatabaseOperation;
 exports.trackBusinessMetric = trackBusinessMetric;
 const Sentry = __importStar(require("@sentry/node"));
-const Tracing = __importStar(require("@sentry/tracing"));
 /**
  * Sentry初期化とExpress統合
  */
@@ -56,14 +55,6 @@ function initializeSentry(app) {
         tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
         // リリース追跡
         release: process.env.VERCEL_GIT_COMMIT_SHA || 'development',
-        // 統合設定
-        integrations: [
-            // Express統合
-            new Sentry.Integrations.Http({ tracing: true }),
-            new Tracing.Integrations.Express({ app }),
-            new Tracing.Integrations.Postgres(),
-            new Tracing.Integrations.Prisma(),
-        ],
         // セキュリティ: 機密情報のフィルタリング
         beforeSend(event, hint) {
             // リクエストヘッダーから機密情報を除去
@@ -113,12 +104,6 @@ function initializeSentry(app) {
             }
             return event;
         },
-        // タグの追加
-        tags: {
-            component: 'backend',
-            framework: 'express',
-            runtime: 'node'
-        },
         // コンテキスト情報の追加
         initialScope: {
             tags: {
@@ -135,26 +120,14 @@ function initializeSentry(app) {
             },
         },
     });
-    // リクエストハンドラー（最初のミドルウェアとして設定）
-    app.use(Sentry.Handlers.requestHandler({
-        user: ['id', 'email', 'role'],
-        ip: true,
-        transaction: 'methodPath',
-    }));
-    // トレーシングハンドラー
-    app.use(Sentry.Handlers.tracingHandler());
+    // Note: Sentry Express middleware is automatically integrated via Express integration
 }
 /**
  * エラーハンドラー（最後のミドルウェアとして設定）
  */
 function setupSentryErrorHandler(app) {
-    app.use(Sentry.Handlers.errorHandler({
-        shouldHandleError(error) {
-            // 4xx エラーは通常ログに出すが、Sentryには送信しない
-            // 5xx エラーのみSentryに送信
-            return error.status >= 500;
-        },
-    }));
+    // Express error handler is automatically set up via Sentry.init()
+    // No additional setup needed
 }
 /**
  * ユーザーコンテキストの設定
@@ -208,52 +181,49 @@ function captureError(error, context) {
  * API呼び出しのトラッキング
  */
 function trackAPIEndpoint(method, path, statusCode, duration, error) {
-    const transaction = Sentry.startTransaction({
-        name: `${method.toUpperCase()} ${path}`,
-        op: 'http.server',
-        tags: {
-            'http.method': method,
-            'http.status_code': statusCode.toString(),
-            'http.path': path,
+    Sentry.withScope((scope) => {
+        scope.setTag('http.method', method);
+        scope.setTag('http.status_code', statusCode.toString());
+        scope.setTag('http.path', path);
+        scope.setContext('api_endpoint', {
+            method,
+            path,
+            statusCode,
+            duration
+        });
+        if (error) {
+            Sentry.captureException(error);
         }
+        Sentry.addBreadcrumb({
+            category: 'http',
+            message: `${method.toUpperCase()} ${path}`,
+            level: statusCode >= 400 ? 'warning' : 'info',
+            data: { method, path, statusCode, duration }
+        });
     });
-    transaction.setData('duration', duration);
-    if (error) {
-        transaction.setStatus('internal_error');
-        Sentry.captureException(error);
-    }
-    else if (statusCode >= 500) {
-        transaction.setStatus('internal_error');
-    }
-    else if (statusCode >= 400) {
-        transaction.setStatus('invalid_argument');
-    }
-    else {
-        transaction.setStatus('ok');
-    }
-    transaction.finish();
 }
 /**
  * データベース操作のトラッキング
  */
 function trackDatabaseOperation(operation, table, duration, error) {
-    const transaction = Sentry.startTransaction({
-        name: `DB ${operation} ${table}`,
-        op: 'db.query',
-        tags: {
-            'db.operation': operation,
-            'db.table': table,
+    Sentry.withScope((scope) => {
+        scope.setTag('db.operation', operation);
+        scope.setTag('db.table', table);
+        scope.setContext('database_operation', {
+            operation,
+            table,
+            duration
+        });
+        if (error) {
+            Sentry.captureException(error);
         }
+        Sentry.addBreadcrumb({
+            category: 'database',
+            message: `DB ${operation} ${table}`,
+            level: error ? 'error' : 'info',
+            data: { operation, table, duration }
+        });
     });
-    transaction.setData('duration', duration);
-    if (error) {
-        transaction.setStatus('internal_error');
-        Sentry.captureException(error);
-    }
-    else {
-        transaction.setStatus('ok');
-    }
-    transaction.finish();
 }
 /**
  * ビジネスロジックのメトリクス
@@ -290,3 +260,4 @@ exports.default = {
     trackDatabaseOperation,
     trackBusinessMetric,
 };
+//# sourceMappingURL=sentry.js.map

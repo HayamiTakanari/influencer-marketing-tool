@@ -29,10 +29,10 @@ var BlacklistSeverity;
     BlacklistSeverity["CRITICAL"] = "CRITICAL";
 })(BlacklistSeverity || (exports.BlacklistSeverity = BlacklistSeverity = {}));
 class IPBlacklistService {
-    blacklistRules = new Map();
-    geoThreatIntel = new Map();
-    reputationCache = new Map();
     constructor() {
+        this.blacklistRules = new Map();
+        this.geoThreatIntel = new Map();
+        this.reputationCache = new Map();
         this.initializeDefaultRules();
         this.startPeriodicTasks();
     }
@@ -43,15 +43,21 @@ class IPBlacklistService {
         try {
             const entry = await prisma.iPBlacklist.findFirst({
                 where: {
-                    OR: [
-                        { ipAddress },
-                        // CIDR範囲での検索も可能（簡略化版）
-                        { cidr: { not: null } }
-                    ],
-                    isActive: true,
-                    OR: [
-                        { expiresAt: null },
-                        { expiresAt: { gt: new Date() } }
+                    AND: [
+                        {
+                            OR: [
+                                { ipAddress },
+                                // CIDR範囲での検索も可能（簡略化版）
+                                { cidr: { not: null } }
+                            ]
+                        },
+                        { isActive: true },
+                        {
+                            OR: [
+                                { expiresAt: null },
+                                { expiresAt: { gt: new Date() } }
+                            ]
+                        }
                     ]
                 }
             });
@@ -763,3 +769,4 @@ class IPBlacklistService {
 // シングルトンインスタンス
 exports.ipBlacklistService = new IPBlacklistService();
 exports.default = IPBlacklistService;
+//# sourceMappingURL=ip-blacklist.service.js.map

@@ -376,3 +376,4 @@ const getProfileCompletion = async (req, res) => {
     }
 };
 exports.getProfileCompletion = getProfileCompletion;
+//# sourceMappingURL=profile.controller.js.map

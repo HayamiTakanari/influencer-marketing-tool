@@ -12,3 +12,4 @@ router.use(auth_1.authenticate);
 // Get AI recommendations for a project
 router.post('/recommend-influencers-for-project', ai_controller_1.recommendInfluencersForProject);
 exports.default = router;
+//# sourceMappingURL=ai.routes.js.map

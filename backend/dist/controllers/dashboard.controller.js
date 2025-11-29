@@ -178,3 +178,4 @@ const getDashboardData = async (req, res) => {
     }
 };
 exports.getDashboardData = getDashboardData;
+//# sourceMappingURL=dashboard.controller.js.map

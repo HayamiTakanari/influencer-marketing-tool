@@ -7,8 +7,8 @@ const tiktok_service_1 = require("./tiktok.service");
 const prisma = new client_1.PrismaClient();
 // Twitter API service
 class TwitterService {
-    client = null;
     constructor() {
+        this.client = null;
         if (process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET) {
             this.client = new twitter_api_v2_1.TwitterApi({
                 appKey: process.env.TWITTER_API_KEY,
@@ -81,7 +81,6 @@ class TwitterService {
 exports.TwitterService = TwitterService;
 // Instagram Basic Display API service
 class InstagramService {
-    accessToken;
     constructor(accessToken) {
         this.accessToken = accessToken;
     }
@@ -127,7 +126,6 @@ class InstagramService {
 exports.InstagramService = InstagramService;
 // YouTube Data API service
 class YouTubeService {
-    apiKey;
     constructor() {
         this.apiKey = process.env.YOUTUBE_API_KEY;
     }
@@ -210,9 +208,6 @@ class YouTubeService {
 exports.YouTubeService = YouTubeService;
 // SNS synchronization service
 class SNSSyncService {
-    twitterService;
-    youtubeService;
-    tiktokService;
     constructor() {
         this.twitterService = new TwitterService();
         this.youtubeService = new YouTubeService();
@@ -345,3 +340,4 @@ class SNSSyncService {
     }
 }
 exports.SNSSyncService = SNSSyncService;
+//# sourceMappingURL=sns.service.js.map

@@ -18,3 +18,4 @@ router.put('/:id', auth_1.authenticate, achievement_controller_1.updateAchieveme
 // 実績削除
 router.delete('/:id', auth_1.authenticate, achievement_controller_1.deleteAchievement);
 exports.default = router;
+//# sourceMappingURL=achievement.routes.js.map

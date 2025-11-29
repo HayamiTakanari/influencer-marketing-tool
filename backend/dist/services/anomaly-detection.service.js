@@ -34,11 +34,11 @@ var ThreatLevel;
     ThreatLevel["CRITICAL"] = "critical";
 })(ThreatLevel || (exports.ThreatLevel = ThreatLevel = {}));
 class AnomalyDetectionService {
-    detectionRules = new Map();
-    recentActivity = new Map(); // IP別の最近の活動
-    geoCache = new Map(); // 地理的位置のキャッシュ
-    detectionHistory = [];
     constructor() {
+        this.detectionRules = new Map();
+        this.recentActivity = new Map(); // IP別の最近の活動
+        this.geoCache = new Map(); // 地理的位置のキャッシュ
+        this.detectionHistory = [];
         this.initializeDefaultRules();
         this.startPeriodicCleanup();
     }
@@ -714,3 +714,4 @@ class AnomalyDetectionService {
 // シングルトンインスタンス
 exports.anomalyDetectionService = new AnomalyDetectionService();
 exports.default = AnomalyDetectionService;
+//# sourceMappingURL=anomaly-detection.service.js.map

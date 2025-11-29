@@ -22,3 +22,4 @@ router.get('/users', admin_controller_1.getUsers);
 router.patch('/users/:userId/status', admin_controller_1.updateUserStatus);
 router.delete('/users/:userId', admin_controller_1.deleteUser);
 exports.default = router;
+//# sourceMappingURL=admin.routes.js.map

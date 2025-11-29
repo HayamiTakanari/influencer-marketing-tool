@@ -28,3 +28,4 @@ exports.updateMilestoneSchema = zod_1.z.object({
 exports.createProjectScheduleSchema = exports.projectScheduleSchema;
 exports.createMilestoneSchema = exports.milestoneSchema;
 exports.updateMilestoneSchemaExport = exports.updateMilestoneSchema;
+//# sourceMappingURL=schedule.js.map

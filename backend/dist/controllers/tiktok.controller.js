@@ -394,3 +394,4 @@ const searchVideos = async (req, res) => {
     }
 };
 exports.searchVideos = searchVideos;
+//# sourceMappingURL=tiktok.controller.js.map

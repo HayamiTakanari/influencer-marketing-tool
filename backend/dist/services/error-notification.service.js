@@ -40,9 +40,6 @@ exports.errorNotificationService = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const sentry_1 = require("../config/sentry");
 class ErrorNotificationService {
-    config;
-    notificationCounts;
-    recentErrors; // エラーの最後の通知時刻
     constructor() {
         this.config = {
             channels: [
@@ -172,7 +169,7 @@ class ErrorNotificationService {
     async sendEmailNotification(incident, config) {
         if (!config.recipients?.length)
             return;
-        const transporter = nodemailer_1.default.createTransporter({
+        const transporter = nodemailer_1.default.createTransport({
             host: config.smtpHost,
             port: config.smtpPort,
             secure: config.smtpPort === 465,
@@ -452,3 +449,4 @@ class ErrorNotificationService {
 // シングルトンインスタンス
 exports.errorNotificationService = new ErrorNotificationService();
 exports.default = ErrorNotificationService;
+//# sourceMappingURL=error-notification.service.js.map

@@ -16,3 +16,4 @@ router.get('/performance', analytics_controller_1.getPerformanceMetrics);
 // Get comparison data (influencers only)
 router.get('/comparison', analytics_controller_1.getComparisonData);
 exports.default = router;
+//# sourceMappingURL=analytics.routes.js.map

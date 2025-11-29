@@ -13,3 +13,4 @@ router.get('/sync-status', (0, auth_1.authorizeRole)(['INFLUENCER', 'ADMIN']), s
 router.post('/sync-all-influencers', (0, auth_1.authorizeRole)(['ADMIN']), sns_controller_1.syncAllInfluencers);
 router.get('/status', (0, auth_1.authorizeRole)(['ADMIN']), sns_controller_1.getSyncStatus);
 exports.default = router;
+//# sourceMappingURL=sns.routes.js.map

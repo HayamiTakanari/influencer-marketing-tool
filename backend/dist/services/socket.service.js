@@ -170,3 +170,4 @@ const setupSocketServer = (server) => {
     return io;
 };
 exports.setupSocketServer = setupSocketServer;
+//# sourceMappingURL=socket.service.js.map

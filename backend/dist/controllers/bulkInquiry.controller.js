@@ -337,3 +337,4 @@ const getInquiryStats = async (req, res) => {
     }
 };
 exports.getInquiryStats = getInquiryStats;
+//# sourceMappingURL=bulkInquiry.controller.js.map

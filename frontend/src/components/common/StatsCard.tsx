@@ -5,7 +5,8 @@ interface StatsCardProps {
   value: string | number;
   icon?: React.ReactNode;
   badge?: {
-    text: string;
+    text?: string;
+    label?: string;
     color: 'blue' | 'green' | 'yellow' | 'red' | 'gray';
   };
   trend?: {
@@ -38,7 +39,7 @@ const StatsCard: React.FC<StatsCardProps> = React.memo(({
         </div>
         {badge && (
           <span className={`px-2 py-1 rounded text-xs font-medium ${badgeColors[badge.color]}`}>
-            {badge.text}
+            {badge.text || badge.label}
           </span>
         )}
       </div>

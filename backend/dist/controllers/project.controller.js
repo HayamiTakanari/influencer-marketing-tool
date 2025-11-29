@@ -1024,3 +1024,4 @@ const updateProjectStatus = async (req, res) => {
     }
 };
 exports.updateProjectStatus = updateProjectStatus;
+//# sourceMappingURL=project.controller.js.map

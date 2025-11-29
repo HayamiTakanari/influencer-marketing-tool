@@ -14,3 +14,4 @@ router.get('/history', payment_controller_1.getPaymentHistory);
 router.post('/refund/:transactionId', payment_controller_1.refundPayment);
 router.get('/stats', payment_controller_1.getPaymentStats);
 exports.default = router;
+//# sourceMappingURL=payment.routes.js.map

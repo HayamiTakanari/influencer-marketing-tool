@@ -6,9 +6,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InstagramService = void 0;
 class InstagramService {
-    apiKey;
-    apiHost;
-    baseUrl;
     constructor() {
         this.apiKey = process.env.RAPIDAPI_INSTAGRAM_KEY || '';
         this.apiHost = process.env.RAPIDAPI_INSTAGRAM_HOST || 'instagram-api1.p.rapidapi.com';
@@ -64,3 +61,4 @@ class InstagramService {
 }
 exports.InstagramService = InstagramService;
 exports.default = new InstagramService();
+//# sourceMappingURL=instagram.service.js.map

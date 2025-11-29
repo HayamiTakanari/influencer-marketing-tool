@@ -20,3 +20,4 @@ router.put('/:id', auth_1.authenticate, servicePricing_controller_1.updateServic
 // 料金設定削除
 router.delete('/:id', auth_1.authenticate, servicePricing_controller_1.deleteServicePricing);
 exports.default = router;
+//# sourceMappingURL=servicePricing.routes.js.map

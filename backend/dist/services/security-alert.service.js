@@ -36,8 +36,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.securityAlertService = void 0;
 const xss_detection_engine_1 = require("../utils/xss-detection-engine");
 class SecurityAlertService {
-    alertConfig;
-    alertCounts;
     constructor() {
         this.alertConfig = {
             channels: [
@@ -322,7 +320,7 @@ class SecurityAlertService {
             return;
         try {
             const nodemailer = await Promise.resolve().then(() => __importStar(require('nodemailer')));
-            const transporter = nodemailer.createTransporter({
+            const transporter = nodemailer.createTransport({
                 host: config.smtpHost,
                 port: config.smtpPort,
                 secure: config.smtpPort === 465,
@@ -502,3 +500,4 @@ class SecurityAlertService {
 // シングルトンインスタンス
 exports.securityAlertService = new SecurityAlertService();
 exports.default = SecurityAlertService;
+//# sourceMappingURL=security-alert.service.js.map

@@ -6,9 +6,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TwitterService = void 0;
 class TwitterService {
-    apiKey;
-    apiHost;
-    baseUrl;
     constructor() {
         this.apiKey = process.env.RAPIDAPI_TWITTER_KEY || '';
         this.apiHost = process.env.RAPIDAPI_TWITTER_HOST || 'twitter-api.p.rapidapi.com';
@@ -64,3 +61,4 @@ class TwitterService {
 }
 exports.TwitterService = TwitterService;
 exports.default = new TwitterService();
+//# sourceMappingURL=twitter.service.js.map

@@ -323,3 +323,4 @@ router.get('/status', auth_1.authenticate, async (req, res) => {
     }
 });
 exports.default = router;
+//# sourceMappingURL=oauth.js.map

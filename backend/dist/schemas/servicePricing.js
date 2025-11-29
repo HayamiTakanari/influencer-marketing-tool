@@ -22,3 +22,4 @@ exports.servicePricingSchema = zod_1.z.object({
 exports.createServicePricingSchema = exports.servicePricingSchema;
 exports.updateServicePricingSchema = exports.servicePricingSchema.partial();
 exports.bulkServicePricingSchema = zod_1.z.array(exports.servicePricingSchema).min(1, '少なくとも1つのサービス料金を設定してください');
+//# sourceMappingURL=servicePricing.js.map

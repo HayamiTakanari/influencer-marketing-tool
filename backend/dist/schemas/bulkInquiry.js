@@ -29,3 +29,4 @@ exports.inquiryResponseSchema = zod_1.z.object({
 });
 exports.createBulkInquirySchema = exports.bulkInquirySchema;
 exports.updateInquiryResponseSchema = exports.inquiryResponseSchema;
+//# sourceMappingURL=bulkInquiry.js.map

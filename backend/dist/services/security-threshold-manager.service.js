@@ -8,10 +8,10 @@ const client_1 = require("@prisma/client");
  */
 const prisma = new client_1.PrismaClient();
 class SecurityThresholdManagerService {
-    thresholds = new Map();
-    configurations = new Map();
-    rules = new Map();
     constructor() {
+        this.thresholds = new Map();
+        this.configurations = new Map();
+        this.rules = new Map();
         this.initializeDefaultThresholds();
     }
     /**
@@ -484,3 +484,4 @@ class SecurityThresholdManagerService {
 // シングルトンインスタンス
 exports.securityThresholdManagerService = new SecurityThresholdManagerService();
 exports.default = SecurityThresholdManagerService;
+//# sourceMappingURL=security-threshold-manager.service.js.map

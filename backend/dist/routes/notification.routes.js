@@ -22,3 +22,4 @@ router.delete('/:notificationId', notification_controller_1.deleteNotification);
 // Create system announcement (admin only)
 router.post('/system-announcement', notification_controller_1.createSystemAnnouncement);
 exports.default = router;
+//# sourceMappingURL=notification.routes.js.map

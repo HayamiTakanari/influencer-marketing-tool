@@ -74,3 +74,4 @@ exports.userQuerySchema = zod_1.z.object({
 exports.idParamSchema = zod_1.z.object({
     id: zod_1.z.string().cuid('Invalid ID format'),
 });
+//# sourceMappingURL=auth.js.map

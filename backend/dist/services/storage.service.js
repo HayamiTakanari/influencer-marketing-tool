@@ -205,3 +205,4 @@ async function getStorageStatistics() {
         throw error;
     }
 }
+//# sourceMappingURL=storage.service.js.map

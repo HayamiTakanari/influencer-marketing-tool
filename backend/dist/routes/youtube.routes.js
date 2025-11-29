@@ -22,3 +22,4 @@ router.use(auth_1.authenticate);
 // Verify and add YouTube channel to influencer profile
 router.post('/verify-account', youtube_controller_1.verifyAndAddAccount);
 exports.default = router;
+//# sourceMappingURL=youtube.routes.js.map

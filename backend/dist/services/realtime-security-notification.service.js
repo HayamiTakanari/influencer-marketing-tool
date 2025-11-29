@@ -62,13 +62,13 @@ var NotificationChannel;
     NotificationChannel["TEAMS"] = "teams";
 })(NotificationChannel || (exports.NotificationChannel = NotificationChannel = {}));
 class RealtimeSecurityNotificationService {
-    notificationRules = new Map();
-    threatHistory = [];
-    channelConfigs = new Map();
-    notificationCounts = new Map();
-    activeThreats = new Map();
-    escalationTracking = new Map();
     constructor() {
+        this.notificationRules = new Map();
+        this.threatHistory = [];
+        this.channelConfigs = new Map();
+        this.notificationCounts = new Map();
+        this.activeThreats = new Map();
+        this.escalationTracking = new Map();
         this.initializeNotificationRules();
         this.initializeChannelConfigs();
         this.startPeriodicTasks();
@@ -327,7 +327,7 @@ class RealtimeSecurityNotificationService {
     async sendEmailNotification(threat, config) {
         if (!config.recipients?.length)
             return;
-        const transporter = nodemailer_1.default.createTransporter({
+        const transporter = nodemailer_1.default.createTransport({
             host: config.smtpHost,
             port: config.smtpPort,
             secure: config.smtpPort === 465,
@@ -1066,3 +1066,4 @@ class RealtimeSecurityNotificationService {
 // シングルトンインスタンス
 exports.realtimeSecurityNotificationService = new RealtimeSecurityNotificationService();
 exports.default = RealtimeSecurityNotificationService;
+//# sourceMappingURL=realtime-security-notification.service.js.map

@@ -9,11 +9,11 @@ const security_log_analysis_service_1 = require("./security-log-analysis.service
 const security_threshold_manager_service_1 = require("./security-threshold-manager.service");
 const sentry_1 = require("../config/sentry");
 class SecurityOrchestratorService {
-    threatIntelligence = new Map();
-    activeAnalysis = new Map();
-    processingQueue = [];
-    isProcessing = false;
     constructor() {
+        this.threatIntelligence = new Map();
+        this.activeAnalysis = new Map();
+        this.processingQueue = [];
+        this.isProcessing = false;
         this.startBackgroundProcessing();
         this.startPeriodicTasks();
     }
@@ -933,3 +933,4 @@ class SecurityOrchestratorService {
 // シングルトンインスタンス
 exports.securityOrchestratorService = new SecurityOrchestratorService();
 exports.default = SecurityOrchestratorService;
+//# sourceMappingURL=security-orchestrator.service.js.map

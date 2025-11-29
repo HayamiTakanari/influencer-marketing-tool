@@ -283,3 +283,4 @@ const getChatList = async (req, res) => {
     }
 };
 exports.getChatList = getChatList;
+//# sourceMappingURL=chat.controller.js.map

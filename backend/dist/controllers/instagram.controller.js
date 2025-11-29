@@ -138,3 +138,4 @@ const verifyAndAddAccount = async (req, res) => {
     }
 };
 exports.verifyAndAddAccount = verifyAndAddAccount;
+//# sourceMappingURL=instagram.controller.js.map

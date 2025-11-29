@@ -19,3 +19,4 @@ router.put('/portfolio/:id', profile_controller_1.updatePortfolio);
 router.delete('/portfolio/:id', profile_controller_1.deletePortfolio);
 router.post('/portfolio/:portfolioId/image', profile_controller_1.uploadPortfolioImage);
 exports.default = router;
+//# sourceMappingURL=profile.routes.js.map

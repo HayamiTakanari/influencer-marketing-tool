@@ -445,3 +445,4 @@ async function logXSSDetection(input, result, userId, ipAddress) {
         console.error('Failed to log XSS detection:', error);
     }
 }
+//# sourceMappingURL=xss-detection-engine.js.map

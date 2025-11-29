@@ -43,3 +43,4 @@ router.put('/:projectId/status', project_controller_1.updateProjectStatus);
 // Delete project (for clients)
 router.delete('/:projectId', project_controller_1.deleteProject);
 exports.default = router;
+//# sourceMappingURL=project.routes.js.map

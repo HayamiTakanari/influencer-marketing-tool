@@ -222,3 +222,4 @@ const getAchievementStats = async (req, res) => {
     }
 };
 exports.getAchievementStats = getAchievementStats;
+//# sourceMappingURL=achievement.controller.js.map

@@ -566,3 +566,4 @@ const getComparisonData = async (req, res) => {
     }
 };
 exports.getComparisonData = getComparisonData;
+//# sourceMappingURL=analytics.controller.js.map

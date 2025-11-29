@@ -38,11 +38,6 @@ var ErrorSeverity;
  * カスタムAPIエラークラス
  */
 class CustomAPIError extends Error {
-    status;
-    code;
-    category;
-    severity;
-    context;
     constructor(message, status = 500, code = 'INTERNAL_ERROR', category = ErrorCategory.SYSTEM, severity = ErrorSeverity.MEDIUM, context = {}) {
         super(message);
         this.name = 'CustomAPIError';
@@ -396,3 +391,4 @@ exports.default = {
     trackExternalAPIIssue,
     trackBusinessIssue,
 };
+//# sourceMappingURL=api-error-tracker.js.map

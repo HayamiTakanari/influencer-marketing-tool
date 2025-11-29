@@ -331,3 +331,4 @@ const updateProjectProgress = async (req, res) => {
     }
 };
 exports.updateProjectProgress = updateProjectProgress;
+//# sourceMappingURL=admin.controller.js.map

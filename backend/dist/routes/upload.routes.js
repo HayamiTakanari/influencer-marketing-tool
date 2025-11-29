@@ -48,3 +48,4 @@ router.post('/achievement-image', auth_1.authenticate, upload_1.upload.single('i
     }
 });
 exports.default = router;
+//# sourceMappingURL=upload.routes.js.map

@@ -6,9 +6,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.YouTubeService = void 0;
 class YouTubeService {
-    apiKey;
-    apiHost;
-    baseUrl;
     constructor() {
         this.apiKey = process.env.RAPIDAPI_YOUTUBE_KEY || '';
         this.apiHost = process.env.RAPIDAPI_YOUTUBE_HOST || 'youtube-v3-api.p.rapidapi.com';
@@ -64,3 +61,4 @@ class YouTubeService {
 }
 exports.YouTubeService = YouTubeService;
 exports.default = new YouTubeService();
+//# sourceMappingURL=youtube.service.js.map

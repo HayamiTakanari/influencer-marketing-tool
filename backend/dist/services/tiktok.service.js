@@ -6,9 +6,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TikTokService = void 0;
 class TikTokService {
-    apiKey;
-    apiHost;
-    baseUrl;
     constructor() {
         this.apiKey = process.env.RAPIDAPI_TIKTOK_KEY || '';
         this.apiHost = process.env.RAPIDAPI_TIKTOK_HOST || 'tiktok-video-no-watermark2.p.rapidapi.com';
@@ -307,3 +304,4 @@ class TikTokService {
 }
 exports.TikTokService = TikTokService;
 exports.default = new TikTokService();
+//# sourceMappingURL=tiktok.service.js.map

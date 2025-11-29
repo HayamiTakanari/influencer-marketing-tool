@@ -42,3 +42,4 @@ const verifySNSConnections = async (req, res, next) => {
     }
 };
 exports.verifySNSConnections = verifySNSConnections;
+//# sourceMappingURL=sns-verification.js.map

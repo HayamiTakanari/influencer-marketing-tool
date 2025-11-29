@@ -30,3 +30,4 @@ router.post('/login', security_1.authRateLimit, // レート制限
 (0, validation_1.validate)(auth_1.loginSchema), // スキーマ検証
 auth_controller_1.login);
 exports.default = router;
+//# sourceMappingURL=auth.routes.js.map

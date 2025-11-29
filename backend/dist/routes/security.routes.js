@@ -13,3 +13,4 @@ security_controller_1.handleXSSAttempt);
 // セキュリティ統計情報（管理者のみ）
 router.get('/stats', auth_1.authenticate, security_controller_1.getSecurityStats);
 exports.default = router;
+//# sourceMappingURL=security.routes.js.map

@@ -5,12 +5,9 @@ const client_1 = require("@prisma/client");
 const sentry_1 = require("../config/sentry");
 const prisma = new client_1.PrismaClient();
 class AdaptiveRateLimiter {
-    config;
-    metrics;
-    emergencyModeActive = false;
-    emergencyModeEndTime;
-    adaptiveLearningData = new Map();
     constructor(config = {}) {
+        this.emergencyModeActive = false;
+        this.adaptiveLearningData = new Map();
         this.config = {
             globalEnabled: true,
             rules: [],
@@ -695,3 +692,4 @@ class AdaptiveRateLimiter {
 // シングルトンインスタンス
 exports.adaptiveRateLimiter = new AdaptiveRateLimiter();
 exports.default = AdaptiveRateLimiter;
+//# sourceMappingURL=adaptive-rate-limiter.js.map

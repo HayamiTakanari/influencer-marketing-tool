@@ -69,11 +69,11 @@ var SecuritySeverity;
     SecuritySeverity["CRITICAL"] = "CRITICAL";
 })(SecuritySeverity || (exports.SecuritySeverity = SecuritySeverity = {}));
 class SecurityLogAnalysisService {
-    logBuffer = [];
-    analyticsCache = new Map();
-    BUFFER_SIZE = 1000;
-    CACHE_TTL = 5 * 60 * 1000; // 5分
     constructor() {
+        this.logBuffer = [];
+        this.analyticsCache = new Map();
+        this.BUFFER_SIZE = 1000;
+        this.CACHE_TTL = 5 * 60 * 1000; // 5分
         this.startPeriodicTasks();
     }
     /**
@@ -986,3 +986,4 @@ class SecurityLogAnalysisService {
 // シングルトンインスタンス
 exports.securityLogAnalysisService = new SecurityLogAnalysisService();
 exports.default = SecurityLogAnalysisService;
+//# sourceMappingURL=security-log-analysis.service.js.map

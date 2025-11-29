@@ -319,3 +319,4 @@ exports.default = {
     sanitizeSqlString,
     sanitizeByContext: exports.sanitizeByContext
 };
+//# sourceMappingURL=xss-protection.js.map
