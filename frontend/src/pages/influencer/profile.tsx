@@ -72,6 +72,16 @@ const ProfilePage: React.FC = () => {
   const router = useRouter();
   const { handleError, handleSuccess } = useErrorHandler();
 
+  // URL query parameter から activeTab を更新
+  useEffect(() => {
+    if (router.isReady) {
+      const tabParam = router.query.tab as string;
+      if (tabParam && ['basic', 'social', 'portfolio', 'invoice', 'working'].includes(tabParam)) {
+        setActiveTab(tabParam as 'basic' | 'social' | 'portfolio' | 'invoice' | 'working');
+      }
+    }
+  }, [router.isReady, router.query.tab]);
+
   const [formData, setFormData] = useState({
     displayName: '',
     bio: '',
@@ -665,7 +675,7 @@ const ProfilePage: React.FC = () => {
         <div className="border-b border-gray-200">
           <div className="flex space-x-1">
             <button
-              onClick={() => setActiveTab('basic')}
+              onClick={() => router.push('/influencer/profile?tab=basic')}
               className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === 'basic'
                   ? 'border-emerald-500 text-emerald-600'
@@ -675,7 +685,7 @@ const ProfilePage: React.FC = () => {
               基本情報
             </button>
             <button
-              onClick={() => setActiveTab('social')}
+              onClick={() => router.push('/influencer/profile?tab=social')}
               className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === 'social'
                   ? 'border-emerald-500 text-emerald-600'
@@ -685,7 +695,7 @@ const ProfilePage: React.FC = () => {
               SNS
             </button>
             <button
-              onClick={() => setActiveTab('portfolio')}
+              onClick={() => router.push('/influencer/profile?tab=portfolio')}
               className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === 'portfolio'
                   ? 'border-emerald-500 text-emerald-600'
@@ -697,7 +707,7 @@ const ProfilePage: React.FC = () => {
             {user?.role === 'INFLUENCER' && (
               <>
                 <button
-                  onClick={() => setActiveTab('invoice')}
+                  onClick={() => router.push('/influencer/profile?tab=invoice')}
                   className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                     activeTab === 'invoice'
                       ? 'border-emerald-500 text-emerald-600'
@@ -707,7 +717,7 @@ const ProfilePage: React.FC = () => {
                   請求先
                 </button>
                 <button
-                  onClick={() => setActiveTab('working')}
+                  onClick={() => router.push('/influencer/profile?tab=working')}
                   className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                     activeTab === 'working'
                       ? 'border-emerald-500 text-emerald-600'

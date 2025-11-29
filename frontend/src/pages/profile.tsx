@@ -7,6 +7,14 @@ import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
 import LoadingState from '../components/common/LoadingState';
 import ProfileCompletionCard from '../components/common/ProfileCompletionCard';
+import TikTokAccountVerification from '../components/TikTokAccountVerification';
+import TikTokAccountManager from '../components/TikTokAccountManager';
+import InstagramAccountVerification from '../components/InstagramAccountVerification';
+import InstagramAccountManager from '../components/InstagramAccountManager';
+import YouTubeAccountVerification from '../components/YouTubeAccountVerification';
+import YouTubeAccountManager from '../components/YouTubeAccountManager';
+import TwitterAccountVerification from '../components/TwitterAccountVerification';
+import TwitterAccountManager from '../components/TwitterAccountManager';
 import { validateInfluencerInvoiceInfo } from '../utils/invoiceValidation';
 import { WorkingStatus, Platform } from '../types';
 import api from '../services/api';
@@ -71,6 +79,16 @@ const ProfilePage: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const router = useRouter();
   const { handleError, handleSuccess } = useErrorHandler();
+
+  // URL query parameter から activeTab を更新
+  useEffect(() => {
+    if (router.isReady) {
+      const tabParam = router.query.tab as string;
+      if (tabParam && ['basic', 'social', 'portfolio', 'invoice', 'working'].includes(tabParam)) {
+        setActiveTab(tabParam as 'basic' | 'social' | 'portfolio' | 'invoice' | 'working');
+      }
+    }
+  }, [router.isReady, router.query.tab]);
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -665,7 +683,7 @@ const ProfilePage: React.FC = () => {
         <div className="border-b border-gray-200">
           <div className="flex space-x-1">
             <button
-              onClick={() => setActiveTab('basic')}
+              onClick={() => router.push('/profile?tab=basic')}
               className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === 'basic'
                   ? 'border-emerald-500 text-emerald-600'
@@ -675,7 +693,7 @@ const ProfilePage: React.FC = () => {
               基本情報
             </button>
             <button
-              onClick={() => setActiveTab('social')}
+              onClick={() => router.push('/profile?tab=social')}
               className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === 'social'
                   ? 'border-emerald-500 text-emerald-600'
@@ -685,7 +703,7 @@ const ProfilePage: React.FC = () => {
               SNS
             </button>
             <button
-              onClick={() => setActiveTab('portfolio')}
+              onClick={() => router.push('/profile?tab=portfolio')}
               className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === 'portfolio'
                   ? 'border-emerald-500 text-emerald-600'
@@ -697,7 +715,7 @@ const ProfilePage: React.FC = () => {
             {user?.role === 'INFLUENCER' && (
               <>
                 <button
-                  onClick={() => setActiveTab('invoice')}
+                  onClick={() => router.push('/profile?tab=invoice')}
                   className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                     activeTab === 'invoice'
                       ? 'border-emerald-500 text-emerald-600'
@@ -707,7 +725,7 @@ const ProfilePage: React.FC = () => {
                   請求先
                 </button>
                 <button
-                  onClick={() => setActiveTab('working')}
+                  onClick={() => router.push('/profile?tab=working')}
                   className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
                     activeTab === 'working'
                       ? 'border-emerald-500 text-emerald-600'
@@ -1068,28 +1086,39 @@ const ProfilePage: React.FC = () => {
                       {Object.values(Platform).map((platform) => {
                         const status = oauthConnectionStatus.find(s => s.platform === platform);
                         const isConnected = status?.isConnected || false;
+                        // Instagram, YouTube, Twitterは開発中として非活性化
+                        const isInDevelopment = ['INSTAGRAM', 'YOUTUBE', 'TWITTER'].includes(platform);
 
                         return (
-                          <div key={platform} className="border rounded-lg p-4">
+                          <div key={platform} className={`border rounded-lg p-4 ${isInDevelopment ? 'bg-gray-100 border-gray-300' : ''}`}>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
                                 <div className={`p-2 rounded-lg text-white ${getSNSPlatformColor(platform)}`}>
                                   {getSNSPlatformIcon(platform)}
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold text-gray-800">{platform}</h4>
+                                  <h4 className={`font-semibold ${isInDevelopment ? 'text-gray-500' : 'text-gray-800'}`}>{platform}</h4>
                                   {isConnected && status ? (
                                     <div className="text-sm text-gray-600">
                                       <p>@{status.username}</p>
                                       <p>フォロワー: {status.followerCount?.toLocaleString() || 0}</p>
                                     </div>
+                                  ) : isInDevelopment ? (
+                                    <p className="text-sm text-gray-500">【開発中】</p>
                                   ) : (
                                     <p className="text-sm text-gray-500">未連携</p>
                                   )}
                                 </div>
                               </div>
                               <div>
-                                {isConnected ? (
+                                {isInDevelopment ? (
+                                  <button
+                                    disabled
+                                    className="px-3 py-1 text-sm text-gray-400 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+                                  >
+                                    開発中
+                                  </button>
+                                ) : isConnected ? (
                                   <button
                                     onClick={() => handleOAuthDisconnect(platform)}
                                     className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50 transition-colors"
@@ -1118,6 +1147,36 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </>
               )}
+
+              {/* TikTok アカウント認証・管理セクション */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">TikTok アカウント</h3>
+                {profile?.socialAccounts?.find(acc => acc.platform === 'TIKTOK') ? (
+                  // 既存のTikTokアカウントを管理
+                  <TikTokAccountManager
+                    socialAccountId={profile.socialAccounts.find(acc => acc.platform === 'TIKTOK')?.id}
+                    username={profile.socialAccounts.find(acc => acc.platform === 'TIKTOK')?.username}
+                    onRefresh={() => fetchProfile()}
+                  />
+                ) : (
+                  // TikTokアカウントを新規認証
+                  <TikTokAccountVerification
+                    onSuccess={() => {
+                      setMessage({
+                        type: 'success',
+                        text: 'TikTok アカウントが正常に追加されました！',
+                      });
+                      fetchProfile();
+                    }}
+                    onError={(error) => {
+                      setMessage({
+                        type: 'error',
+                        text: `エラー: ${error}`,
+                      });
+                    }}
+                  />
+                )}
+              </div>
 
               {/* 既存のSNSアカウント */}
               <div>
