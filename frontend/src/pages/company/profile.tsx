@@ -50,8 +50,39 @@ const CompanyProfilePage: React.FC = () => {
     }));
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+      // 企業情報をバックエンドに送信
+      const response = await fetch(`${apiBaseUrl}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          // プロフィール用フィールドのみ送信
+          displayName: formData.companyName,
+          address: formData.address,
+          phoneNumber: formData.contactPhone,
+          bio: formData.description,
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+
+      const data = await response.json();
+      console.log('Profile saved successfully:', data);
+      setIsEditing(false);
+      alert('プロフィールが保存されました');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('プロフィールの保存に失敗しました');
+    }
   };
 
   if (loading) {
