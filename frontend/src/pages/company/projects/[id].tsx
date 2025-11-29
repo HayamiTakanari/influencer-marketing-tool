@@ -6,7 +6,7 @@ import Card from '../../../components/shared/Card';
 import Button from '../../../components/shared/Button';
 import LoadingState from '../../../components/common/LoadingState';
 import EmptyState from '../../../components/common/EmptyState';
-import api from '../../../services/api';
+import { supabase } from '../../../lib/supabase';
 
 interface ProjectDetails {
   id: string;
@@ -51,9 +51,21 @@ const ProjectDetailPage: React.FC = () => {
 
   const fetchProjectDetails = async (projectId: string) => {
     try {
-      const response = await api.get(`/projects/${projectId}`);
-      setProject(response.data.project || response.data);
-      setError('');
+      const { data, error } = await supabase
+        .from('Project')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        setError('プロジェクトの取得に失敗しました。');
+      } else if (data) {
+        setProject(data as ProjectDetails);
+        setError('');
+      } else {
+        setError('プロジェクトが見つかりません。');
+      }
     } catch (err: any) {
       console.error('Error fetching project:', err);
       setError('プロジェクトの取得に失敗しました。');

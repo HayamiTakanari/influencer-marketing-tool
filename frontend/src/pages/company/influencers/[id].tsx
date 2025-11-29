@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../../components/layout/DashboardLayout';
-import api from '../../../services/api';
+import { supabase } from '../../../lib/supabase';
 
 interface SNSAnalytics {
   // 性別割合
@@ -109,10 +109,18 @@ const InfluencerDetailPage: React.FC = () => {
 
   const fetchInfluencerDetails = async (): Promise<(() => void) | undefined> => {
     try {
-      // Fetch initial data from Backend API
-      const response = await api.get(`/influencers/${id}`);
-      if (response.data) {
-        setInfluencer(response.data as InfluencerDetails);
+      // Fetch initial data from Supabase
+      const { data, error } = await supabase
+        .from('Influencer')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        setError('インフルエンサーが見つかりませんでした。');
+      } else if (data) {
+        setInfluencer(data as InfluencerDetails);
       } else {
         setError('インフルエンサーが見つかりませんでした。');
       }
