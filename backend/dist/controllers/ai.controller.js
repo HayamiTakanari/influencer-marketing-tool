@@ -28,9 +28,7 @@ const recommendInfluencersForProject = async (req, res) => {
                     },
                 },
                 socialAccounts: {
-                    where: {
-                        isConnected: true,
-                    },
+                    where: {},
                 },
             },
             where: {

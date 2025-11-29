@@ -115,7 +115,6 @@ const verifyAndAddAccount = async (req, res) => {
                     username: userInfo.username,
                     profileUrl: `https://twitter.com/${userInfo.username}`,
                     isVerified: true,
-                    isConnected: true,
                     lastSynced: new Date(),
                 },
             });

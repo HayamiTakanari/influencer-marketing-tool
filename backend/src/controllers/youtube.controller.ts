@@ -132,7 +132,6 @@ export const verifyAndAddAccount = async (req: AuthRequest, res: Response) => {
           username: channelInfo.username,
           profileUrl: `https://www.youtube.com/@${channelInfo.username}`,
           isVerified: true,
-          isConnected: true,
           lastSynced: new Date(),
         },
       });

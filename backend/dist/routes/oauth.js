@@ -212,11 +212,6 @@ router.post('/callback/:platform', auth_1.authenticate, async (req, res) => {
                 },
             },
             update: {
-                isConnected: true,
-                accessToken: encrypt(tokenData.access_token),
-                refreshToken: tokenData.refresh_token ? encrypt(tokenData.refresh_token) : null,
-                tokenExpiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null,
-                platformUserId: userInfo.id || userInfo.user_id,
                 username: userInfo.username || userInfo.snippet?.title || userInfo.display_name,
                 followerCount: userInfo.follower_count ||
                     userInfo.statistics?.subscriberCount ||
@@ -227,11 +222,6 @@ router.post('/callback/:platform', auth_1.authenticate, async (req, res) => {
             create: {
                 influencerId: user.influencer.id,
                 platform: platformEnum,
-                isConnected: true,
-                accessToken: encrypt(tokenData.access_token),
-                refreshToken: tokenData.refresh_token ? encrypt(tokenData.refresh_token) : null,
-                tokenExpiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null,
-                platformUserId: userInfo.id || userInfo.user_id,
                 username: userInfo.username || userInfo.snippet?.title || userInfo.display_name,
                 profileUrl: `https://${platform.toLowerCase()}.com/${userInfo.username || userInfo.id}`,
                 followerCount: userInfo.follower_count ||
@@ -274,11 +264,7 @@ router.delete('/disconnect/:platform', auth_1.authenticate, async (req, res) => 
                 },
             },
             data: {
-                isConnected: false,
-                accessToken: null,
-                refreshToken: null,
-                tokenExpiresAt: null,
-                platformUserId: null,
+                isVerified: false,
             },
         });
         res.json({ success: true });
@@ -310,7 +296,6 @@ router.get('/status', auth_1.authenticate, async (req, res) => {
         }
         const connectionStatus = user.influencer.socialAccounts.map(account => ({
             platform: account.platform,
-            isConnected: account.isConnected,
             username: account.username,
             followerCount: account.followerCount,
             lastSynced: account.lastSynced,

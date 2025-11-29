@@ -31,7 +31,7 @@ export const verifySNSConnections = async (
     if (user?.role === 'INFLUENCER' && user.influencer) {
       // 連携済みのプラットフォーム
       const connectedPlatforms = user.influencer.socialAccounts
-        .filter(account => account.isConnected)
+        .filter(account => account.isVerified)
         .map(account => account.platform);
 
       // 少なくとも1つのSNSアカウントが連携されているかチェック

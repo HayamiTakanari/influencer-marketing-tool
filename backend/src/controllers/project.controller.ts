@@ -74,7 +74,7 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
 
     // インフルエンサーが連携しているプラットフォームを取得
     const connectedPlatforms = influencer.socialAccounts
-      .filter(acc => acc.isConnected)
+      .filter(acc => acc.isVerified)
       .map(acc => acc.platform);
 
     // 連携しているプラットフォームを使用する案件のみ表示
@@ -143,7 +143,7 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
       // Check platform requirements - インフルエンサーが連携していないSNSを使用する案件は除外
       if (project.targetPlatforms.length > 0) {
         const connectedPlatforms = influencer.socialAccounts
-          .filter(acc => acc.isConnected)
+          .filter(acc => acc.isVerified)
           .map(acc => acc.platform);
         const hasMatchingPlatform = project.targetPlatforms.some(platform => 
           connectedPlatforms.includes(platform)

@@ -135,7 +135,6 @@ const verifyAndAddAccount = async (req, res) => {
                     username: userInfo.username,
                     profileUrl: `https://www.tiktok.com/@${userInfo.username}`,
                     isVerified: true,
-                    isConnected: true,
                     lastSynced: new Date(),
                 },
             });
