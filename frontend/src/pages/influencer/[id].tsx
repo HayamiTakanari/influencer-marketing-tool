@@ -107,20 +107,12 @@ const InfluencerDetailPage: React.FC = () => {
 
   const fetchInfluencerDetails = async () => {
     try {
-      const { fetchInfluencerById, subscribeToInfluencerChanges } = await import('../../services/supabase');
+      const { getInfluencerById } = await import('../../services/api');
 
-      // Fetch initial data from Supabase
-      const result = await fetchInfluencerById(id as string);
+      // Fetch initial data from backend API
+      const result = await getInfluencerById(id as string);
       if (result) {
         setInfluencer(result as InfluencerDetails);
-
-        // Subscribe to realtime changes
-        const unsubscribe = subscribeToInfluencerChanges(id as string, (updatedData) => {
-          setInfluencer(updatedData as InfluencerDetails);
-        });
-
-        // Cleanup subscription on unmount
-        return unsubscribe;
       } else {
         setError('インフルエンサーが見つかりませんでした。');
       }
