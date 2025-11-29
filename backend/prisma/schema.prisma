@@ -150,16 +150,9 @@ model SocialAccount {
   followerCount   Int       @default(0)
   engagementRate  Float?    // エンゲージメント率（%）
   isVerified      Boolean   @default(false)
-  isConnected     Boolean   @default(false) // OAuth連携済みフラグ
   lastSynced      DateTime  @default(now())
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-
-  // OAuth関連
-  accessToken     String?   // 暗号化して保存
-  refreshToken    String?   // 暗号化して保存
-  tokenExpiresAt  DateTime? // トークンの有効期限
-  platformUserId  String?   // SNSプラットフォーム側のユーザーID
 
   // Relations
   influencer      Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
