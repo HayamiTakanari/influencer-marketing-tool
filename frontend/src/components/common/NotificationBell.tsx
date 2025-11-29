@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { FaBell } from 'react-icons/fa';
-import { supabase } from '../../lib/supabase';
+import {
+  getNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from '../../services/api';
 
 interface Notification {
   id: string;
@@ -46,22 +51,8 @@ const NotificationBell: React.FC = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const userData = localStorage.getItem('user');
-      if (!userData) return;
-
-      const parsedUser = JSON.parse(userData);
-
-      const { data, error } = await supabase
-        .from('Notification')
-        .select('id')
-        .eq('userId', parsedUser.id)
-        .eq('isRead', false);
-
-      if (error) {
-        console.error('Error fetching unread count:', error);
-      } else {
-        setUnreadCount(data?.length || 0);
-      }
+      const result = await getUnreadNotificationCount();
+      setUnreadCount(result.count || 0);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
@@ -70,23 +61,8 @@ const NotificationBell: React.FC = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const userData = localStorage.getItem('user');
-      if (!userData) return;
-
-      const parsedUser = JSON.parse(userData);
-
-      const { data, error } = await supabase
-        .from('Notification')
-        .select('*')
-        .eq('userId', parsedUser.id)
-        .order('createdAt', { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.error('Error fetching notifications:', error);
-      } else {
-        setNotifications(data || []);
-      }
+      const result = await getNotifications(1, 10, false);
+      setNotifications(result.data || []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -96,19 +72,11 @@ const NotificationBell: React.FC = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('Notification')
-        .update({ isRead: true })
-        .eq('id', notificationId);
-
-      if (error) {
-        console.error('Error marking notification as read:', error);
-      } else {
-        setNotifications(prev =>
-          prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      await markNotificationAsRead(notificationId);
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -116,23 +84,9 @@ const NotificationBell: React.FC = () => {
 
   const markAllAsRead = async () => {
     try {
-      const userData = localStorage.getItem('user');
-      if (!userData) return;
-
-      const parsedUser = JSON.parse(userData);
-
-      const { error } = await supabase
-        .from('Notification')
-        .update({ isRead: true })
-        .eq('userId', parsedUser.id)
-        .eq('isRead', false);
-
-      if (error) {
-        console.error('Error marking all as read:', error);
-      } else {
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-        setUnreadCount(0);
-      }
+      await markAllNotificationsAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
     }
