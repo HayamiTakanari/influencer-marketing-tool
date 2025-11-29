@@ -787,7 +787,7 @@ const ProfilePage: React.FC = () => {
                           formData.append('image', file);
                           
                           const token = localStorage.getItem('token');
-                          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/upload/profile-image`, {
+                          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/upload/profile-image`, {
                             method: 'POST',
                             headers: {
                               'Authorization': `Bearer ${token}`
@@ -800,7 +800,7 @@ const ProfilePage: React.FC = () => {
                           }
                           
                           const data = await response.json();
-                          const imageUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002'}${data.imageUrl}`;
+                          const imageUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${data.imageUrl}`;
                           
                           const updatedUser = { ...user, profileImage: imageUrl };
                           setUser(updatedUser);

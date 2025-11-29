@@ -121,7 +121,7 @@ const ProjectSearchPage: React.FC = () => {
       filters.platforms.forEach(p => queryParams.append('platforms', p));
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/projects/available?${queryParams.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects/available?${queryParams.toString()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -33,7 +33,7 @@ const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({ onNavigat
   const fetchProfileCompletion = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/profile/me/completion`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/profile/me/completion`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

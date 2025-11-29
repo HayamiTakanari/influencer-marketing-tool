@@ -61,7 +61,7 @@ const ProjectDetailPage: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/projects/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects/${id}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
