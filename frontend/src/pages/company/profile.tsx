@@ -56,7 +56,7 @@ const CompanyProfilePage: React.FC = () => {
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
       // 企業情報をバックエンドに送信
-      const response = await fetch(`${apiBaseUrl}/profile`, {
+      const response = await fetch(`${apiBaseUrl}/profile/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
