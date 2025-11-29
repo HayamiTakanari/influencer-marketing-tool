@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { getDashboardData } from '../../services/api';
+import { supabase } from '../../lib/supabase';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import StatsCard from '../../components/common/StatsCard';
@@ -44,10 +44,50 @@ const CompanyDashboardPage: React.FC = () => {
       setUser(parsedUser);
 
       try {
-        const data = await getDashboardData();
-        setDashboardData(data);
+        // Fetch projects from Supabase
+        const { data: projects, error: projectError } = await supabase
+          .from('Project')
+          .select('*')
+          .eq('userId', parsedUser.id);
+
+        if (projectError) {
+          throw projectError;
+        }
+
+        // Calculate stats
+        const activeProjects = projects?.filter(p => p.status === 'IN_PROGRESS').length || 0;
+        const totalProjects = projects?.length || 0;
+        const matchedProjects = projects?.filter(p => p.status === 'MATCHED' || p.status === 'IN_PROGRESS' || p.status === 'COMPLETED').length || 0;
+        const totalBudget = projects?.reduce((sum, p) => sum + (p.budget || 0), 0) || 0;
+
+        // Get recent projects
+        const recentProjects = projects?.slice(0, 5) || [];
+
+        // Get recent activities (using projects as activities)
+        const recentActivities = projects?.slice(0, 5).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          status: p.status,
+          date: p.updatedAt || p.createdAt
+        })) || [];
+
+        setDashboardData({
+          user: { profile: { companyName: parsedUser.email } },
+          stats: {
+            activeProjects,
+            totalProjects,
+            totalApplications: 0,
+            pendingApplications: 0,
+            approvedApplications: matchedProjects,
+            totalBudget
+          },
+          recentProjects,
+          recentActivities
+        });
       } catch (error) {
-        handleError(error, 'ダッシュボードデータの取得');
+        console.error('Dashboard fetch error:', error);
+        handleError(error, 'ダッシュボードデータの取得に失敗しました');
       } finally {
         setLoading(false);
       }
