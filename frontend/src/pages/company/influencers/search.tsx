@@ -6,7 +6,7 @@ import LoadingState from '../../../components/common/LoadingState';
 import EmptyState from '../../../components/common/EmptyState';
 import Card from '../../../components/shared/Card';
 import Button from '../../../components/shared/Button';
-import { supabase } from '../../../lib/supabase';
+import { searchInfluencers } from '../../../services/api';
 import { useErrorHandler } from '../../../hooks/useErrorHandler';
 
 interface Influencer {
@@ -78,17 +78,8 @@ const InfluencerSearchPage: React.FC = () => {
       setUser(parsedUser);
 
       try {
-        // Fetch influencers from Supabase
-        const { data, error } = await supabase
-          .from('Influencer')
-          .select('*');
-
-        if (error) {
-          console.error('Supabase error:', error);
-          throw error;
-        }
-
-        const influencerData = data || [];
+        // Fetch influencers from backend API
+        const influencerData = await searchInfluencers();
         setInfluencers(influencerData as Influencer[]);
 
         // Extract unique categories from influencers

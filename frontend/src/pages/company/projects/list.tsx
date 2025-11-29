@@ -6,7 +6,7 @@ import LoadingState from '../../../components/common/LoadingState';
 import EmptyState from '../../../components/common/EmptyState';
 import Card from '../../../components/shared/Card';
 import Button from '../../../components/shared/Button';
-import { supabase } from '../../../lib/supabase';
+import { getMyProjects } from '../../../services/api';
 import { useErrorHandler } from '../../../hooks/useErrorHandler';
 
 interface Project {
@@ -60,18 +60,9 @@ const ProjectListPage: React.FC = () => {
       setUser(parsedUser);
 
       try {
-        // Fetch projects owned by the current user from Supabase
-        const { data, error } = await supabase
-          .from('Project')
-          .select('*')
-          .eq('userId', parsedUser.id);
-
-        if (error) {
-          console.error('Supabase error:', error);
-          handleError(error, 'プロジェクト一覧の取得に失敗しました');
-        } else {
-          setProjects(data || []);
-        }
+        // Fetch projects from backend API
+        const data = await getMyProjects();
+        setProjects(data || []);
       } catch (error) {
         console.error('Error fetching projects:', error);
         handleError(error, 'プロジェクト一覧の取得に失敗しました');
