@@ -45,17 +45,18 @@ const MessagesPage: React.FC = () => {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/chat/chats`, {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiBaseUrl}/chat/chats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
-      
+
       const data = await response.json();
       setMessages(data);
       setError('');

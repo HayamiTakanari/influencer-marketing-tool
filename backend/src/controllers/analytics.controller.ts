@@ -148,19 +148,41 @@ export const getOverviewStats = async (req: Request, res: Response) => {
           },
         }),
         // Monthly earnings for chart
-        prisma.$queryRaw`
-          SELECT 
-            DATE_TRUNC('month', t.created_at) as month,
-            SUM(t.amount) as earnings
-          FROM transactions t
-          JOIN projects p ON t.project_id = p.id
-          WHERE p.matched_influencer_id = ${influencer.id}
-            AND t.status = 'COMPLETED'
-            AND t.created_at >= ${startDate}
-            AND t.created_at <= ${endDate}
-          GROUP BY DATE_TRUNC('month', t.created_at)
-          ORDER BY month
-        `,
+        (async () => {
+          try {
+            const transactions = await prisma.transaction.findMany({
+              where: {
+                project: {
+                  matchedInfluencerId: influencer.id,
+                },
+                status: 'COMPLETED',
+                createdAt: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+              select: {
+                amount: true,
+                createdAt: true,
+              },
+            });
+
+            // Group by month
+            const monthlyMap = new Map();
+            transactions.forEach((t) => {
+              const monthKey = t.createdAt.toISOString().substring(0, 7);
+              monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + t.amount);
+            });
+
+            return Array.from(monthlyMap.entries()).map(([month, earnings]) => ({
+              month: new Date(month + '-01'),
+              earnings,
+            }));
+          } catch (error) {
+            console.error('Error fetching monthly earnings:', error);
+            return [];
+          }
+        })(),
         // Projects by category
         prisma.project.groupBy({
           by: ['category'],
@@ -282,19 +304,41 @@ export const getOverviewStats = async (req: Request, res: Response) => {
           },
         }),
         // Monthly spending for chart
-        prisma.$queryRaw`
-          SELECT 
-            DATE_TRUNC('month', t.created_at) as month,
-            SUM(t.amount) as spending
-          FROM transactions t
-          JOIN projects p ON t.project_id = p.id
-          WHERE p.client_id = ${client.id}
-            AND t.status = 'COMPLETED'
-            AND t.created_at >= ${startDate}
-            AND t.created_at <= ${endDate}
-          GROUP BY DATE_TRUNC('month', t.created_at)
-          ORDER BY month
-        `,
+        (async () => {
+          try {
+            const transactions = await prisma.transaction.findMany({
+              where: {
+                project: {
+                  clientId: client.id,
+                },
+                status: 'COMPLETED',
+                createdAt: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+              select: {
+                amount: true,
+                createdAt: true,
+              },
+            });
+
+            // Group by month
+            const monthlyMap = new Map();
+            transactions.forEach((t) => {
+              const monthKey = t.createdAt.toISOString().substring(0, 7);
+              monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + t.amount);
+            });
+
+            return Array.from(monthlyMap.entries()).map(([month, spending]) => ({
+              month: new Date(month + '-01'),
+              spending,
+            }));
+          } catch (error) {
+            console.error('Error fetching monthly spending:', error);
+            return [];
+          }
+        })(),
         // Projects by category
         prisma.project.groupBy({
           by: ['category'],
@@ -368,9 +412,12 @@ export const getOverviewStats = async (req: Request, res: Response) => {
       endDate,
       stats,
     });
-  } catch (error) {
-    console.error('Get overview stats error:', error);
-    res.status(500).json({ error: 'Failed to get analytics data' });
+  } catch (error: any) {
+    console.error('Get overview stats error:', error?.message || error);
+    res.status(500).json({
+      error: 'Failed to get analytics data',
+      message: process.env.NODE_ENV === 'development' ? error?.message : undefined
+    });
   }
 };
 

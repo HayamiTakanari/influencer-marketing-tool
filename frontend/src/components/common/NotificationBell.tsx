@@ -23,14 +23,45 @@ const NotificationBell: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Check authentication on mount
   useEffect(() => {
-    fetchUnreadCount();
+    const checkAuth = () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+  }, []);
+
+  // Fetch unread count when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Initial fetch with retry
+    const fetchWithRetry = async (retries = 3) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          await fetchUnreadCount();
+          break;
+        } catch (error) {
+          if (i === retries - 1) {
+            console.error('Failed to fetch unread count after retries:', error);
+          } else {
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+          }
+        }
+      }
+    };
+
+    fetchWithRetry();
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

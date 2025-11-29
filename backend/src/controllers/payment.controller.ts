@@ -271,11 +271,32 @@ export const getPaymentStats = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
     const userRole = req.user?.role;
 
-    if (userRole !== 'INFLUENCER') {
-      return res.status(403).json({ error: 'Only influencers can access revenue stats' });
+    let whereClause: any = {};
+
+    if (userRole === 'INFLUENCER') {
+      whereClause = {
+        project: {
+          matchedInfluencer: {
+            user: { id: userId },
+          },
+        },
+        status: 'completed',
+      };
+    } else if (userRole === 'CLIENT' || userRole === 'COMPANY') {
+      whereClause = {
+        project: {
+          client: {
+            user: { id: userId },
+          },
+        },
+        status: 'completed',
+      };
+    } else {
+      return res.status(403).json({ error: 'Invalid user role' });
     }
 
-    const whereClause = {
+    // Original whereClause for backward compatibility
+    const influencerWhereClause = {
       project: {
         matchedInfluencer: {
           user: { id: userId },
