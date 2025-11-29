@@ -944,8 +944,15 @@ export const getInfluencerById = async (id: string) => {
     // APIから取得
     const response = await api.get(`/influencers/${id}`);
     return response.data;
-  } catch (apiError) {
-    console.error('Error fetching from API:', apiError);
+  } catch (apiError: any) {
+    // For mock IDs (development/testing), silently return mock data
+    // Don't log 404 errors for mock influencer IDs as this is expected behavior
+    if (apiError?.response?.status === 404 && id.includes('mock')) {
+      console.debug(`Mock influencer ${id} - using fallback data (expected behavior)`);
+    } else if (apiError?.response?.status !== 404) {
+      // Only log non-404 errors (which indicate real issues)
+      console.error('Error fetching influencer details:', apiError?.message || apiError);
+    }
 
     // フォールバック：モックデータを返す
     const mockInfluencer = {
