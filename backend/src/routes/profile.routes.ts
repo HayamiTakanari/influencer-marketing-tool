@@ -18,8 +18,8 @@ const router = Router();
 
 // All routes require authentication
 router.use(authenticate);
-// Allow both INFLUENCER and COMPANY roles to update their profiles
-router.use(authorizeRole(['INFLUENCER', 'COMPANY', 'CLIENT']));
+// Allow any authenticated user to update their profiles
+// Removed role-based restriction - all authenticated users can access profile endpoints
 
 router.get('/me', getMyProfile);
 router.put('/me', updateProfile);

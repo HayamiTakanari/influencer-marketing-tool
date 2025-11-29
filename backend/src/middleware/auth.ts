@@ -52,7 +52,12 @@ export const authorizeRole = (roles: string[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      res.status(403).json({ error: 'Forbidden' });
+      console.error(`[ROLE_AUTH_FAIL] User role '${req.user.role}' not in allowed roles: [${roles.join(', ')}]. Path: ${req.path}`);
+      res.status(403).json({
+        error: 'Forbidden',
+        userRole: req.user.role,
+        allowedRoles: roles
+      });
       return;
     }
 
