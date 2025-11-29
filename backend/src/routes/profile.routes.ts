@@ -16,9 +16,10 @@ import {
 
 const router = Router();
 
-// All routes require authentication and INFLUENCER role
+// All routes require authentication
 router.use(authenticate);
-router.use(authorizeRole(['INFLUENCER']));
+// Allow both INFLUENCER and COMPANY roles to update their profiles
+router.use(authorizeRole(['INFLUENCER', 'COMPANY', 'CLIENT']));
 
 router.get('/me', getMyProfile);
 router.put('/me', updateProfile);
