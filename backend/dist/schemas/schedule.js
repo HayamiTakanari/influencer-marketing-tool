@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateMilestoneSchemaExport = exports.createMilestoneSchema = exports.createProjectScheduleSchema = exports.updateMilestoneSchema = exports.milestoneSchema = exports.projectScheduleSchema = void 0;
-var zod_1 = require("zod");
+const zod_1 = require("zod");
 // v3.0 新機能: スケジュール管理のスキーマ定義
 exports.projectScheduleSchema = zod_1.z.object({
     projectId: zod_1.z.string().cuid('有効なプロジェクトIDを指定してください'),

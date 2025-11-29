@@ -6,8 +6,8 @@ import { detectXSSAttack, XSSRiskLevel, ValidationContext } from '../utils/xss-d
 import sanitizeHtml from 'sanitize-html';
 
 // DOMPurifyをサーバーサイドで使用するためのセットアップ
-const window = new JSDOM('').window;
-const purify = DOMPurify(window as unknown as Window);
+const window = new JSDOM('').window as any;
+const purify = DOMPurify(window);
 
 /**
  * 高度な入力バリデーションミドルウェア
@@ -219,7 +219,7 @@ function sanitizeWithDOMPurify(input: string, context: ValidationContext): strin
       config.KEEP_CONTENT = false;
     }
 
-    return purify.sanitize(input, config);
+    return purify.sanitize(input, config) as unknown as string;
   } catch (error) {
     console.error('DOMPurify sanitization error:', error);
     // フォールバック：HTMLタグを完全除去

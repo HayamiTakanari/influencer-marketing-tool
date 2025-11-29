@@ -32,14 +32,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: any) {
     // Sentryにエラーを報告
-    const errorId = captureError(error, {
+    const errorId: string | undefined = (captureError(error, {
       component: 'ErrorBoundary',
       action: 'component_error',
       metadata: {
         componentStack: errorInfo.componentStack,
         errorBoundary: true,
       }
-    });
+    }) as string) || undefined;
 
     this.setState({ errorId });
 

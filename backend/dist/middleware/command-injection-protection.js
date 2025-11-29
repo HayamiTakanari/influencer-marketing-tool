@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateFileUpload = exports.preventSystemCommands = exports.validateFieldTypes = exports.protectFromCommandInjection = void 0;
 /**
@@ -17,7 +6,7 @@ exports.validateFileUpload = exports.preventSystemCommands = exports.validateFie
  * ユーザー入力とシステム命令を明確に分離し、危険なパターンをブロック
  */
 // 危険なコマンドパターンの定義
-var DANGEROUS_COMMAND_PATTERNS = [
+const DANGEROUS_COMMAND_PATTERNS = [
     // System commands
     /(\b(rm|del|delete|format|fdisk|shutdown|reboot|halt|init|kill|killall|pkill|ps|top|netstat|ifconfig|ping|curl|wget|nc|telnet|ssh|ftp|tftp)\b)/i,
     // Shell operators
@@ -38,7 +27,7 @@ var DANGEROUS_COMMAND_PATTERNS = [
     /(%[0-9a-f]{2}){3,}/i,
 ];
 // 許可される文字パターン（ホワイトリスト方式）
-var SAFE_PATTERNS = {
+const SAFE_PATTERNS = {
     // 一般的なテキスト（日本語、英数字、基本的な記号）
     text: /^[\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u002B\u002D\u002E\u0021\u003F\u0028\u0029\u002C\u003A]*$/,
     // メールアドレス
@@ -58,7 +47,7 @@ var SAFE_PATTERNS = {
  * 入力値が危険なコマンドパターンを含んでいないかチェック
  */
 function containsDangerousPattern(input) {
-    return DANGEROUS_COMMAND_PATTERNS.some(function (pattern) { return pattern.test(input); });
+    return DANGEROUS_COMMAND_PATTERNS.some(pattern => pattern.test(input));
 }
 /**
  * 入力値が安全なパターンに合致するかチェック
@@ -71,8 +60,8 @@ function matchesSafePattern(input, type) {
  */
 function escapeInput(input) {
     return input
-        .replace(/[<>&"']/g, function (match) {
-        var escapeChars = {
+        .replace(/[<>&"']/g, (match) => {
+        const escapeChars = {
             '<': '&lt;',
             '>': '&gt;',
             '&': '&amp;',
@@ -89,8 +78,7 @@ function escapeInput(input) {
 /**
  * オブジェクトを再帰的にサニタイズ
  */
-function sanitizeObject(obj, depth) {
-    if (depth === void 0) { depth = 0; }
+function sanitizeObject(obj, depth = 0) {
     // 再帰の深さ制限
     if (depth > 10) {
         throw new Error('Object depth limit exceeded');
@@ -98,20 +86,19 @@ function sanitizeObject(obj, depth) {
     if (typeof obj === 'string') {
         // 危険なパターンをチェック
         if (containsDangerousPattern(obj)) {
-            throw new Error("Dangerous pattern detected in input: ".concat(obj.substring(0, 50), "..."));
+            throw new Error(`Dangerous pattern detected in input: ${obj.substring(0, 50)}...`);
         }
         return escapeInput(obj);
     }
     if (Array.isArray(obj)) {
-        return obj.map(function (item) { return sanitizeObject(item, depth + 1); });
+        return obj.map(item => sanitizeObject(item, depth + 1));
     }
     if (typeof obj === 'object' && obj !== null) {
-        var sanitized = {};
-        for (var _i = 0, _a = Object.entries(obj); _i < _a.length; _i++) {
-            var _b = _a[_i], key = _b[0], value = _b[1];
+        const sanitized = {};
+        for (const [key, value] of Object.entries(obj)) {
             // キー名もチェック
             if (containsDangerousPattern(key)) {
-                throw new Error("Dangerous pattern detected in key: ".concat(key));
+                throw new Error(`Dangerous pattern detected in key: ${key}`);
             }
             sanitized[key] = sanitizeObject(value, depth + 1);
         }
@@ -122,10 +109,10 @@ function sanitizeObject(obj, depth) {
 /**
  * コマンドインジェクション保護ミドルウェア
  */
-var protectFromCommandInjection = function (req, res, next) {
+const protectFromCommandInjection = (req, res, next) => {
     try {
         // リクエストサイズ制限
-        var requestSize = req.body ? JSON.stringify(req.body).length : 0;
+        const requestSize = req.body ? JSON.stringify(req.body).length : 0;
         if (requestSize > 1024 * 1024) { // 1MB制限
             res.status(413).json({ error: 'Request entity too large' });
             return;
@@ -141,16 +128,16 @@ var protectFromCommandInjection = function (req, res, next) {
             req.params = sanitizeObject(req.params);
         }
         // ヘッダーの基本チェック（curl等のテストツールとブラウザは許可）
-        var userAgent = req.get('User-Agent') || '';
-        var isCurl = userAgent.toLowerCase().includes('curl');
-        var isPostman = userAgent.toLowerCase().includes('postman');
-        var isBrowser = userAgent.toLowerCase().includes('mozilla') ||
+        const userAgent = req.get('User-Agent') || '';
+        const isCurl = userAgent.toLowerCase().includes('curl');
+        const isPostman = userAgent.toLowerCase().includes('postman');
+        const isBrowser = userAgent.toLowerCase().includes('mozilla') ||
             userAgent.toLowerCase().includes('chrome') ||
             userAgent.toLowerCase().includes('safari') ||
             userAgent.toLowerCase().includes('firefox') ||
             userAgent.toLowerCase().includes('edge');
         if (!isCurl && !isPostman && !isBrowser && containsDangerousPattern(userAgent)) {
-            console.warn("Suspicious User-Agent detected: ".concat(userAgent));
+            console.warn(`Suspicious User-Agent detected: ${userAgent}`);
             res.status(400).json({ error: 'Invalid request headers' });
             return;
         }
@@ -172,21 +159,20 @@ exports.protectFromCommandInjection = protectFromCommandInjection;
 /**
  * 特定のフィールドタイプに基づく検証ミドルウェア
  */
-var validateFieldTypes = function (fieldTypeMap) {
-    return function (req, res, next) {
+const validateFieldTypes = (fieldTypeMap) => {
+    return (req, res, next) => {
         try {
-            var data = __assign(__assign(__assign({}, req.body), req.query), req.params);
-            for (var _i = 0, _a = Object.entries(fieldTypeMap); _i < _a.length; _i++) {
-                var _b = _a[_i], fieldName = _b[0], expectedType = _b[1];
-                var value = data[fieldName];
+            const data = { ...req.body, ...req.query, ...req.params };
+            for (const [fieldName, expectedType] of Object.entries(fieldTypeMap)) {
+                const value = data[fieldName];
                 if (value !== undefined && value !== null && value !== '') {
-                    var strValue = String(value);
+                    const strValue = String(value);
                     if (!matchesSafePattern(strValue, expectedType)) {
                         res.status(400).json({
                             error: 'Field validation failed',
                             field: fieldName,
-                            expectedType: expectedType,
-                            message: "Field \"".concat(fieldName, "\" does not match expected pattern for type \"").concat(expectedType, "\"")
+                            expectedType,
+                            message: `Field "${fieldName}" does not match expected pattern for type "${expectedType}"`
                         });
                         return;
                     }
@@ -205,17 +191,17 @@ exports.validateFieldTypes = validateFieldTypes;
  * 構造化されたコマンド実行防止
  * アプリケーション内でシステムコマンドが実行されることを防ぐ
  */
-var preventSystemCommands = function (req, res, next) {
+const preventSystemCommands = (req, res, next) => {
     // リクエスト内容を文字列化してチェック
-    var requestContent = JSON.stringify({
+    const requestContent = JSON.stringify({
         body: req.body,
         query: req.query,
         params: req.params
     });
     // システムコマンドパターンをチェック
-    var systemCommandPattern = /(exec|system|eval|spawn|fork|child_process|require\(['"]child_process['"]\))/i;
+    const systemCommandPattern = /(exec|system|eval|spawn|fork|child_process|require\(['"]child_process['"]\))/i;
     if (systemCommandPattern.test(requestContent)) {
-        console.error("System command injection attempt detected from IP: ".concat(req.ip));
+        console.error(`System command injection attempt detected from IP: ${req.ip}`);
         res.status(403).json({
             error: 'Forbidden',
             message: 'System command execution is not allowed'
@@ -228,12 +214,11 @@ exports.preventSystemCommands = preventSystemCommands;
 /**
  * ファイルアップロード用の特別な検証
  */
-var validateFileUpload = function (req, res, next) {
+const validateFileUpload = (req, res, next) => {
     try {
         if (req.file || req.files) {
-            var files = req.files ? (Array.isArray(req.files) ? req.files : Object.values(req.files).flat()) : [req.file];
-            for (var _i = 0, files_1 = files; _i < files_1.length; _i++) {
-                var file = files_1[_i];
+            const files = req.files ? (Array.isArray(req.files) ? req.files : Object.values(req.files).flat()) : [req.file];
+            for (const file of files) {
                 if (!file)
                     continue;
                 // ファイル名の検証
@@ -246,7 +231,7 @@ var validateFileUpload = function (req, res, next) {
                     return;
                 }
                 // MIME type検証
-                var allowedMimes = [
+                const allowedMimes = [
                     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
                     'video/mp4', 'video/mpeg', 'video/quicktime'
                 ];

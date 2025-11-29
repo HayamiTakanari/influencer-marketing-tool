@@ -1,39 +1,37 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.idParamSchema = exports.userQuerySchema = exports.loginSchema = exports.registerSchema = void 0;
-var zod_1 = require("zod");
-var client_1 = require("@prisma/client");
+const zod_1 = require("zod");
+const client_1 = require("@prisma/client");
 // セキュリティ強化されたバリデーションスキーマ
-var isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === 'production';
 exports.registerSchema = zod_1.z.object({
     email: zod_1.z.string()
         .email('Invalid email address')
         .max(255, 'Email too long')
-        .refine(function (email) {
+        .refine((email) => {
         if (!isProduction)
             return true;
         // 危険な文字列パターンをチェック（本番環境のみ）
-        var dangerousPatterns = [/'|"|\\|;|--|\/\*|\*\//];
-        return !dangerousPatterns.some(function (pattern) {
-            return typeof pattern === 'string' ? email.includes(pattern) : pattern.test(email);
-        });
+        const dangerousPatterns = [/'|"|\\|;|--|\/\*|\*\//];
+        return !dangerousPatterns.some(pattern => typeof pattern === 'string' ? email.includes(pattern) : pattern.test(email));
     }, 'Email contains invalid characters'),
     password: zod_1.z.string()
         .min(isProduction ? 8 : 4, isProduction ? 'Password must be at least 8 characters' : 'Password must be at least 4 characters')
         .max(128, 'Password too long')
-        .refine(function (password) {
+        .refine((password) => {
         if (!isProduction)
             return true;
         // パスワード強度チェック（本番環境のみ）
-        var hasUpperCase = /[A-Z]/.test(password);
-        var hasLowerCase = /[a-z]/.test(password);
-        var hasNumbers = /\d/.test(password);
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumbers = /\d/.test(password);
         return hasUpperCase && hasLowerCase && hasNumbers;
     }, 'Password must contain uppercase, lowercase, and number'),
     role: zod_1.z.nativeEnum(client_1.UserRole),
     companyName: zod_1.z.string()
         .max(200, 'Company name too long')
-        .refine(function (name) {
+        .refine((name) => {
         if (!name)
             return true;
         // HTMLタグや危険な文字列をチェック
@@ -42,7 +40,7 @@ exports.registerSchema = zod_1.z.object({
         .optional(),
     contactName: zod_1.z.string()
         .max(100, 'Contact name too long')
-        .refine(function (name) {
+        .refine((name) => {
         if (!name)
             return true;
         return !/<[^>]*>/.test(name) && !/['"\\;]/.test(name);
@@ -50,7 +48,7 @@ exports.registerSchema = zod_1.z.object({
         .optional(),
     displayName: zod_1.z.string()
         .max(50, 'Display name too long')
-        .refine(function (name) {
+        .refine((name) => {
         if (!name)
             return true;
         return !/<[^>]*>/.test(name) && !/['"\\;]/.test(name);

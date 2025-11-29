@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = require("express");
-var auth_1 = require("../middleware/auth");
-var payment_controller_1 = require("../controllers/payment.controller");
-var router = (0, express_1.Router)();
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const payment_controller_1 = require("../controllers/payment.controller");
+const router = (0, express_1.Router)();
 // Webhook endpoint (no auth required)
 router.post('/webhook', payment_controller_1.handleStripeWebhook);
 // All other routes require authentication

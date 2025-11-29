@@ -115,15 +115,21 @@ class IPBlacklistService {
     try {
       const entry = await prisma.iPBlacklist.findFirst({
         where: {
-          OR: [
-            { ipAddress },
-            // CIDR範囲での検索も可能（簡略化版）
-            { cidr: { not: null } }
-          ],
-          isActive: true,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } }
+          AND: [
+            {
+              OR: [
+                { ipAddress },
+                // CIDR範囲での検索も可能（簡略化版）
+                { cidr: { not: null } }
+              ]
+            },
+            { isActive: true },
+            {
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } }
+              ]
+            }
           ]
         }
       });

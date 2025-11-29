@@ -179,7 +179,7 @@ const ApplicationsPage: React.FC = () => {
         case 'followers':
           return getTotalFollowers(b.influencer.socialAccounts) - getTotalFollowers(a.influencer.socialAccounts);
         case 'engagement':
-          return parseFloat(getAverageEngagement(b.influencer.socialAccounts)) - parseFloat(getAverageEngagement(a.influencer.socialAccounts));
+          return parseFloat(String(getAverageEngagement(b.influencer.socialAccounts))) - parseFloat(String(getAverageEngagement(a.influencer.socialAccounts)));
         case 'price':
           return b.proposedPrice - a.proposedPrice;
         default:

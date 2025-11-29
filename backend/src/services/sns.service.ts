@@ -1,5 +1,6 @@
 import { TwitterApi } from 'twitter-api-v2';
 import { PrismaClient, Platform } from '@prisma/client';
+import { TikTokService } from './tiktok.service';
 
 const prisma = new PrismaClient();
 
@@ -248,10 +249,12 @@ export class YouTubeService {
 export class SNSSyncService {
   private twitterService: TwitterService;
   private youtubeService: YouTubeService;
+  private tiktokService: TikTokService;
 
   constructor() {
     this.twitterService = new TwitterService();
     this.youtubeService = new YouTubeService();
+    this.tiktokService = new TikTokService();
   }
 
   async syncSocialAccount(socialAccountId: string) {
@@ -305,6 +308,37 @@ export class SNSSyncService {
           // Instagram requires user-specific access token
           // This would be implemented with OAuth flow
           throw new Error('Instagram sync requires user authentication');
+
+        case Platform.TIKTOK:
+          // For TikTok, we use the profileUrl to fetch user info
+          // The profileUrl should be a valid TikTok profile URL or video URL
+          try {
+            const tiktokUserInfo = await this.tiktokService.getUserInfo(socialAccount.profileUrl);
+
+            // Note: The RapidAPI endpoint we're using returns video-level stats
+            // For a more complete implementation, you would need:
+            // 1. TikTok Official API access for complete user stats
+            // 2. Or aggregation of multiple video stats
+
+            updatedData = {
+              username: tiktokUserInfo.username,
+              // Note: profileUrl will be updated if different
+              // engagementRate would be calculated from videos
+              // For now, we set placeholder values
+              followerCount: 0, // Would need official API for this
+              engagementRate: 0, // Would calculate from multiple videos
+              isVerified: false, // Would need official API for this
+            };
+          } catch (error: any) {
+            // If single video approach fails, it might be a profile URL
+            // In production, implement proper TikTok profile scraping or use official API
+            console.warn(`TikTok sync warning for ${socialAccount.username}:`, error.message);
+            updatedData = {
+              // Keep existing data if sync fails
+              isVerified: false,
+            };
+          }
+          break;
 
         default:
           throw new Error(`Unsupported platform: ${socialAccount.platform}`);

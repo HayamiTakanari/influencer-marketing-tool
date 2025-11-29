@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = require("express");
-var auth_1 = require("../middleware/auth");
-var bulkInquiry_controller_1 = require("../controllers/bulkInquiry.controller");
-var router = (0, express_1.Router)();
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const bulkInquiry_controller_1 = require("../controllers/bulkInquiry.controller");
+const router = (0, express_1.Router)();
 // v3.0 新機能: 一斉問い合わせルート
 // 一斉問い合わせ作成
 router.post('/', auth_1.authenticate, bulkInquiry_controller_1.createBulkInquiry);

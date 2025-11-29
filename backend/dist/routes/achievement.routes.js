@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = require("express");
-var auth_1 = require("../middleware/auth");
-var achievement_controller_1 = require("../controllers/achievement.controller");
-var router = (0, express_1.Router)();
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const achievement_controller_1 = require("../controllers/achievement.controller");
+const router = (0, express_1.Router)();
 // v3.0 新機能: 実績管理ルート
 // 実績作成
 router.post('/', auth_1.authenticate, achievement_controller_1.createAchievement);

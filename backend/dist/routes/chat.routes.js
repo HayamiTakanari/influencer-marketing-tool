@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = require("express");
-var auth_1 = require("../middleware/auth");
-var chat_controller_1 = require("../controllers/chat.controller");
-var router = (0, express_1.Router)();
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const chat_controller_1 = require("../controllers/chat.controller");
+const router = (0, express_1.Router)();
 router.use(auth_1.authenticate);
 router.post('/messages', chat_controller_1.sendMessage);
 router.get('/messages/:projectId', chat_controller_1.getMessages);

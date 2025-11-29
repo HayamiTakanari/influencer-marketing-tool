@@ -192,7 +192,7 @@ class ErrorNotificationService {
   private async sendEmailNotification(incident: ErrorIncident, config: any): Promise<void> {
     if (!config.recipients?.length) return;
 
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: config.smtpHost,
       port: config.smtpPort,
       secure: config.smtpPort === 465,

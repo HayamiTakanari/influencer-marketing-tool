@@ -37,6 +37,10 @@ import oauthRoutes from './routes/oauth';
 import uploadRoutes from './routes/upload.routes';
 import aiRoutes from './routes/ai.routes';
 import adminRoutes from './routes/admin.routes';
+import tiktokRoutes from './routes/tiktok.routes';
+import instagramRoutes from './routes/instagram.routes';
+import youtubeRoutes from './routes/youtube.routes';
+import twitterRoutes from './routes/twitter.routes';
 
 dotenv.config();
 
@@ -159,6 +163,10 @@ app.use('/api/oauth', oauthRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/tiktok', tiktokRoutes);
+app.use('/api/instagram', instagramRoutes);
+app.use('/api/youtube', youtubeRoutes);
+app.use('/api/twitter', twitterRoutes);
 
 app.use('/uploads', express.static('uploads'));
 

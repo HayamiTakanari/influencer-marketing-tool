@@ -606,8 +606,8 @@ class SecurityLogAnalysisService {
     try {
       await prisma.securityLog.create({
         data: {
-          eventType: logEntry.eventType,
-          severity: logEntry.severity,
+          eventType: logEntry.eventType as any,
+          severity: logEntry.severity as any,
           ipAddress: logEntry.ipAddress,
           userAgent: logEntry.userAgent || '',
           userId: logEntry.userId,

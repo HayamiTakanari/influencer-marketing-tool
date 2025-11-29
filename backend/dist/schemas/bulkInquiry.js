@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateInquiryResponseSchema = exports.createBulkInquirySchema = exports.inquiryResponseSchema = exports.bulkInquirySchema = void 0;
-var zod_1 = require("zod");
+const zod_1 = require("zod");
 // v3.0 新機能: 一斉問い合わせのスキーマ定義
 exports.bulkInquirySchema = zod_1.z.object({
     title: zod_1.z.string().min(1, 'タイトルは必須です'),

@@ -995,7 +995,7 @@ class PatternDetectionService {
     }
   }
 
-  private async updatePatternRules(): void {
+  private async updatePatternRules(): Promise<void> {
     // 外部ソースからの脅威インテリジェンス更新
     console.log('Updating pattern rules with latest threat intelligence...');
   }

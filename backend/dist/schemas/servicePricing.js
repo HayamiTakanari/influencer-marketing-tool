@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bulkServicePricingSchema = exports.updateServicePricingSchema = exports.createServicePricingSchema = exports.servicePricingSchema = void 0;
-var zod_1 = require("zod");
+const zod_1 = require("zod");
 // v3.0 新機能: 料金体系のスキーマ定義
 exports.servicePricingSchema = zod_1.z.object({
     serviceType: zod_1.z.enum([

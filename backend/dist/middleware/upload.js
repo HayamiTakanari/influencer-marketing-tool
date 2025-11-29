@@ -1,26 +1,29 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.upload = void 0;
-var multer_1 = require("multer");
-var path_1 = require("path");
-var fs_1 = require("fs");
-var uploadDir = path_1.default.join(__dirname, '../../uploads');
+const multer_1 = __importDefault(require("multer"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
+const uploadDir = path_1.default.join(__dirname, '../../uploads');
 if (!fs_1.default.existsSync(uploadDir)) {
     fs_1.default.mkdirSync(uploadDir, { recursive: true });
 }
-var storage = multer_1.default.diskStorage({
-    destination: function (req, file, cb) {
+const storage = multer_1.default.diskStorage({
+    destination: (req, file, cb) => {
         cb(null, uploadDir);
     },
-    filename: function (req, file, cb) {
-        var uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, file.fieldname + '-' + uniqueSuffix + path_1.default.extname(file.originalname));
     }
 });
-var fileFilter = function (req, file, cb) {
-    var allowedTypes = /jpeg|jpg|png|gif|webp/;
-    var extname = allowedTypes.test(path_1.default.extname(file.originalname).toLowerCase());
-    var mimetype = allowedTypes.test(file.mimetype);
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path_1.default.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
     if (mimetype && extname) {
         return cb(null, true);
     }

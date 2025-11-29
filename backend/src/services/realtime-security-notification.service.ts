@@ -376,7 +376,7 @@ class RealtimeSecurityNotificationService {
   private async sendEmailNotification(threat: SecurityThreat, config: any): Promise<void> {
     if (!config.recipients?.length) return;
 
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: config.smtpHost,
       port: config.smtpPort,
       secure: config.smtpPort === 465,
