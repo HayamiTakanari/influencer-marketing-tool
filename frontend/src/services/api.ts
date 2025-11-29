@@ -940,19 +940,49 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
 };
 
 export const getInfluencerById = async (id: string) => {
+  // Check if this is a mock ID BEFORE making API request
+  // For development/testing, mock IDs start with 'mock-' prefix
+  if (id.startsWith('mock-')) {
+    console.debug(`Using mock data for influencer ID: ${id}`);
+
+    const mockInfluencer = {
+      id: id,
+      user: {
+        id: id,
+        email: `influencer${id}@example.com`
+      },
+      displayName: `インフルエンサー ${id}`,
+      bio: '美容とライフスタイルについて発信しています。日々の生活をより豊かにするための情報をお届けします。',
+      categories: ['美容', 'ライフスタイル'],
+      prefecture: '東京都',
+      city: '渋谷区',
+      priceMin: 50000,
+      priceMax: 200000,
+      gender: '女性',
+      birthDate: '1995-05-15',
+      socialAccounts: [
+        {
+          id: `${id}_tiktok`,
+          platform: 'TIKTOK',
+          username: `user${id}_tiktok`,
+          profileUrl: `https://tiktok.com/@user${id}_tiktok`,
+          followerCount: 450000,
+          engagementRate: 12.3,
+          isVerified: true
+        }
+      ],
+      portfolio: []
+    };
+
+    return mockInfluencer;
+  }
+
+  // For real IDs, attempt to fetch from backend
   try {
-    // APIから取得
     const response = await api.get(`/influencers/${id}`);
     return response.data;
   } catch (apiError: any) {
-    // For mock IDs (development/testing), silently return mock data
-    // Don't log 404 errors for mock influencer IDs as this is expected behavior
-    if (apiError?.response?.status === 404 && id.includes('mock')) {
-      console.debug(`Mock influencer ${id} - using fallback data (expected behavior)`);
-    } else if (apiError?.response?.status !== 404) {
-      // Only log non-404 errors (which indicate real issues)
-      console.error('Error fetching influencer details:', apiError?.message || apiError);
-    }
+    console.error('Error fetching influencer details:', apiError?.message || apiError);
 
     // フォールバック：モックデータを返す
     const mockInfluencer = {
