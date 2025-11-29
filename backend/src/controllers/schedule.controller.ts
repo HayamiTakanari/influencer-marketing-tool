@@ -53,7 +53,7 @@ const prisma = new PrismaClient();
 export const createProjectSchedule = async (req: AuthRequest, res: Response) => {
   try {
     const { user } = req;
-    if (!user || user.role !== 'CLIENT') {
+    if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
       return res.status(403).json({ error: 'クライアントのみスケジュールを作成できます' });
     }
 

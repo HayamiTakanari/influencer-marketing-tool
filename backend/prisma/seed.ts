@@ -167,18 +167,6 @@ async function main() {
   await prisma.socialAccount.create({
     data: {
       influencerId: influencer1.id,
-      platform: 'INSTAGRAM',
-      username: '@beauty_taro',
-      profileUrl: 'https://instagram.com/beauty_taro',
-      followerCount: 250000,
-      engagementRate: 8.5,
-      isVerified: true,
-    },
-  });
-
-  await prisma.socialAccount.create({
-    data: {
-      influencerId: influencer1.id,
       platform: 'TIKTOK',
       username: '@beauty_taro_tiktok',
       profileUrl: 'https://tiktok.com/@beauty_taro_tiktok',
@@ -191,9 +179,9 @@ async function main() {
   await prisma.socialAccount.create({
     data: {
       influencerId: influencer2.id,
-      platform: 'INSTAGRAM',
-      username: '@fashion_hanako',
-      profileUrl: 'https://instagram.com/fashion_hanako',
+      platform: 'TIKTOK',
+      username: '@fashion_hanako_tiktok',
+      profileUrl: 'https://tiktok.com/@fashion_hanako_tiktok',
       followerCount: 380000,
       engagementRate: 9.2,
       isVerified: true,
@@ -202,22 +190,10 @@ async function main() {
 
   await prisma.socialAccount.create({
     data: {
-      influencerId: influencer2.id,
-      platform: 'YOUTUBE',
-      username: 'FashionHanakoChannel',
-      profileUrl: 'https://youtube.com/@FashionHanakoChannel',
-      followerCount: 150000,
-      engagementRate: 6.8,
-      isVerified: true,
-    },
-  });
-
-  await prisma.socialAccount.create({
-    data: {
       influencerId: influencer3.id,
-      platform: 'INSTAGRAM',
-      username: '@gourmet_yumi',
-      profileUrl: 'https://instagram.com/gourmet_yumi',
+      platform: 'TIKTOK',
+      username: '@gourmet_yumi_tiktok',
+      profileUrl: 'https://tiktok.com/@gourmet_yumi_tiktok',
       followerCount: 320000,
       engagementRate: 10.1,
       isVerified: true,
@@ -227,27 +203,6 @@ async function main() {
   console.log('✅ Created social accounts (SNS)');
 
   // Create achievements (実績)
-  await prisma.achievement.create({
-    data: {
-      influencerId: influencer1.id,
-      projectName: '新作美容液プロモーション',
-      brandName: 'ビューティケア',
-      purpose: 'SALES',
-      platform: 'INSTAGRAM',
-      description: '新作美容液の紹介と使用感のレビュー投稿',
-      metrics: {
-        views: 125000,
-        likes: 15800,
-        shares: 2300,
-        conversions: 580,
-      },
-      budget: 300000,
-      duration: '2024年10月〜11月',
-      imageUrl: 'https://example.com/achievement1.jpg',
-      link: 'https://instagram.com/p/example1',
-    },
-  });
-
   await prisma.achievement.create({
     data: {
       influencerId: influencer1.id,
@@ -272,21 +227,21 @@ async function main() {
   await prisma.achievement.create({
     data: {
       influencerId: influencer2.id,
-      projectName: '秋冬ファッションコレクション',
+      projectName: 'ファッションコーデ動画シリーズ',
       brandName: 'ファッションハウス',
       purpose: 'BRAND_IMAGE',
-      platform: 'INSTAGRAM',
-      description: '秋冬ファッションコレクションのスタイリング紹介',
+      platform: 'TIKTOK',
+      description: 'トレンドファッションコーディネート動画',
       metrics: {
-        views: 280000,
-        likes: 28500,
-        shares: 4200,
+        views: 1800000,
+        likes: 280000,
+        shares: 42000,
         conversions: 850,
       },
       budget: 400000,
       duration: '2024年8月〜9月',
       imageUrl: 'https://example.com/achievement3.jpg',
-      link: 'https://instagram.com/fashion_hanako',
+      link: 'https://tiktok.com/@fashion_hanako_tiktok/video/example',
     },
   });
 
@@ -358,7 +313,7 @@ async function main() {
       description: '新作美容液の認知拡大とブランドイメージ向上',
       category: '美容・スキンケア',
       budget: 1000000,
-      targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+      targetPlatforms: ['TIKTOK'],
       targetPrefecture: '東京都',
       targetCity: '渋谷区',
       targetGender: 'FEMALE',
@@ -379,7 +334,7 @@ async function main() {
       description: '新作ファッションコレクションの認知と販売促進',
       category: 'ファッション',
       budget: 1200000,
-      targetPlatforms: ['INSTAGRAM', 'YOUTUBE'],
+      targetPlatforms: ['TIKTOK'],
       targetPrefecture: '東京都',
       targetGender: 'FEMALE',
       targetAgeMin: 18,
@@ -399,7 +354,7 @@ async function main() {
       description: '新しくオープンしたレストランの認知拡大',
       category: 'グルメ・飲食',
       budget: 800000,
-      targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
+      targetPlatforms: ['TIKTOK'],
       targetPrefecture: '東京都',
       status: 'PENDING',
       targetFollowerMin: 80000,

@@ -59,12 +59,12 @@ const LoginPage: React.FC = () => {
 
   const fillTestAccount = (type: 'influencer' | 'client') => {
     if (type === 'influencer') {
-      setEmail('influencer@test.com');
-      setPassword('Test123');
+      setEmail('influencer1@example.com');
+      setPassword('password123');
       setAccountType('influencer');
     } else {
-      setEmail('company@test.com');
-      setPassword('Test123');
+      setEmail('client1@example.com');
+      setPassword('password123');
       setAccountType('company');
     }
   };

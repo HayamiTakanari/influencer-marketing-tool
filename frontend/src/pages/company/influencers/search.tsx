@@ -77,10 +77,23 @@ const InfluencerSearchPage: React.FC = () => {
 
       setUser(parsedUser);
 
-      // Skip API call for now - use mock data only
-      // This prevents 403 errors from being triggered
-      setInfluencers([]);
-      setLoading(false);
+      try {
+        // Fetch influencers from backend API (fallback from Supabase)
+        const response = await api.get('/influencers/search');
+        const influencerData = response.data.influencers || [];
+        setInfluencers(influencerData as Influencer[]);
+
+        // Extract unique categories from influencers
+        const uniqueCategories = Array.from(
+          new Set(influencerData.flatMap((inf: any) => inf.categories || []))
+        ) as string[];
+        setCategories(uniqueCategories.sort());
+      } catch (error) {
+        console.error('Error fetching influencers:', error);
+        handleError('インフルエンサーの取得に失敗しました');
+      } finally {
+        setLoading(false);
+      }
     };
 
     // Only fetch if we have both user and token to avoid race conditions
@@ -91,6 +104,19 @@ const InfluencerSearchPage: React.FC = () => {
       setLoading(false);
     }
   }, [isMounted, router]);
+
+  // Filter influencers based on search query and selected category
+  const filteredInfluencers = influencers.filter(influencer => {
+    const matchesSearch = !searchQuery ||
+      influencer.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      influencer.bio.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      influencer.categories?.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesCategory = !selectedCategory ||
+      influencer.categories?.includes(selectedCategory);
+
+    return matchesSearch && matchesCategory;
+  });
 
   if (!isAuthenticated || !isMounted || loading) {
     return (
@@ -155,9 +181,9 @@ const InfluencerSearchPage: React.FC = () => {
         </Card>
 
         {/* インフルエンサー一覧 */}
-        {influencers.length > 0 ? (
+        {filteredInfluencers.length > 0 ? (
           <div className="space-y-4">
-            {influencers.map(influencer => (
+            {filteredInfluencers.map(influencer => (
               <Card key={influencer.id}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

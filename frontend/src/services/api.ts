@@ -940,112 +940,52 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
 };
 
 export const getInfluencerById = async (id: string) => {
-  // Vercel環境やローカルでバックエンドが利用できない場合のモックデータ
-  if (typeof window !== 'undefined' && 
-      (window.location.hostname.includes('vercel.app') || !window.navigator.onLine)) {
-    console.log('Using mock data for influencer details:', id);
-    
-    // モックインフルエンサーデータ
-    const mockInfluencer = {
-      id: id,
-      user: {
-        id: id,
-        email: `influencer${id}@example.com`
-      },
-      displayName: `インフルエンサー ${id}`,
-      bio: '美容とライフスタイルについて発信しています。日々の生活をより豊かにするための情報をお届けします。',
-      categories: ['美容', 'ライフスタイル'],
-      prefecture: '東京都',
-      city: '渋谷区',
-      priceMin: 50000,
-      priceMax: 200000,
-      gender: '女性',
-      birthDate: '1995-05-15',
-      socialAccounts: [
-        {
-          id: `${id}_instagram`,
-          platform: 'Instagram',
-          username: `user${id}`,
-          profileUrl: `https://instagram.com/user${id}`,
-          followerCount: 125000,
-          engagementRate: 4.2,
-          isVerified: true,
-          analytics: {
-            maleFollowerPercentage: 35,
-            femaleFollowerPercentage: 65,
-            prEngagement: 5.8,
-            generalEngagement: 4.2,
-            averageComments: 850,
-            averageLikes: 5200,
-            age35to44FemalePercentage: 25,
-            age35to44MalePercentage: 15,
-            age45to64MalePercentage: 8,
-            age45to64FemalePercentage: 12,
-            topBrandAffinity: 'コスメ・美容',
-            secondBrandAffinity: 'ファッション',
-            topInterest: 'スキンケア',
-            secondInterest: 'トレンドファッション'
-          }
-        },
-        {
-          id: `${id}_tiktok`,
-          platform: 'TikTok',
-          username: `user${id}tiktok`,
-          profileUrl: `https://tiktok.com/@user${id}`,
-          followerCount: 89000,
-          engagementRate: 6.1,
-          isVerified: false
-        },
-        {
-          id: `${id}_youtube`,
-          platform: 'YouTube',
-          username: `user${id}tube`,
-          profileUrl: `https://youtube.com/@user${id}`,
-          followerCount: 45000,
-          engagementRate: 3.8,
-          isVerified: true
-        },
-        {
-          id: `${id}_x`,
-          platform: 'X',
-          username: `user${id}x`,
-          profileUrl: `https://x.com/user${id}`,
-          followerCount: 32000,
-          engagementRate: 2.5,
-          isVerified: false
-        }
-      ],
-      portfolio: [
-        {
-          id: `${id}_portfolio_1`,
-          title: 'スキンケアルーティン動画',
-          description: '朝のスキンケア手順を詳しく紹介した動画コンテンツ',
-          imageUrl: 'https://via.placeholder.com/400x300/6366f1/ffffff?text=Portfolio+1',
-          link: 'https://example.com/portfolio1',
-          platform: 'Instagram'
-        },
-        {
-          id: `${id}_portfolio_2`,
-          title: 'コスメレビュー記事',
-          description: '話題の新作コスメを実際に使用してレビュー',
-          imageUrl: 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Portfolio+2',
-          link: 'https://example.com/portfolio2',
-          platform: 'Blog'
-        }
-      ]
-    };
-    
-    return mockInfluencer;
-  }
-
   try {
-    const response = await api.get(`/influencers/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching influencer details, falling back to mock data:', error);
-    
-    // バックエンドエラーの場合もモックデータを返す（再帰を避けるため直接返す）
-    const mockInfluencer = {
+    // Supabaseから直接データを取得
+    const { supabase } = await import('../lib/supabase');
+
+    const { data: influencer, error } = await supabase
+      .from('influencer')
+      .select(`
+        id,
+        displayName,
+        bio,
+        categories,
+        prefecture,
+        city,
+        priceMin,
+        priceMax,
+        gender,
+        birthDate,
+        user:user_id(id, email),
+        socialAccounts:socialAccount(id, platform, username, profileUrl, followerCount, engagementRate, isVerified),
+        portfolio(id, title, description, imageUrl, link, platform)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+
+    if (influencer) {
+      return influencer;
+    }
+
+    throw new Error('Influencer not found');
+  } catch (supabaseError) {
+    console.error('Error fetching from Supabase:', supabaseError);
+
+    // フォールバック：APIから取得を試みる
+    try {
+      const response = await api.get(`/influencers/${id}`);
+      return response.data;
+    } catch (apiError) {
+      console.error('Error fetching from API:', apiError);
+
+      // フォールバック：モックデータを返す
+      const mockInfluencer = {
       id: id,
       user: {
         id: id,
@@ -1062,63 +1002,20 @@ export const getInfluencerById = async (id: string) => {
       birthDate: '1995-05-15',
       socialAccounts: [
         {
-          id: `${id}_instagram`,
-          platform: 'Instagram',
-          username: `user${id}`,
-          profileUrl: `https://instagram.com/user${id}`,
-          followerCount: 125000,
-          engagementRate: 4.2,
-          isVerified: true
-        },
-        {
           id: `${id}_tiktok`,
-          platform: 'TikTok',
-          username: `user${id}tiktok`,
-          profileUrl: `https://tiktok.com/@user${id}`,
-          followerCount: 89000,
-          engagementRate: 6.1,
-          isVerified: false
-        },
-        {
-          id: `${id}_youtube`,
-          platform: 'YouTube',
-          username: `user${id}tube`,
-          profileUrl: `https://youtube.com/@user${id}`,
-          followerCount: 45000,
-          engagementRate: 3.8,
+          platform: 'TIKTOK',
+          username: `user${id}_tiktok`,
+          profileUrl: `https://tiktok.com/@user${id}_tiktok`,
+          followerCount: 450000,
+          engagementRate: 12.3,
           isVerified: true
-        },
-        {
-          id: `${id}_x`,
-          platform: 'X',
-          username: `user${id}x`,
-          profileUrl: `https://x.com/user${id}`,
-          followerCount: 32000,
-          engagementRate: 2.5,
-          isVerified: false
         }
       ],
-      portfolio: [
-        {
-          id: `${id}_portfolio_1`,
-          title: 'スキンケアルーティン動画',
-          description: '朝のスキンケア手順を詳しく紹介した動画コンテンツ',
-          imageUrl: 'https://via.placeholder.com/400x300/6366f1/ffffff?text=Portfolio+1',
-          link: 'https://example.com/portfolio1',
-          platform: 'Instagram'
-        },
-        {
-          id: `${id}_portfolio_2`,
-          title: 'コスメレビュー記事',
-          description: '話題の新作コスメを実際に使用してレビュー',
-          imageUrl: 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Portfolio+2',
-          link: 'https://example.com/portfolio2',
-          platform: 'Blog'
-        }
-      ]
+      portfolio: []
     };
-    
+
     return mockInfluencer;
+    }
   }
 };
 

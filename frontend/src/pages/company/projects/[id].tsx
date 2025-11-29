@@ -6,6 +6,7 @@ import Card from '../../../components/shared/Card';
 import Button from '../../../components/shared/Button';
 import LoadingState from '../../../components/common/LoadingState';
 import EmptyState from '../../../components/common/EmptyState';
+import api from '../../../services/api';
 
 interface ProjectDetails {
   id: string;
@@ -44,28 +45,14 @@ const ProjectDetailPage: React.FC = () => {
     }
 
     if (id && typeof id === 'string') {
-      fetchProjectDetails(id, token);
+      fetchProjectDetails(id);
     }
   }, [id, router]);
 
-  const fetchProjectDetails = async (projectId: string, token: string) => {
+  const fetchProjectDetails = async (projectId: string) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/projects/${projectId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch project: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setProject(data.project || data);
+      const response = await api.get(`/projects/${projectId}`);
+      setProject(response.data.project || response.data);
       setError('');
     } catch (err: any) {
       console.error('Error fetching project:', err);

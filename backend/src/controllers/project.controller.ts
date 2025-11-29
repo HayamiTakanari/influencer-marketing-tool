@@ -45,47 +45,59 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Influencer profile not found' });
     }
 
-    const where: any = {
-      status: 'PENDING',
-      endDate: { gte: new Date() }, // Only show projects that haven't ended
-    };
-
-    if (query.category) {
-      where.category = query.category;
-    }
-
-    if (query.minBudget !== undefined || query.maxBudget !== undefined) {
-      where.budget = {};
-      if (query.minBudget !== undefined) {
-        where.budget.gte = query.minBudget;
-      }
-      if (query.maxBudget !== undefined) {
-        where.budget.lte = query.maxBudget;
-      }
-    }
-
-    if (query.platforms && query.platforms.length > 0) {
-      where.targetPlatforms = { hasSome: query.platforms };
-    }
-
-    if (query.prefecture) {
-      where.targetPrefecture = query.prefecture;
-    }
-
     // インフルエンサーが連携しているプラットフォームを取得
     const connectedPlatforms = influencer.socialAccounts
       .filter(acc => acc.isVerified)
       .map(acc => acc.platform);
 
-    // 連携しているプラットフォームを使用する案件のみ表示
+    // Build the platform filter
+    let platformFilter: any;
     if (connectedPlatforms.length > 0) {
-      where.OR = [
-        { targetPlatforms: { isEmpty: true } }, // プラットフォーム指定なしの案件
-        { targetPlatforms: { hasSome: connectedPlatforms } } // 連携済みプラットフォームを含む案件
-      ];
+      platformFilter = {
+        OR: [
+          { targetPlatforms: { isEmpty: true } }, // プラットフォーム指定なしの案件
+          { targetPlatforms: { hasSome: connectedPlatforms } } // 連携済みプラットフォームを含む案件
+        ]
+      };
     } else {
       // 連携していない場合はプラットフォーム指定なしの案件のみ
-      where.targetPlatforms = { isEmpty: true };
+      platformFilter = { targetPlatforms: { isEmpty: true } };
+    }
+
+    const where: any = {
+      status: 'PENDING',
+      AND: [
+        {
+          OR: [
+            { endDate: { gte: new Date() } }, // Projects with future end dates
+            { endDate: null } // Projects without end dates
+          ]
+        },
+        platformFilter
+      ]
+    };
+
+    if (query.category) {
+      where.AND.push({ category: query.category });
+    }
+
+    if (query.minBudget !== undefined || query.maxBudget !== undefined) {
+      const budgetFilter: any = {};
+      if (query.minBudget !== undefined) {
+        budgetFilter.gte = query.minBudget;
+      }
+      if (query.maxBudget !== undefined) {
+        budgetFilter.lte = query.maxBudget;
+      }
+      where.AND.push({ budget: budgetFilter });
+    }
+
+    if (query.platforms && query.platforms.length > 0) {
+      where.AND.push({ targetPlatforms: { hasSome: query.platforms } });
+    }
+
+    if (query.prefecture) {
+      where.AND.push({ targetPrefecture: query.prefecture });
     }
 
     const [projects, total] = await Promise.all([
@@ -719,8 +731,9 @@ export const getMyProjects = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
-    
-    if (userRole !== 'CLIENT') {
+
+    // Accept both 'CLIENT' and 'COMPANY' roles (COMPANY is used in frontend)
+    if (userRole !== 'CLIENT' && userRole !== 'COMPANY') {
       return res.status(403).json({ error: 'Only clients can view their projects' });
     }
 

@@ -45,6 +45,7 @@ const ProjectListPage: React.FC = () => {
 
       if (!userData || !token) {
         router.push('/login');
+        setLoading(false);
         return;
       }
 
@@ -52,6 +53,7 @@ const ProjectListPage: React.FC = () => {
 
       if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
         router.push('/influencer/dashboard');
+        setLoading(false);
         return;
       }
 
@@ -61,6 +63,7 @@ const ProjectListPage: React.FC = () => {
         const response = await api.get('/projects/my-projects');
         setProjects(response.data || []);
       } catch (error) {
+        console.error('Error fetching projects:', error);
         handleError(error, 'プロジェクト一覧の取得に失敗しました');
       } finally {
         setLoading(false);
@@ -68,7 +71,7 @@ const ProjectListPage: React.FC = () => {
     };
 
     fetchProjects();
-  }, [isMounted, router]);
+  }, [isMounted]);
 
   const filteredProjects = selectedStatus
     ? projects.filter(p => p.status === selectedStatus)
