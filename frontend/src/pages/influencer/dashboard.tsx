@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { getDashboardData } from '../../services/api';
+import { supabase } from '../../lib/supabase';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import StatsCard from '../../components/common/StatsCard';
@@ -45,10 +45,36 @@ const InfluencerDashboardPage: React.FC = () => {
       setUser(parsedUser);
 
       try {
-        const data = await getDashboardData();
-        setDashboardData(data);
+        // Fetch all applications for this influencer
+        const { data: applications, error: appError } = await supabase
+          .from('Application')
+          .select('*')
+          .eq('influencerId', parsedUser.id);
+
+        if (appError) {
+          throw appError;
+        }
+
+        // Calculate stats
+        const pendingApps = applications?.filter(a => a.status === 'PENDING').length || 0;
+        const acceptedApps = applications?.filter(a => a.status === 'ACCEPTED').length || 0;
+        const rejectedApps = applications?.filter(a => a.status === 'REJECTED').length || 0;
+        const totalApps = applications?.length || 0;
+
+        setDashboardData({
+          user: { profile: { name: parsedUser.email } },
+          stats: {
+            totalApplications: totalApps,
+            pendingApplications: pendingApps,
+            acceptedApplications: acceptedApps,
+            rejectedApplications: rejectedApps
+          },
+          recentApplications: applications?.slice(0, 5) || [],
+          profileCompletion: 75
+        });
       } catch (error) {
-        handleError(error, 'ダッシュボードデータの取得');
+        console.error('Dashboard fetch error:', error);
+        handleError(error, 'ダッシュボードデータの取得に失敗しました');
       } finally {
         setLoading(false);
       }
