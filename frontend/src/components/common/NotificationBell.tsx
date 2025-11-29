@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { FaBell } from 'react-icons/fa';
+import { supabase } from '../../lib/supabase';
 
 interface Notification {
   id: string;
@@ -45,19 +46,21 @@ const NotificationBell: React.FC = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+      const userData = localStorage.getItem('user');
+      if (!userData) return;
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/notifications/unread-count`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const parsedUser = JSON.parse(userData);
 
-      if (response.ok) {
-        const data = await response.json();
-        setUnreadCount(data.count);
+      const { data, error } = await supabase
+        .from('Notification')
+        .select('id')
+        .eq('userId', parsedUser.id)
+        .eq('isRead', false);
+
+      if (error) {
+        console.error('Error fetching unread count:', error);
+      } else {
+        setUnreadCount(data?.length || 0);
       }
     } catch (error) {
       console.error('Error fetching unread count:', error);
@@ -67,19 +70,22 @@ const NotificationBell: React.FC = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) return;
+      const userData = localStorage.getItem('user');
+      if (!userData) return;
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/notifications?limit=10`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const parsedUser = JSON.parse(userData);
 
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.notifications || []);
+      const { data, error } = await supabase
+        .from('Notification')
+        .select('*')
+        .eq('userId', parsedUser.id)
+        .order('createdAt', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching notifications:', error);
+      } else {
+        setNotifications(data || []);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -90,18 +96,14 @@ const NotificationBell: React.FC = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+      const { error } = await supabase
+        .from('Notification')
+        .update({ isRead: true })
+        .eq('id', notificationId);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/notifications/${notificationId}/read`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
+      if (error) {
+        console.error('Error marking notification as read:', error);
+      } else {
         setNotifications(prev =>
           prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
         );
@@ -114,18 +116,20 @@ const NotificationBell: React.FC = () => {
 
   const markAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+      const userData = localStorage.getItem('user');
+      if (!userData) return;
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/notifications/mark-all-read`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const parsedUser = JSON.parse(userData);
 
-      if (response.ok) {
+      const { error } = await supabase
+        .from('Notification')
+        .update({ isRead: true })
+        .eq('userId', parsedUser.id)
+        .eq('isRead', false);
+
+      if (error) {
+        console.error('Error marking all as read:', error);
+      } else {
         setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         setUnreadCount(0);
       }
