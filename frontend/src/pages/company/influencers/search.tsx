@@ -79,7 +79,10 @@ const InfluencerSearchPage: React.FC = () => {
 
       try {
         // Fetch influencers from backend API
-        const influencerData = await searchInfluencers();
+        const response = await searchInfluencers();
+
+        // Handle both array response and paginated object response
+        const influencerData = Array.isArray(response) ? response : (response?.influencers || []);
         setInfluencers(influencerData as Influencer[]);
 
         // Extract unique categories from influencers

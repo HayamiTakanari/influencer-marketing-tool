@@ -941,51 +941,14 @@ export const getAIRecommendedInfluencersForProject = async (projectData: {
 
 export const getInfluencerById = async (id: string) => {
   try {
-    // Supabaseから直接データを取得
-    const { supabase } = await import('../lib/supabase');
+    // APIから取得
+    const response = await api.get(`/influencers/${id}`);
+    return response.data;
+  } catch (apiError) {
+    console.error('Error fetching from API:', apiError);
 
-    const { data: influencer, error } = await supabase
-      .from('influencer')
-      .select(`
-        id,
-        displayName,
-        bio,
-        categories,
-        prefecture,
-        city,
-        priceMin,
-        priceMax,
-        gender,
-        birthDate,
-        user:user_id(id, email),
-        socialAccounts:socialAccount(id, platform, username, profileUrl, followerCount, engagementRate, isVerified),
-        portfolio(id, title, description, imageUrl, link, platform)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Supabase error:', error);
-      throw error;
-    }
-
-    if (influencer) {
-      return influencer;
-    }
-
-    throw new Error('Influencer not found');
-  } catch (supabaseError) {
-    console.error('Error fetching from Supabase:', supabaseError);
-
-    // フォールバック：APIから取得を試みる
-    try {
-      const response = await api.get(`/influencers/${id}`);
-      return response.data;
-    } catch (apiError) {
-      console.error('Error fetching from API:', apiError);
-
-      // フォールバック：モックデータを返す
-      const mockInfluencer = {
+    // フォールバック：モックデータを返す
+    const mockInfluencer = {
       id: id,
       user: {
         id: id,
@@ -1015,7 +978,6 @@ export const getInfluencerById = async (id: string) => {
     };
 
     return mockInfluencer;
-    }
   }
 };
 
