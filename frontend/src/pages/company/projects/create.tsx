@@ -141,12 +141,123 @@ const CreateProjectPage: React.FC = () => {
     secondaryUsageScope: '',
     secondaryUsagePeriod: '',
     insightDisclosure: '',
+    // 公開設定
+    isPublic: true, // true=公開, false=非公開(招待制)
+    invitedInfluencers: [] as string[], // 招待対象インフルエンサーID
     // カスタムフィールド
     customFields: [] as CustomField[]
   });
 
   // カスタムフィールドの管理
   const [customFieldCount, setCustomFieldCount] = useState(0);
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  const [showDraftRestore, setShowDraftRestore] = useState(false);
+  const [drafts, setDrafts] = useState<Array<{ id: string; timestamp: string; data: any }>>([]);
+
+  // 自動保存機能
+  const AUTOSAVE_INTERVAL = 5000; // 5秒ごとに自動保存
+  const DRAFT_KEY_PREFIX = 'project_draft_';
+  const DRAFTS_INDEX_KEY = 'project_drafts_index';
+
+  // ドラフト一覧を読み込む
+  useEffect(() => {
+    try {
+      const draftsIndex = localStorage.getItem(DRAFTS_INDEX_KEY);
+      if (draftsIndex) {
+        const draftIds = JSON.parse(draftsIndex);
+        const loadedDrafts = draftIds
+          .map((id: string) => {
+            const data = localStorage.getItem(`${DRAFT_KEY_PREFIX}${id}`);
+            if (data) {
+              try {
+                return { id, ...JSON.parse(data) };
+              } catch {
+                return null;
+              }
+            }
+            return null;
+          })
+          .filter((d: any) => d !== null);
+        setDrafts(loadedDrafts);
+
+        // 前回のセッションからのドラフトがあれば復元を提案
+        if (loadedDrafts.length > 0) {
+          setShowDraftRestore(true);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load drafts:', error);
+    }
+  }, []);
+
+  // 自動保存処理
+  useEffect(() => {
+    const timer = setInterval(() => {
+      try {
+        const draftId = `${Date.now()}`;
+        const draftData = {
+          timestamp: new Date().toLocaleString('ja-JP'),
+          data: formData
+        };
+
+        // 新しいドラフトを保存
+        localStorage.setItem(`${DRAFT_KEY_PREFIX}${draftId}`, JSON.stringify(draftData));
+
+        // ドラフトインデックスを更新
+        const draftsIndex = localStorage.getItem(DRAFTS_INDEX_KEY);
+        let draftIds = draftsIndex ? JSON.parse(draftsIndex) : [];
+
+        // 最大10個までのドラフトを保持
+        if (draftIds.length >= 10) {
+          const oldestId = draftIds.shift();
+          localStorage.removeItem(`${DRAFT_KEY_PREFIX}${oldestId}`);
+        }
+
+        draftIds.push(draftId);
+        localStorage.setItem(DRAFTS_INDEX_KEY, JSON.stringify(draftIds));
+
+        setLastSavedTime(new Date().toLocaleTimeString('ja-JP'));
+      } catch (error) {
+        console.error('Autosave failed:', error);
+      }
+    }, AUTOSAVE_INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [formData]);
+
+  // ドラフト復元処理
+  const restoreDraft = (draftId: string) => {
+    try {
+      const draftData = localStorage.getItem(`${DRAFT_KEY_PREFIX}${draftId}`);
+      if (draftData) {
+        const { data } = JSON.parse(draftData);
+        setFormData(data);
+        setShowDraftRestore(false);
+        handleSuccess('ドラフトを復元しました');
+      }
+    } catch (error) {
+      handleError(error, 'ドラフトの復元に失敗しました');
+    }
+  };
+
+  // ドラフト削除処理
+  const deleteDraft = (draftId: string) => {
+    try {
+      localStorage.removeItem(`${DRAFT_KEY_PREFIX}${draftId}`);
+      const draftsIndex = localStorage.getItem(DRAFTS_INDEX_KEY);
+      if (draftsIndex) {
+        const draftIds = JSON.parse(draftsIndex).filter((id: string) => id !== draftId);
+        if (draftIds.length > 0) {
+          localStorage.setItem(DRAFTS_INDEX_KEY, JSON.stringify(draftIds));
+        } else {
+          localStorage.removeItem(DRAFTS_INDEX_KEY);
+        }
+      }
+      setDrafts(drafts.filter(d => d.id !== draftId));
+    } catch (error) {
+      handleError(error, 'ドラフトの削除に失敗しました');
+    }
+  };
 
   const categories = [
     '美容・化粧品', 'ファッション', 'フード・飲料', 'ライフスタイル', '旅行・観光',
@@ -431,6 +542,7 @@ const CreateProjectPage: React.FC = () => {
         targetFollowerMax: formData.targetFollowerMax > 0 ? formData.targetFollowerMax : undefined,
         startDate: formData.startDate,
         endDate: formData.endDate,
+        isPublic: formData.isPublic,
       };
 
       console.log('Submitting project data:', projectData);
@@ -455,11 +567,11 @@ const CreateProjectPage: React.FC = () => {
       };
       localStorage.setItem('recentProject', JSON.stringify(projectForAI));
       
-      // AIマッチングページにリダイレクト
-      handleSuccess('プロジェクトを作成しました！');
+      // プレビューページにリダイレクト
+      handleSuccess('プロジェクトを作成しました。内容を確認してから公開してください。');
       const projectId = result.id || result.project?.id;
       if (projectId) {
-        router.push(`/company/projects/${projectId}/ai-matching`);
+        router.push(`/company/projects/${projectId}/preview`);
       } else {
         router.push('/company/dashboard');
       }
@@ -494,6 +606,49 @@ const CreateProjectPage: React.FC = () => {
           </button>
         </Link>
       </div>
+
+      {/* ドラフト復元ダイアログ */}
+      {showDraftRestore && drafts.length > 0 && (
+        <Card className="mb-6 border-blue-200 bg-blue-50">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-bold text-blue-900 mb-2">保存済みのドラフトがあります</h3>
+              <p className="text-blue-700 mb-4">前回の入力内容から続けることができます。</p>
+              <div className="space-y-2 mb-4">
+                {drafts.slice(-3).reverse().map((draft) => (
+                  <div key={draft.id} className="flex justify-between items-center bg-white p-3 rounded-lg border border-blue-200">
+                    <span className="text-sm text-gray-700">{draft.timestamp}</span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => restoreDraft(draft.id)}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                      >
+                        復元
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteDraft(draft.id)}
+                        className="px-3 py-1 text-sm bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+                      >
+                        削除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowDraftRestore(false)}
+              className="text-2xl text-blue-400 hover:text-blue-600"
+            >
+              ×
+            </button>
+          </div>
+        </Card>
+      )}
+
       {/* エラーメッセージ */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
@@ -511,6 +666,13 @@ const CreateProjectPage: React.FC = () => {
 
       {/* プロジェクト作成フォーム */}
       <Card padding="lg">
+        {/* 自動保存表示 */}
+        {lastSavedTime && (
+          <div className="flex items-center justify-between mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <span className="text-sm text-green-700">自動保存: {lastSavedTime}に保存しました</span>
+            <span className="text-xs text-green-600">5秒ごとに自動保存中</span>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
             {/* 基本情報 */}
             <div>
@@ -596,6 +758,50 @@ const CreateProjectPage: React.FC = () => {
                     </p>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* 公開設定 */}
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">公開設定</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      checked={formData.isPublic === true}
+                      onChange={() => setFormData({...formData, isPublic: true, invitedInfluencers: []})}
+                      className="w-4 h-4 text-emerald-600"
+                    />
+                    <div>
+                      <span className="block font-medium text-gray-900">公開</span>
+                      <span className="block text-sm text-gray-600">全ての認証済みインフルエンサーが検索・閲覧・応募できます</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      checked={formData.isPublic === false}
+                      onChange={() => setFormData({...formData, isPublic: false})}
+                      className="w-4 h-4 text-emerald-600"
+                    />
+                    <div>
+                      <span className="block font-medium text-gray-900">非公開（招待制）</span>
+                      <span className="block text-sm text-gray-600">スカウトを送ったインフルエンサーのみが詳細を閲覧・応募できます</span>
+                    </div>
+                  </label>
+                </div>
+
+                {!formData.isPublic && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-900">
+                      <span className="font-medium">ヒント:</span> このプロジェクトにスカウトを送ると、そのインフルエンサーが詳細を閲覧できるようになります
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1384,7 +1590,43 @@ const CreateProjectPage: React.FC = () => {
             </div>
 
             {/* 送信ボタン */}
-            <div className="flex justify-center pt-8">
+            <div className="flex justify-center gap-4 pt-8">
+              <Button
+                type="button"
+                variant="secondary"
+                size="xl"
+                onClick={() => {
+                  try {
+                    const draftId = `manual_${Date.now()}`;
+                    const draftData = {
+                      timestamp: new Date().toLocaleString('ja-JP'),
+                      data: formData
+                    };
+
+                    // 下書きを保存
+                    localStorage.setItem(`${DRAFT_KEY_PREFIX}${draftId}`, JSON.stringify(draftData));
+
+                    // ドラフトインデックスを更新
+                    const draftsIndex = localStorage.getItem(DRAFTS_INDEX_KEY);
+                    let draftIds = draftsIndex ? JSON.parse(draftsIndex) : [];
+
+                    // 最大10個までのドラフトを保持
+                    if (draftIds.length >= 10) {
+                      const oldestId = draftIds.shift();
+                      localStorage.removeItem(`${DRAFT_KEY_PREFIX}${oldestId}`);
+                    }
+
+                    draftIds.push(draftId);
+                    localStorage.setItem(DRAFTS_INDEX_KEY, JSON.stringify(draftIds));
+
+                    handleSuccess('下書きを保存しました');
+                  } catch (error) {
+                    handleError(error, '下書きの保存に失敗しました');
+                  }
+                }}
+              >
+                下書き保存
+              </Button>
               <Button
                 type="submit"
                 variant="primary"

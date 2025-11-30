@@ -59,6 +59,13 @@ const ProjectListPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<'projects' | 'applications'>('projects');
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedAppStatus, setSelectedAppStatus] = useState<'all' | 'pending' | 'accepted'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+  const [minBudget, setMinBudget] = useState<number | null>(null);
+  const [maxBudget, setMaxBudget] = useState<number | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [platforms, setPlatforms] = useState<string[]>([]);
   const router = useRouter();
   const { handleError } = useErrorHandler();
 
@@ -107,6 +114,12 @@ const ProjectListPage: React.FC = () => {
         ]);
         setProjects(projectsData || []);
         setApplications(applicationsData || []);
+
+        // Extract unique categories and platforms from projects
+        const uniqueCategories = [...new Set((projectsData || []).map(p => p.category))];
+        const uniquePlatforms = [...new Set((projectsData || []).flatMap(p => p.targetPlatforms))];
+        setCategories(uniqueCategories);
+        setPlatforms(uniquePlatforms);
       } catch (error) {
         console.error('Error fetching data:', error);
         handleError(error, 'データの取得に失敗しました');
@@ -142,9 +155,43 @@ const ProjectListPage: React.FC = () => {
     }
   };
 
-  const filteredProjects = selectedStatus
-    ? projects.filter(p => p.status === selectedStatus)
-    : projects;
+  const handleCopyProject = async (projectId: string, projectTitle: string) => {
+    try {
+      const response = await api.post(`/projects/${projectId}/copy`);
+      if (response.data.success) {
+        // Add the copied project to the list
+        setProjects([response.data.data, ...projects]);
+        handleError(null, `「${projectTitle}」をコピーしました`);
+      }
+    } catch (error) {
+      handleError(error, 'プロジェクトのコピーに失敗しました');
+    }
+  };
+
+  const filteredProjects = projects.filter(p => {
+    // Status filter
+    if (selectedStatus && p.status !== selectedStatus) return false;
+
+    // Search query filter (title, description)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = p.title.toLowerCase().includes(query);
+      const matchesDescription = p.description.toLowerCase().includes(query);
+      if (!matchesTitle && !matchesDescription) return false;
+    }
+
+    // Category filter
+    if (selectedCategory && p.category !== selectedCategory) return false;
+
+    // Platform filter
+    if (selectedPlatform && !p.targetPlatforms.includes(selectedPlatform)) return false;
+
+    // Budget filter
+    if (minBudget !== null && p.budget < minBudget) return false;
+    if (maxBudget !== null && p.budget > maxBudget) return false;
+
+    return true;
+  });
 
   const statusCounts = {
     PENDING: projects.filter(p => p.status === 'PENDING').length,
@@ -220,6 +267,97 @@ const ProjectListPage: React.FC = () => {
                 <Button>＋ 新しいプロジェクトを作成</Button>
               </Link>
             </div>
+
+        {/* 検索フィルター */}
+        <Card>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">検索・絞り込み</h3>
+          <div className="space-y-4">
+            {/* キーワード検索 */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">キーワード検索</label>
+              <input
+                type="text"
+                placeholder="プロジェクト名や説明から検索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            {/* フィルター行 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* カテゴリー */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-2">カテゴリー</label>
+                <select
+                  value={selectedCategory || ''}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">すべて</option>
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* プラットフォーム */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-2">プラットフォーム</label>
+                <select
+                  value={selectedPlatform || ''}
+                  onChange={(e) => setSelectedPlatform(e.target.value || null)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">すべて</option>
+                  {platforms.map(platform => (
+                    <option key={platform} value={platform}>{platform}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 最小予算 */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-2">最小予算 (円)</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={minBudget ?? ''}
+                  onChange={(e) => setMinBudget(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              {/* 最大予算 */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-2">最大予算 (円)</label>
+                <input
+                  type="number"
+                  placeholder="無制限"
+                  value={maxBudget ?? ''}
+                  onChange={(e) => setMaxBudget(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* リセットボタン */}
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory(null);
+                  setSelectedPlatform(null);
+                  setMinBudget(null);
+                  setMaxBudget(null);
+                }}
+              >
+                フィルターをリセット
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         {/* ステータスフィルター */}
         <Card>
@@ -352,6 +490,12 @@ const ProjectListPage: React.FC = () => {
                                 <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">AI</button>
                               </Link>
                             )}
+                            <button
+                              onClick={() => handleCopyProject(project.id, project.title)}
+                              className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                            >
+                              コピー
+                            </button>
                           </div>
                         </td>
                       </tr>

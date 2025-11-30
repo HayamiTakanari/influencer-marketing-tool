@@ -17,6 +17,7 @@ import {
   updateProjectStatus,
   getCompanyProjects,
   getMatchedProjects,
+  copyProject,
 } from '../controllers/project.controller';
 import {
   getProjectSchedule,
@@ -82,5 +83,8 @@ router.put('/:projectId/status', updateProjectStatus);
 
 // Delete project (for clients)
 router.delete('/:projectId', deleteProject);
+
+// Copy project (for clients)
+router.post('/:projectId/copy', copyProject);
 
 export default router;

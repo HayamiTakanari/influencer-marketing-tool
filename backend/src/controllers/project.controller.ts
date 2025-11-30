@@ -65,6 +65,7 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
 
     const where: any = {
       status: 'PENDING',
+      isPublic: true, // インフルエンサーは公開プロジェクトのみ表示
       AND: [
         {
           OR: [
@@ -1279,5 +1280,79 @@ export const getMatchedProjects = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get matched projects error:', error);
     res.status(500).json({ error: 'Failed to get matched projects' });
+  }
+};
+
+// Copy a project (for clients)
+export const copyProject = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+    const { projectId } = req.params;
+
+    if (userRole !== 'CLIENT' && userRole !== 'COMPANY') {
+      return res.status(403).json({ error: 'Only clients can copy projects' });
+    }
+
+    // Get the original project
+    const originalProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!originalProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Verify the user owns the project
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client || originalProject.clientId !== client.id) {
+      return res.status(403).json({ error: 'You do not have permission to copy this project' });
+    }
+
+    // Create a copy of the project with a new title
+    const copiedProject = await prisma.project.create({
+      data: {
+        title: `${originalProject.title} (コピー)`,
+        description: originalProject.description,
+        category: originalProject.category,
+        budget: originalProject.budget,
+        status: 'PENDING',
+        isPublic: originalProject.isPublic,
+        targetPlatforms: originalProject.targetPlatforms,
+        targetPrefecture: originalProject.targetPrefecture,
+        targetCity: originalProject.targetCity || undefined,
+        targetGender: originalProject.targetGender || undefined,
+        targetAgeMin: originalProject.targetAgeMin || undefined,
+        targetAgeMax: originalProject.targetAgeMax || undefined,
+        targetFollowerMin: originalProject.targetFollowerMin || undefined,
+        targetFollowerMax: originalProject.targetFollowerMax || undefined,
+        startDate: originalProject.startDate,
+        endDate: originalProject.endDate,
+        clientId: client.id,
+      },
+      include: {
+        client: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Project copied successfully',
+      data: copiedProject,
+    });
+  } catch (error) {
+    console.error('Copy project error:', error);
+    res.status(500).json({ error: 'Failed to copy project' });
   }
 };
