@@ -56,7 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title, subt
       {/* メインコンテンツ */}
       <main className={`transition-all duration-200 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {/* トップバー */}
-        <Header title={title} subtitle={subtitle} userEmail={user.email} />
+        <Header title={title} subtitle={subtitle} />
 
         {/* コンテンツエリア */}
         <div className="p-4">
