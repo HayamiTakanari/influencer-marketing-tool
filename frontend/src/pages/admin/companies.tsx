@@ -131,7 +131,7 @@ const AdminCompanies: React.FC = () => {
         {/* Companies Table */}
         <Card>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-max text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left px-4 py-2 font-semibold text-gray-700">企業名</th>
