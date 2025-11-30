@@ -1,11 +1,8 @@
 import React, { ReactNode } from 'react';
-import { motion } from 'framer-motion';
 
 interface CardProps {
   children: ReactNode;
   className?: string;
-  hover?: boolean;
-  gradient?: string;
   onClick?: () => void;
   padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   shadow?: 'sm' | 'md' | 'lg' | 'xl';
@@ -14,10 +11,8 @@ interface CardProps {
 const Card: React.FC<CardProps> = ({
   children,
   className = '',
-  hover = true,
-  gradient,
   onClick,
-  padding = 'lg',
+  padding = 'md',
   shadow = 'md'
 }) => {
   const paddingClasses = {
@@ -35,15 +30,8 @@ const Card: React.FC<CardProps> = ({
     xl: '15px 15px 30px rgba(0,0,0,0.15), 8px 8px 20px rgba(0,0,0,0.12), inset 0 2px 0 rgba(255,255,255,0.9)'
   };
 
-  const MotionComponent = hover ? motion.div : 'div';
-  const hoverProps = hover ? {
-    whileHover: { y: -4 },
-    transition: { duration: 0.2 }
-  } : {};
-
   return (
-    <MotionComponent
-      {...hoverProps}
+    <div
       onClick={onClick}
       className={`group relative ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
@@ -75,16 +63,8 @@ const Card: React.FC<CardProps> = ({
         <div className="relative z-10">
           {children}
         </div>
-        
-        {/* ホバー時のアクセント */}
-        {hover && (
-          <div 
-            className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" 
-            style={{ background: gradient || 'linear-gradient(90deg, #34d399, #14b8a6, #10b981, #059669)' }} 
-          />
-        )}
       </div>
-    </MotionComponent>
+    </div>
   );
 };
 

@@ -91,7 +91,7 @@ const CompanyProfilePage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching company profile:', error);
+      // Error handling
     } finally {
       setLoading(false);
     }
@@ -134,8 +134,6 @@ const CompanyProfilePage: React.FC = () => {
         accountName: formData.accountName,
       };
 
-      console.log('Sending payload:', payload);
-
       const response = await fetch(`${apiBaseUrl}/company-profile/me`, {
         method: 'PUT',
         headers: {
@@ -150,13 +148,11 @@ const CompanyProfilePage: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log('Profile saved successfully:', data);
       setIsEditing(false);
       alert('プロフィールが保存されました');
       // データを再取得
       await fetchCompanyProfile(token);
     } catch (error) {
-      console.error('Error saving profile:', error);
       alert('プロフィールの保存に失敗しました');
     }
   };
@@ -206,7 +202,7 @@ const CompanyProfilePage: React.FC = () => {
         </div>
 
         {/* Basic Information */}
-        <Card>
+        <Card padding="md">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">会社名</label>
@@ -305,7 +301,7 @@ const CompanyProfilePage: React.FC = () => {
         </Card>
 
         {/* SNS Accounts */}
-        <Card>
+        <Card padding="md">
           <h4 className="font-semibold text-gray-900 mb-3">SNS・その他アカウント</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Instagram */}
@@ -455,7 +451,7 @@ const CompanyProfilePage: React.FC = () => {
         </Card>
 
         {/* Bank Account Information */}
-        <Card>
+        <Card padding="md">
           <h4 className="font-semibold text-gray-900 mb-3">口座情報</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
