@@ -12,19 +12,32 @@ const updateCompanyProfileSchema = z.object({
   address: z.string().max(500).optional(),
   website: z.string().url().optional(),
   description: z.string().max(2000).optional(),
-  instagramUrl: z.string().url().optional().or(z.literal('').transform(() => undefined)),
-  instagramUserId: z.string().min(1).max(100).optional().or(z.literal('').transform(() => undefined)),
-  tiktokUrl: z.string().url().optional().or(z.literal('').transform(() => undefined)),
-  tiktokUserId: z.string().min(1).max(100).optional().or(z.literal('').transform(() => undefined)),
-  youtubeUrl: z.string().url().optional().or(z.literal('').transform(() => undefined)),
-  youtubeUserId: z.string().min(1).max(100).optional().or(z.literal('').transform(() => undefined)),
-  twitterUrl: z.string().url().optional().or(z.literal('').transform(() => undefined)),
-  twitterUserId: z.string().min(1).max(100).optional().or(z.literal('').transform(() => undefined)),
+  instagramUrl: z.string().url().optional().nullable(),
+  instagramUserId: z.string().min(1).max(100).optional().nullable(),
+  tiktokUrl: z.string().url().optional().nullable(),
+  tiktokUserId: z.string().min(1).max(100).optional().nullable(),
+  youtubeUrl: z.string().url().optional().nullable(),
+  youtubeUserId: z.string().min(1).max(100).optional().nullable(),
+  twitterUrl: z.string().url().optional().nullable(),
+  twitterUserId: z.string().min(1).max(100).optional().nullable(),
   bankName: z.string().max(100).optional(),
   branchName: z.string().max(100).optional(),
   accountType: z.string().max(50).optional(),
   accountNumber: z.string().max(20).optional(),
   accountName: z.string().max(100).optional(),
+}).transform((data) => {
+  // フロントエンドから空文字列が来た場合、nullに変換
+  return {
+    ...data,
+    instagramUrl: data.instagramUrl === '' ? null : data.instagramUrl,
+    instagramUserId: data.instagramUserId === '' ? null : data.instagramUserId,
+    tiktokUrl: data.tiktokUrl === '' ? null : data.tiktokUrl,
+    tiktokUserId: data.tiktokUserId === '' ? null : data.tiktokUserId,
+    youtubeUrl: data.youtubeUrl === '' ? null : data.youtubeUrl,
+    youtubeUserId: data.youtubeUserId === '' ? null : data.youtubeUserId,
+    twitterUrl: data.twitterUrl === '' ? null : data.twitterUrl,
+    twitterUserId: data.twitterUserId === '' ? null : data.twitterUserId,
+  };
 });
 
 interface AuthRequest extends Request {

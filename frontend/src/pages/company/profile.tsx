@@ -111,34 +111,38 @@ const CompanyProfilePage: React.FC = () => {
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
       // 企業情報をバックエンドに送信（すべてのフィールド）
+      const payload = {
+        companyName: formData.companyName,
+        industry: formData.industry,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone,
+        address: formData.address,
+        website: formData.website,
+        description: formData.description,
+        instagramUrl: formData.instagramUrl || undefined,
+        instagramUserId: formData.instagramUserId || undefined,
+        tiktokUrl: formData.tiktokUrl || undefined,
+        tiktokUserId: formData.tiktokUserId || undefined,
+        youtubeUrl: formData.youtubeUrl || undefined,
+        youtubeUserId: formData.youtubeUserId || undefined,
+        twitterUrl: formData.twitterUrl || undefined,
+        twitterUserId: formData.twitterUserId || undefined,
+        bankName: formData.bankName,
+        branchName: formData.branchName,
+        accountType: formData.accountType,
+        accountNumber: formData.accountNumber,
+        accountName: formData.accountName,
+      };
+
+      console.log('Sending payload:', payload);
+
       const response = await fetch(`${apiBaseUrl}/company-profile/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          companyName: formData.companyName,
-          industry: formData.industry,
-          contactName: formData.contactName,
-          contactPhone: formData.contactPhone,
-          address: formData.address,
-          website: formData.website,
-          description: formData.description,
-          instagramUrl: formData.instagramUrl || '',
-          instagramUserId: formData.instagramUserId || '',
-          tiktokUrl: formData.tiktokUrl || '',
-          tiktokUserId: formData.tiktokUserId || '',
-          youtubeUrl: formData.youtubeUrl || '',
-          youtubeUserId: formData.youtubeUserId || '',
-          twitterUrl: formData.twitterUrl || '',
-          twitterUserId: formData.twitterUserId || '',
-          bankName: formData.bankName,
-          branchName: formData.branchName,
-          accountType: formData.accountType,
-          accountNumber: formData.accountNumber,
-          accountName: formData.accountName,
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
