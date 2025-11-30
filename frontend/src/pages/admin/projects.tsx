@@ -63,20 +63,31 @@ const AdminProjects: React.FC = () => {
       const result = await response.json();
 
       if (result.success && result.data) {
-        const transformedProjects = result.data.map((project: any) => ({
-          id: project.id,
-          title: project.title,
-          company: project.client || project.clientName || 'Unknown',
-          influencer: project.influencer || project.influencerName || 'Not assigned',
-          budget: project.budget || 0,
-          status: (project.status || 'planning').toLowerCase() as 'planning' | 'active' | 'completed' | 'cancelled',
-          progress:
-            project.status === 'COMPLETED' || project.status === 'completed' ? 100 :
-            project.status === 'IN_PROGRESS' || project.status === 'active' ? 60 :
-            10,
-          startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '未定',
-          endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '未定',
-        }));
+        const transformedProjects = result.data.map((project: any) => {
+          // Map database status to frontend status
+          const statusMap: Record<string, 'planning' | 'active' | 'completed' | 'cancelled'> = {
+            'PENDING': 'planning',
+            'MATCHED': 'active',
+            'IN_PROGRESS': 'active',
+            'COMPLETED': 'completed',
+            'CANCELLED': 'cancelled',
+          };
+
+          return {
+            id: project.id,
+            title: project.title,
+            company: project.client || 'Unknown',
+            influencer: project.influencer || 'Not assigned',
+            budget: project.budget || 0,
+            status: statusMap[project.status] || 'planning',
+            progress:
+              project.status === 'COMPLETED' ? 100 :
+              project.status === 'IN_PROGRESS' || project.status === 'MATCHED' ? 60 :
+              10,
+            startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '未定',
+            endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '未定',
+          };
+        });
         setProjects(transformedProjects);
       } else {
         setProjects([]);

@@ -171,26 +171,31 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
         client: {
           include: { user: true },
         },
+        matchedInfluencer: {
+          include: { user: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    res.json({
-      projects: projects.map(p => ({
-        id: p.id,
-        title: p.title,
-        description: p.description,
-        status: p.status,
-        budget: p.budget,
-        endDate: p.endDate,
-        client: p.client.user.email,
-        createdAt: p.createdAt,
-        progress: 0,
-      })),
-    });
+    const projectsData = projects.map(p => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      status: p.status,
+      budget: p.budget,
+      endDate: p.endDate,
+      startDate: p.startDate,
+      client: p.client.user.email,
+      influencer: p.matchedInfluencer?.user.email || null,
+      createdAt: p.createdAt,
+      progress: 0,
+    }));
+
+    sendSuccess(res, projectsData, 'Projects retrieved successfully', 200, req.requestId);
   } catch (error) {
     console.error('Error fetching projects:', error);
-    res.status(500).json({ error: 'Failed to fetch projects' });
+    sendInternalError(res, 'Failed to fetch projects', undefined, req.requestId);
   }
 };
 
