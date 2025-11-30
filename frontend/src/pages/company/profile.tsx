@@ -47,7 +47,7 @@ const CompanyProfilePage: React.FC = () => {
   const fetchCompanyProfile = async (token: string) => {
     try {
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const response = await fetch(`${apiBaseUrl}/profile/me`, {
+      const response = await fetch(`${apiBaseUrl}/company-profile/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -58,22 +58,23 @@ const CompanyProfilePage: React.FC = () => {
         const result = await response.json();
         if (result.success && result.data) {
           const profileData = result.data;
+          const bankAccount = profileData.bankAccounts?.[0];
           setFormData({
-            companyName: profileData.displayName || profileData.companyName || '',
+            companyName: profileData.companyName || '',
             industry: profileData.industry || '',
             contactName: profileData.contactName || '',
             contactPhone: profileData.phoneNumber || '',
             address: profileData.address || '',
             website: profileData.website || '',
-            description: profileData.bio || profileData.description || '',
+            description: profileData.description || '',
             budget: profileData.budget || 0,
             targetAudience: profileData.targetAudience || '',
-            location: profileData.location || profileData.prefecture || '',
-            bankName: profileData.bankName || '',
-            branchName: profileData.branchName || '',
-            accountType: profileData.accountType || '',
-            accountNumber: profileData.accountNumber || '',
-            accountName: profileData.accountName || '',
+            location: profileData.location || '',
+            bankName: bankAccount?.bankName || '',
+            branchName: bankAccount?.branchName || '',
+            accountType: bankAccount?.accountType || '',
+            accountNumber: bankAccount?.accountNumber || '',
+            accountName: bankAccount?.accountHolder || '',
           });
         }
       }
@@ -97,19 +98,29 @@ const CompanyProfilePage: React.FC = () => {
       const token = localStorage.getItem('token');
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-      // 企業情報をバックエンドに送信
-      const response = await fetch(`${apiBaseUrl}/profile/me`, {
+      // 企業情報をバックエンドに送信（すべてのフィールド）
+      const response = await fetch(`${apiBaseUrl}/company-profile/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          // プロフィール用フィールドのみ送信
-          displayName: formData.companyName,
+          companyName: formData.companyName,
+          industry: formData.industry,
+          contactName: formData.contactName,
+          contactPhone: formData.contactPhone,
           address: formData.address,
-          phoneNumber: formData.contactPhone,
-          bio: formData.description,
+          website: formData.website,
+          description: formData.description,
+          budget: formData.budget,
+          targetAudience: formData.targetAudience,
+          location: formData.location,
+          bankName: formData.bankName,
+          branchName: formData.branchName,
+          accountType: formData.accountType,
+          accountNumber: formData.accountNumber,
+          accountName: formData.accountName,
         })
       });
 
@@ -121,6 +132,8 @@ const CompanyProfilePage: React.FC = () => {
       console.log('Profile saved successfully:', data);
       setIsEditing(false);
       alert('プロフィールが保存されました');
+      // データを再取得
+      await fetchCompanyProfile(token);
     } catch (error) {
       console.error('Error saving profile:', error);
       alert('プロフィールの保存に失敗しました');

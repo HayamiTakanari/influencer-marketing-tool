@@ -58,6 +58,7 @@ import reportRoutes from './routes/report.routes';
 import adminManagementRoutes from './routes/admin-management.routes';
 import legalComplianceRoutes from './routes/legal-compliance.routes';
 import faqRoutes from './routes/faq.routes';
+import companyProfileRoutes from './routes/company-profile.routes';
 
 dotenv.config();
 
@@ -203,6 +204,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/admin-management', adminManagementRoutes);
 app.use('/api/legal', legalComplianceRoutes);
 app.use('/api/faqs', faqRoutes);
+app.use('/api/company-profile', companyProfileRoutes);
 
 app.use('/uploads', express.static('uploads'));
 
