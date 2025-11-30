@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import Card from '../../components/shared/Card';
+import Button from '../../components/shared/Button';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
+import { FaInstagram, FaYoutube, FaTiktok } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
+import { AiOutlineQuestionCircle } from 'react-icons/ai';
 
 // 各項目の説明文
 const fieldDescriptions: Record<string, string> = {
@@ -54,24 +60,20 @@ const HelpButton: React.FC<{ field: string }> = ({ field }) => {
   if (!description) return null;
 
   return (
-    <div className="relative inline-block ml-2">
+    <div className="relative inline-block ml-1">
       <button
         type="button"
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         onClick={() => setShowTooltip(!showTooltip)}
-        className="inline-flex items-center justify-center w-5 h-5 bg-blue-500 text-white rounded-full text-xs font-bold hover:bg-blue-600 transition-colors cursor-pointer"
+        className="inline-flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors cursor-help"
         aria-label="ヘルプを表示"
+        title={description}
       >
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <AiOutlineQuestionCircle size={16} />
       </button>
       {showTooltip && (
-        <div className="absolute z-50 w-64 p-3 mt-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg left-6 top-0">
-          <div className="absolute -left-2 top-2">
-            <div className="w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
-          </div>
+        <div className="absolute z-50 w-56 p-2 mt-1 bg-gray-200 text-gray-800 text-xs rounded shadow left-6 top-0">
           {description}
         </div>
       )}
@@ -84,6 +86,7 @@ const CreateProjectPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { handleError, handleSuccess } = useErrorHandler();
 
   // カスタムフィールドの型定義
   interface CustomField {
@@ -151,11 +154,26 @@ const CreateProjectPage: React.FC = () => {
     'ヘルスケア', '自動車', '金融', 'その他'
   ];
 
+  const PlatformIcon: React.FC<{ platform: string; className?: string }> = ({ platform, className = 'w-5 h-5' }) => {
+    switch (platform) {
+      case 'INSTAGRAM':
+        return <FaInstagram className={className} />;
+      case 'YOUTUBE':
+        return <FaYoutube className={className} />;
+      case 'TIKTOK':
+        return <FaTiktok className={className} />;
+      case 'TWITTER':
+        return <FaXTwitter className={className} />;
+      default:
+        return <span className="text-xs">{platform}</span>;
+    }
+  };
+
   const platforms = [
-    { value: 'INSTAGRAM', label: 'Instagram', icon: '📸' },
-    { value: 'YOUTUBE', label: 'YouTube', icon: '🎥' },
-    { value: 'TIKTOK', label: 'TikTok', icon: '🎵' },
-    { value: 'TWITTER', label: 'Twitter', icon: '🐦' }
+    { value: 'INSTAGRAM', label: 'Instagram', disabled: true },
+    { value: 'YOUTUBE', label: 'YouTube', disabled: true },
+    { value: 'TIKTOK', label: 'TikTok', disabled: false },
+    { value: 'TWITTER', label: 'X', disabled: true }
   ];
 
   const shootingAngles = [
@@ -304,31 +322,154 @@ const CreateProjectPage: React.FC = () => {
     setError('');
 
     try {
-      const { createProject } = await import('../../services/api');
-      const result = await createProject(formData);
-      console.log('Project created:', result);
-      
-      // プロジェクトデータを一時的に保存（AIマッチング用）
-      const projectForAI = {
-        id: result.project.id,
+      // バリデーション
+      const validationErrors: string[] = [];
+
+      if (!formData.title.trim()) {
+        validationErrors.push('プロジェクト名は必須です');
+      }
+
+      if (!formData.description.trim()) {
+        validationErrors.push('プロジェクト詳細は必須です');
+      }
+
+      if (!formData.category) {
+        validationErrors.push('カテゴリーは必須です');
+      }
+
+      if (formData.budget < 1000) {
+        validationErrors.push('予算は1,000円以上である必要があります');
+      }
+
+      if (formData.targetPlatforms.length === 0) {
+        validationErrors.push('対象プラットフォームを1つ以上選択してください');
+      }
+
+      if (!formData.startDate) {
+        validationErrors.push('開始日は必須です');
+      }
+
+      if (!formData.endDate) {
+        validationErrors.push('終了日は必須です');
+      }
+
+      if (formData.startDate && formData.endDate) {
+        const startDate = new Date(formData.startDate);
+        const endDate = new Date(formData.endDate);
+        if (startDate >= endDate) {
+          validationErrors.push('終了日は開始日より後である必要があります');
+        }
+      }
+
+      if (!formData.advertiserName.trim()) {
+        validationErrors.push('広告主名は必須です');
+      }
+
+      if (!formData.brandName.trim()) {
+        validationErrors.push('ブランド名は必須です');
+      }
+
+      if (!formData.productName.trim()) {
+        validationErrors.push('商品正式名称は必須です');
+      }
+
+      if (!formData.campaignObjective.trim()) {
+        validationErrors.push('施策の目的は必須です');
+      }
+
+      if (!formData.campaignTarget.trim()) {
+        validationErrors.push('施策ターゲットは必須です');
+      }
+
+      if (!formData.postingPeriodStart) {
+        validationErrors.push('投稿期間（開始日）は必須です');
+      }
+
+      if (!formData.postingPeriodEnd) {
+        validationErrors.push('投稿期間（終了日）は必須です');
+      }
+
+      if (formData.postingPeriodStart && formData.postingPeriodEnd) {
+        const postingStart = new Date(formData.postingPeriodStart);
+        const postingEnd = new Date(formData.postingPeriodEnd);
+        if (postingStart >= postingEnd) {
+          validationErrors.push('投稿期間の終了日は開始日より後である必要があります');
+        }
+      }
+
+      if (formData.postingMedia.length === 0) {
+        validationErrors.push('投稿メディアを1つ以上選択してください');
+      }
+
+      if (!formData.messageToConvey[0]?.trim()) {
+        validationErrors.push('伝えたいこと（1つ目）は必須です');
+      }
+
+      if (!formData.secondaryUsage) {
+        validationErrors.push('二次利用有無を選択してください');
+      }
+
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join('\n'));
+        setLoading(false);
+        return;
+      }
+
+      // バックエンドスキーマに必要なフィールドのみを抽出
+      const projectData = {
         title: formData.title,
         description: formData.description,
         category: formData.category,
         budget: formData.budget,
         targetPlatforms: formData.targetPlatforms,
-        brandName: formData.brandName,
-        productName: formData.productName,
-        campaignObjective: formData.campaignObjective,
-        campaignTarget: formData.campaignTarget,
+        targetPrefecture: formData.targetPrefecture || undefined,
+        targetCity: formData.targetCity || undefined,
+        targetGender: formData.targetGender || undefined,
+        targetAgeMin: formData.targetAgeMin > 0 ? formData.targetAgeMin : undefined,
+        targetAgeMax: formData.targetAgeMax > 0 ? formData.targetAgeMax : undefined,
+        targetFollowerMin: formData.targetFollowerMin > 0 ? formData.targetFollowerMin : undefined,
+        targetFollowerMax: formData.targetFollowerMax > 0 ? formData.targetFollowerMax : undefined,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+      };
+
+      console.log('Submitting project data:', projectData);
+
+      const { createProject } = await import('../../services/api');
+      const result = await createProject(projectData);
+      console.log('Project created:', result);
+      
+      // プロジェクトデータを一時的に保存（AIマッチング用）
+      const projectForAI = {
+        id: result.id || result.project?.id,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        budget: formData.budget,
+        targetPlatforms: formData.targetPlatforms,
+        brandName: formData.brandName || '',
+        productName: formData.productName || '',
+        campaignObjective: formData.campaignObjective || '',
+        campaignTarget: formData.campaignTarget || '',
         messageToConvey: formData.messageToConvey.filter(msg => msg.trim() !== '').join('\n')
       };
       localStorage.setItem('recentProject', JSON.stringify(projectForAI));
       
       // AIマッチングページにリダイレクト
-      router.push(`/project-ai-matching?projectId=${result.project.id}`);
+      handleSuccess('プロジェクトを作成しました！');
+      const projectId = result.id || result.project?.id;
+      if (projectId) {
+        router.push(`/project-ai-matching?projectId=${projectId}`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
-      console.error('Error creating project:', err);
-      setError(err.response?.data?.error || 'プロジェクトの作成に失敗しました。');
+      console.error('Full error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error message:', err.message);
+      handleError(err, 'プロジェクトの作成');
+      const errorMessage = err.response?.data?.error || err.message || 'プロジェクトの作成に失敗しました。';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -343,52 +484,39 @@ const CreateProjectPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/projects" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">←</span>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">新規プロジェクト作成</h1>
-              <p className="text-sm text-gray-600">インフルエンサーマーケティングプロジェクトを作成</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/projects" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              プロジェクト一覧
-            </Link>
-          </div>
-        </div>
+    <DashboardLayout
+      title="新規プロジェクト作成"
+    >
+      <div className="mb-6">
+        <Link href="/projects">
+          <button className="text-sm text-gray-600 hover:text-gray-900 font-medium">
+            ← 戻る
+          </button>
+        </Link>
       </div>
+      {/* エラーメッセージ */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+          {error.includes('\n') ? (
+            <ul className="list-disc list-inside">
+              {error.split('\n').map((err, idx) => (
+                <li key={idx} className="mb-1">{err}</li>
+              ))}
+            </ul>
+          ) : (
+            error
+          )}
+        </div>
+      )}
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* エラーメッセージ */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
-        )}
-
-        {/* プロジェクト作成フォーム */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
-        >
-          <form onSubmit={handleSubmit} className="space-y-8">
+      {/* プロジェクト作成フォーム */}
+      <Card padding="lg">
+        <form onSubmit={handleSubmit} className="space-y-4">
             {/* 基本情報 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">基本情報</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">基本情報</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <span className="flex items-center">
@@ -401,7 +529,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="新商品のプロモーション企画"
                   />
                 </div>
@@ -417,7 +545,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {categories.map(category => (
@@ -438,7 +566,7 @@ const CreateProjectPage: React.FC = () => {
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     required
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="プロジェクトの目的、商品・サービスの詳細、期待する効果などを記載してください..."
                   />
                 </div>
@@ -457,7 +585,7 @@ const CreateProjectPage: React.FC = () => {
                       onChange={(e) => setFormData({...formData, budget: parseInt(e.target.value) || 0})}
                       required
                       min="0"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       placeholder="500000"
                     />
                     <div className="absolute right-3 top-3 text-gray-500">円</div>
@@ -473,34 +601,35 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 対象プラットフォーム */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                対象プラットフォーム
-                <HelpButton field="targetPlatforms" />
-              </h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <h2 className="text-lg font-bold text-gray-900 mb-3">対象プラットフォーム</h2>
+
+              <div className="flex gap-2 flex-wrap">
                 {platforms.map(platform => (
-                  <motion.div
+                  <button
                     key={platform.value}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handlePlatformToggle(platform.value)}
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
-                      formData.targetPlatforms.includes(platform.value)
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    type="button"
+                    onClick={() => !platform.disabled && handlePlatformToggle(platform.value)}
+                    disabled={platform.disabled}
+                    className={`px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium ${
+                      platform.disabled
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                        : formData.targetPlatforms.includes(platform.value)
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-emerald-300'
                     }`}
                   >
-                    <div className="text-3xl mb-2">{platform.icon}</div>
-                    <div className="font-medium text-gray-900">{platform.label}</div>
-                  </motion.div>
+                    <span className="inline-flex items-center gap-2">
+                      <PlatformIcon platform={platform.value} className="w-4 h-4" />
+                      {platform.label}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* ターゲット設定 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">ターゲット設定</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">ターゲット設定</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -513,7 +642,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.targetPrefecture}
                     onChange={(e) => setFormData({...formData, targetPrefecture: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {prefectures.map(prefecture => (
@@ -533,7 +662,7 @@ const CreateProjectPage: React.FC = () => {
                     type="text"
                     value={formData.targetCity}
                     onChange={(e) => setFormData({...formData, targetCity: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="渋谷区、新宿区など"
                   />
                 </div>
@@ -543,7 +672,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.targetGender}
                     onChange={(e) => setFormData({...formData, targetGender: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">指定なし</option>
                     <option value="MALE">男性</option>
@@ -559,7 +688,7 @@ const CreateProjectPage: React.FC = () => {
                       type="number"
                       value={formData.targetAgeMin || ''}
                       onChange={(e) => setFormData({...formData, targetAgeMin: parseInt(e.target.value) || 0})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       placeholder="20"
                       min="0"
                       max="100"
@@ -569,7 +698,7 @@ const CreateProjectPage: React.FC = () => {
                       type="number"
                       value={formData.targetAgeMax || ''}
                       onChange={(e) => setFormData({...formData, targetAgeMax: parseInt(e.target.value) || 0})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       placeholder="35"
                       min="0"
                       max="100"
@@ -584,7 +713,7 @@ const CreateProjectPage: React.FC = () => {
                     type="number"
                     value={formData.targetFollowerMin || ''}
                     onChange={(e) => setFormData({...formData, targetFollowerMin: parseInt(e.target.value) || 0})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="10000"
                     min="0"
                   />
@@ -596,7 +725,7 @@ const CreateProjectPage: React.FC = () => {
                     type="number"
                     value={formData.targetFollowerMax || ''}
                     onChange={(e) => setFormData({...formData, targetFollowerMax: parseInt(e.target.value) || 0})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="100000"
                     min="0"
                   />
@@ -606,7 +735,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 期間設定 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">期間設定</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">期間設定</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -620,7 +749,7 @@ const CreateProjectPage: React.FC = () => {
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
 
@@ -635,7 +764,7 @@ const CreateProjectPage: React.FC = () => {
                     type="date"
                     value={formData.endDate}
                     onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -643,9 +772,9 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 詳細要件 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">詳細要件</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">詳細要件</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <span className="flex items-center">
@@ -657,7 +786,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.deliverables}
                     onChange={(e) => setFormData({...formData, deliverables: e.target.value})}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="投稿数、ストーリー数、レポート形式など..."
                   />
                 </div>
@@ -673,7 +802,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.requirements}
                     onChange={(e) => setFormData({...formData, requirements: e.target.value})}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="投稿内容の方向性、使用ハッシュタグ、NGワードなど..."
                   />
                 </div>
@@ -689,7 +818,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.additionalInfo}
                     onChange={(e) => setFormData({...formData, additionalInfo: e.target.value})}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="商品サンプル提供、撮影場所、その他の特記事項など..."
                   />
                 </div>
@@ -698,7 +827,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 商品・広告主情報 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">商品・広告主情報</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">商品・広告主情報</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -710,7 +839,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.advertiserName}
                     onChange={(e) => setFormData({...formData, advertiserName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="株式会社○○"
                   />
                 </div>
@@ -724,7 +853,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.brandName}
                     onChange={(e) => setFormData({...formData, brandName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="ブランド名"
                   />
                 </div>
@@ -738,7 +867,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.productName}
                     onChange={(e) => setFormData({...formData, productName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="商品の正式名称"
                   />
                 </div>
@@ -751,7 +880,7 @@ const CreateProjectPage: React.FC = () => {
                     type="url"
                     value={formData.productUrl}
                     onChange={(e) => setFormData({...formData, productUrl: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="https://example.com/product"
                   />
                 </div>
@@ -764,7 +893,7 @@ const CreateProjectPage: React.FC = () => {
                     type="number"
                     value={formData.productPrice || ''}
                     onChange={(e) => setFormData({...formData, productPrice: parseInt(e.target.value) || 0})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="1980"
                   />
                 </div>
@@ -777,7 +906,7 @@ const CreateProjectPage: React.FC = () => {
                     type="text"
                     value={formData.advertiserAccount}
                     onChange={(e) => setFormData({...formData, advertiserAccount: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="@advertiser_account"
                   />
                 </div>
@@ -791,7 +920,7 @@ const CreateProjectPage: React.FC = () => {
                     onChange={(e) => setFormData({...formData, productFeatures: e.target.value})}
                     rows={4}
                     maxLength={250}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="商品の特徴、効果、使用方法などを記載してください..."
                   />
                   <div className="text-right text-sm text-gray-500 mt-1">
@@ -803,7 +932,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* キャンペーン詳細 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">キャンペーン詳細</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">キャンペーン詳細</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -815,7 +944,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.campaignObjective}
                     onChange={(e) => setFormData({...formData, campaignObjective: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="認知拡大、購入促進、ブランディングなど"
                   />
                 </div>
@@ -829,7 +958,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.campaignTarget}
                     onChange={(e) => setFormData({...formData, campaignTarget: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="20-30代女性、美容に関心がある方など"
                   />
                 </div>
@@ -843,7 +972,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.postingPeriodStart}
                     onChange={(e) => setFormData({...formData, postingPeriodStart: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
 
@@ -856,7 +985,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.postingPeriodEnd}
                     onChange={(e) => setFormData({...formData, postingPeriodEnd: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
 
@@ -866,21 +995,19 @@ const CreateProjectPage: React.FC = () => {
                   </label>
                   <div className="flex flex-wrap gap-3">
                     {platforms.map(platform => (
-                      <motion.button
+                      <button
                         key={platform.value}
                         type="button"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
                         onClick={() => handlePostingMediaToggle(platform.value)}
                         className={`flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all ${
                           formData.postingMedia.includes(platform.value)
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                             : 'border-gray-300 hover:border-gray-400'
                         }`}
                       >
                         <span>{platform.icon}</span>
                         <span>{platform.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -903,7 +1030,7 @@ const CreateProjectPage: React.FC = () => {
                             newMessages[index] = e.target.value;
                             setFormData({...formData, messageToConvey: newMessages});
                           }}
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                           placeholder={index === 0 ? "商品の魅力、使用感、効果など" : `伝えたいこと${index + 1}（任意）`}
                         />
                         {index > 0 && message && (
@@ -930,7 +1057,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 撮影・制作仕様 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">撮影・制作仕様</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">撮影・制作仕様</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -940,7 +1067,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.shootingAngle}
                     onChange={(e) => setFormData({...formData, shootingAngle: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {shootingAngles.map(angle => (
@@ -956,7 +1083,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.packagePhotography}
                     onChange={(e) => setFormData({...formData, packagePhotography: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {packagePhotographyOptions.map(option => (
@@ -972,7 +1099,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.productOrientationSpecified}
                     onChange={(e) => setFormData({...formData, productOrientationSpecified: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {productOrientationOptions.map(option => (
@@ -988,7 +1115,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.musicUsage}
                     onChange={(e) => setFormData({...formData, musicUsage: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {musicUsageOptions.map(option => (
@@ -1004,7 +1131,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.brandContentSettings}
                     onChange={(e) => setFormData({...formData, brandContentSettings: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {brandContentOptions.map(option => (
@@ -1017,9 +1144,9 @@ const CreateProjectPage: React.FC = () => {
 
             {/* ハッシュタグ・制約事項 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">ハッシュタグ・制約事項</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">ハッシュタグ・制約事項</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     希望ハッシュタグ（5つまで）
@@ -1032,7 +1159,7 @@ const CreateProjectPage: React.FC = () => {
                             type="text"
                             value={hashtag}
                             onChange={(e) => handleHashtagChange(index, e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             placeholder="#ハッシュタグ"
                           />
                         </div>
@@ -1065,7 +1192,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.ngItems}
                     onChange={(e) => setFormData({...formData, ngItems: e.target.value})}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="投稿で避けるべき表現、競合他社の言及、使用禁止ワードなど"
                   />
                 </div>
@@ -1078,7 +1205,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.legalRequirements}
                     onChange={(e) => setFormData({...formData, legalRequirements: e.target.value})}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="薬機法、景表法に関連する注意事項、必要な表記など"
                   />
                 </div>
@@ -1091,7 +1218,7 @@ const CreateProjectPage: React.FC = () => {
                     value={formData.notes}
                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="その他の注意点、特別な要望など"
                   />
                 </div>
@@ -1100,7 +1227,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 二次利用・開示設定 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">二次利用・開示設定</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">二次利用・開示設定</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -1111,7 +1238,7 @@ const CreateProjectPage: React.FC = () => {
                     required
                     value={formData.secondaryUsage}
                     onChange={(e) => setFormData({...formData, secondaryUsage: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {secondaryUsageOptions.map(option => (
@@ -1130,7 +1257,7 @@ const CreateProjectPage: React.FC = () => {
                   <select
                     value={formData.insightDisclosure}
                     onChange={(e) => setFormData({...formData, insightDisclosure: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="">選択してください</option>
                     {insightDisclosureOptions.map(option => (
@@ -1147,7 +1274,7 @@ const CreateProjectPage: React.FC = () => {
                     type="text"
                     value={formData.secondaryUsageScope}
                     onChange={(e) => setFormData({...formData, secondaryUsageScope: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="自社サイト、広告素材、SNS公式アカウントなど"
                   />
                 </div>
@@ -1160,7 +1287,7 @@ const CreateProjectPage: React.FC = () => {
                     type="text"
                     value={formData.secondaryUsagePeriod}
                     onChange={(e) => setFormData({...formData, secondaryUsagePeriod: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     placeholder="6ヶ月、1年、無制限など"
                   />
                 </div>
@@ -1169,7 +1296,7 @@ const CreateProjectPage: React.FC = () => {
 
             {/* カスタム項目 */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">カスタム項目</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">カスタム項目</h2>
               
               <div className="space-y-4">
                 {formData.customFields.map((field, index) => (
@@ -1184,7 +1311,7 @@ const CreateProjectPage: React.FC = () => {
                           required={field.label !== ''}
                           value={field.label}
                           onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                           placeholder="項目名を入力してください"
                         />
                       </div>
@@ -1196,7 +1323,7 @@ const CreateProjectPage: React.FC = () => {
                         <select
                           value={field.fieldType}
                           onChange={(e) => updateCustomField(field.id, { fieldType: e.target.value as 'text' | 'textarea' | 'number' | 'date' })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                         >
                           <option value="text">テキスト（1行）</option>
                           <option value="textarea">テキスト（複数行）</option>
@@ -1215,7 +1342,7 @@ const CreateProjectPage: React.FC = () => {
                           value={field.value}
                           onChange={(e) => updateCustomField(field.id, { value: e.target.value })}
                           rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                           placeholder="内容を入力してください"
                         />
                       ) : (
@@ -1223,7 +1350,7 @@ const CreateProjectPage: React.FC = () => {
                           type={field.fieldType}
                           value={field.value}
                           onChange={(e) => updateCustomField(field.id, { value: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                           placeholder="内容を入力してください"
                         />
                       )}
@@ -1258,48 +1385,20 @@ const CreateProjectPage: React.FC = () => {
 
             {/* 送信ボタン */}
             <div className="flex justify-center pt-8">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <Button
                 type="submit"
+                variant="primary"
+                size="xl"
                 disabled={loading}
-                className="px-12 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                loading={loading}
               >
-                {loading ? 'プロジェクト作成中...' : 'プロジェクトを作成'}
-              </motion.button>
+                プロジェクトを作成
+              </Button>
             </div>
           </form>
-        </motion.div>
+      </Card>
 
-        {/* 作成のコツ */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-blue-50/80 backdrop-blur-xl border border-blue-200 rounded-3xl p-8 shadow-xl mt-8"
-        >
-          <h3 className="text-xl font-bold text-gray-900 mb-4">💡 効果的なプロジェクトを作るコツ</h3>
-          <div className="space-y-3 text-gray-700">
-            <div className="flex items-start space-x-3">
-              <span className="text-blue-600 font-bold">•</span>
-              <p>明確な目標設定：具体的な数値目標（インプレッション数、エンゲージメント率など）を設定</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <span className="text-blue-600 font-bold">•</span>
-              <p>詳細な商品説明：商品の特徴、使用方法、ターゲット層を詳しく記載</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <span className="text-blue-600 font-bold">•</span>
-              <p>適切な予算設定：インフルエンサーのフォロワー数や影響力に見合った予算を設定</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <span className="text-blue-600 font-bold">•</span>
-              <p>柔軟な条件設定：過度に厳しい条件はマッチング率を下げる可能性があります</p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

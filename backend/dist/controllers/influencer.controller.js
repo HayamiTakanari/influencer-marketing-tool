@@ -239,3 +239,4 @@ const getPrefectures = async (req, res) => {
     }
 };
 exports.getPrefectures = getPrefectures;
+//# sourceMappingURL=influencer.controller.js.map

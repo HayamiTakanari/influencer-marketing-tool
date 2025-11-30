@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { loadStripe } from '@stripe/stripe-js';
@@ -131,15 +130,15 @@ const CheckoutForm: React.FC<{
         </div>
       )}
 
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+      <button
+
+
         type="submit"
         disabled={!stripe || loading}
         className="w-full py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? '処理中...' : `¥${amount.toLocaleString()}を支払う`}
-      </motion.button>
+      </button>
     </form>
   );
 };
@@ -179,33 +178,15 @@ const PaymentPage: React.FC = () => {
 
   const fetchProjectDetails = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
-      // プロジェクト詳細を取得（仮のAPI）
-      // TODO: 実際のAPI実装
-      const mockProject: Project = {
-        id: projectId as string,
-        title: '新商品コスメのPRキャンペーン',
-        description: '新発売のファンデーションを使用した投稿をお願いします。',
-        budget: 300000,
-        status: 'IN_PROGRESS',
-        client: {
-          companyName: 'ビューティーコスメ株式会社'
-        },
-        matchedInfluencer: {
-          displayName: '田中美咲',
-          user: {
-            id: 'inf1'
-          }
-        }
-      };
-
-      setProject(mockProject);
-      setAmount(mockProject.budget);
-      setFee(Math.round(mockProject.budget * 0.1)); // 10% platform fee
+      const { getProjectById } = await import('../../services/api');
+      const result = await getProjectById(projectId as string);
+      setProject(result);
+      setAmount(result.budget);
+      setFee(Math.round(result.budget * 0.1));
     } catch (err: any) {
       console.error('Error fetching project details:', err);
       setError('プロジェクトの取得に失敗しました。');
+      setProject(null);
     } finally {
       setLoading(false);
     }
@@ -244,9 +225,9 @@ const PaymentPage: React.FC = () => {
   if (showSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+        <div
+
+
           className="text-center bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-12 shadow-xl max-w-md"
         >
           <div className="text-6xl mb-6">🎉</div>
@@ -257,13 +238,13 @@ const PaymentPage: React.FC = () => {
           <div className="space-y-3">
             <Link href="/projects">
               <span className="inline-block w-full">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
+
+
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   プロジェクト一覧に戻る
-                </motion.button>
+                </button>
               </span>
             </Link>
             <Link href="/payments/history">
@@ -274,7 +255,7 @@ const PaymentPage: React.FC = () => {
               </span>
             </Link>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -301,10 +282,10 @@ const PaymentPage: React.FC = () => {
 
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* プロジェクト詳細 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+        <div
+
+
+
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
         >
           <h2 className="text-2xl font-bold text-gray-900 mb-6">支払い詳細</h2>
@@ -343,13 +324,13 @@ const PaymentPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* 決済フォーム */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+        <div
+
+
+
           className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
         >
           <h3 className="text-xl font-bold text-gray-900 mb-6">カード情報</h3>
@@ -365,13 +346,13 @@ const PaymentPage: React.FC = () => {
           <div className="mt-6 text-center text-sm text-gray-500">
             <p>支払いを完了すると、プロジェクトが完了状態になります。</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* セキュリティ情報 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+        <div
+
+
+
           className="bg-gray-50/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mt-8"
         >
           <h4 className="font-semibold text-gray-900 mb-3">🔒 セキュリティとプライバシー</h4>
@@ -381,7 +362,7 @@ const PaymentPage: React.FC = () => {
             <p>• Stripe社の世界最高水準のセキュリティを使用</p>
             <p>• PCI DSS レベル1準拠</p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

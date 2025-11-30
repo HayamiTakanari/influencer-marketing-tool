@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { getInvoices, markInvoiceAsPaid } from '../../services/api';
@@ -166,74 +165,47 @@ const ReceivedInvoicesPage: React.FC = () => {
               </svg>
               <span className="font-medium">ダッシュボードに戻る</span>
             </button>
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-            >
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent transition-all">
               受取請求書
-            </motion.h1>
+            </h1>
           </div>
         </div>
 
         {/* 統計カード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg"
-          >
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg transition-all">
             <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
             <div className="text-gray-600">総請求書数</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg"
-          >
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg transition-all">
             <div className="text-3xl font-bold text-yellow-600">{stats.unpaid}</div>
             <div className="text-gray-600">未払い</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg"
-          >
+          <div className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg transition-all">
             <div className="text-3xl font-bold text-green-600">{stats.paid}</div>
             <div className="text-gray-600">支払済み</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg"
+          <div
+                                                className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg transition-all"
           >
             <div className="text-3xl font-bold text-red-600">{stats.overdue}</div>
             <div className="text-gray-600">期限超過</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg"
+          <div
+                                                className="bg-white/80 backdrop-blur-xl rounded-xl p-4 shadow-lg transition-all"
           >
             <div className="text-2xl font-bold text-blue-600">{formatPrice(stats.unpaidAmount)}</div>
             <div className="text-gray-600">未払い金額</div>
-          </motion.div>
+          </div>
         </div>
 
         {/* フィルター */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white/80 backdrop-blur-xl rounded-xl p-6 shadow-lg mb-6"
+        <div
+                                        className="bg-white/80 backdrop-blur-xl rounded-xl p-6 shadow-lg mb-6 transition-all"
         >
           <div className="space-y-6">
             {/* ステータスフィルター */}
@@ -307,17 +279,15 @@ const ReceivedInvoicesPage: React.FC = () => {
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
+          <div
+                                    className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
           >
             {error}
-          </motion.div>
+          </div>
         )}
 
         {/* 請求書リスト */}
@@ -326,10 +296,8 @@ const ReceivedInvoicesPage: React.FC = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : invoices.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl p-12 text-center shadow-lg"
+          <div
+                                    className="bg-white/80 backdrop-blur-xl rounded-2xl p-12 text-center shadow-lg transition-all"
           >
             <div className="text-6xl mb-4">📄</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">請求書がありません</h3>
@@ -339,13 +307,10 @@ const ReceivedInvoicesPage: React.FC = () => {
                 : `${statusLabels[selectedStatus as InvoiceStatus]}の請求書はありません。`
               }
             </p>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg overflow-hidden"
+          <div
+                                                className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg overflow-hidden transition-all"
           >
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -426,7 +391,7 @@ const ReceivedInvoicesPage: React.FC = () => {
                 </button>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

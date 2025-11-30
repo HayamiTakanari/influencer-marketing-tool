@@ -53,7 +53,7 @@ const prisma = new PrismaClient();
 export const createProjectSchedule = async (req: AuthRequest, res: Response) => {
   try {
     const { user } = req;
-    if (!user || user.role !== 'CLIENT') {
+    if (!user || (user.role !== 'CLIENT' && user.role !== 'COMPANY')) {
       return res.status(403).json({ error: 'クライアントのみスケジュールを作成できます' });
     }
 
@@ -180,9 +180,9 @@ export const getProjectSchedule = async (req: AuthRequest, res: Response) => {
       title: milestone.title,
       description: milestone.description,
       startDate: milestone.dueDate?.toISOString(),
-      endDate: milestone.endDate?.toISOString(),
-      status: milestone.status.toLowerCase(),
-      isDateRange: !!milestone.endDate,
+      endDate: milestone.dueDate?.toISOString(),
+      status: milestone.isCompleted ? 'completed' : 'pending',
+      isDateRange: false,
       color: getPhaseColor(milestone.type),
       icon: getPhaseIcon(milestone.type),
     }));

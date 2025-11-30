@@ -11,3 +11,4 @@ router.put('/messages/:projectId/read', chat_controller_1.markMessagesAsRead);
 router.get('/unread-count', chat_controller_1.getUnreadCount);
 router.get('/chats', chat_controller_1.getChatList);
 exports.default = router;
+//# sourceMappingURL=chat.routes.js.map

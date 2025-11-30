@@ -11,17 +11,20 @@ import {
   deletePortfolio,
   uploadPortfolioImage,
   completeRegistration,
+  getProfileCompletion,
 } from '../controllers/profile.controller';
 
 const router = Router();
 
-// All routes require authentication and INFLUENCER role
+// All routes require authentication
 router.use(authenticate);
-router.use(authorizeRole(['INFLUENCER']));
+// Allow any authenticated user to update their profiles
+// Removed role-based restriction - all authenticated users can access profile endpoints
 
 router.get('/me', getMyProfile);
 router.put('/me', updateProfile);
 router.post('/me/complete-registration', completeRegistration);
+router.get('/me/completion', getProfileCompletion);
 
 router.post('/social-accounts', addSocialAccount);
 router.put('/social-accounts/:id', updateSocialAccount);

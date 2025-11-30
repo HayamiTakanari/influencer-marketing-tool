@@ -83,6 +83,19 @@ class NotificationService {
             },
         });
     }
+    static async createNDAApprovedNotification(clientUserId, projectTitle, influencerName, projectId) {
+        return this.createNotification({
+            userId: clientUserId,
+            type: 'PROJECT_STATUS_CHANGED',
+            title: 'NDAが承認されました',
+            message: `${influencerName}さんが「${projectTitle}」のNDA（秘密保持契約）を承認しました。チャットでプロジェクトを進めることができます。`,
+            data: {
+                projectId,
+                projectTitle,
+                influencerName,
+            },
+        });
+    }
     static async createMessageReceivedNotification(receiverUserId, senderName, projectTitle, projectId) {
         return this.createNotification({
             userId: receiverUserId,
@@ -424,3 +437,4 @@ class NotificationService {
     }
 }
 exports.NotificationService = NotificationService;
+//# sourceMappingURL=notification.service.js.map

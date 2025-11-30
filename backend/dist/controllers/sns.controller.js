@@ -61,16 +61,6 @@ const getSyncStatus = async (req, res) => {
                         },
                     },
                 },
-                select: {
-                    id: true,
-                    platform: true,
-                    username: true,
-                    lastSynced: true,
-                    followerCount: true,
-                    engagementRate: true,
-                    isVerified: true,
-                    influencer: true,
-                },
             });
             res.json({
                 totalAccounts: allSocialAccounts.length,
@@ -134,3 +124,4 @@ const syncAllInfluencers = async (req, res) => {
     }
 };
 exports.syncAllInfluencers = syncAllInfluencers;
+//# sourceMappingURL=sns.controller.js.map

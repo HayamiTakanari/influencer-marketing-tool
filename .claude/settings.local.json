@@ -84,7 +84,13 @@
       "Bash(gh workflow:*)",
       "Bash(npx next:*)",
       "Bash(/dev/null)",
-      "WebFetch(domain:bitstar.tokyo)"
+      "WebFetch(domain:bitstar.tokyo)",
+      "Bash(git rm:*)",
+      "Bash(git merge:*)",
+      "WebFetch(domain:influencer-marketing-tool-o23bc9443-hayamitakanaris-projects.vercel.app)",
+      "Bash(npx esbuild:*)",
+      "Bash(npx babel:*)",
+      "Bash(npx:*)"
     ],
     "deny": []
   }

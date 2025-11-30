@@ -31,6 +31,9 @@ export interface User {
   email: string;
   role: UserRole;
   isVerified: boolean;
+  hasAgreedToNDA: boolean;  // NDA同意状況
+  ndaAgreedAt?: string;     // NDA同意日時
+  ndaVersion?: string;      // 同意したNDAのバージョン
   createdAt: string;
   updatedAt: string;
 }
@@ -44,9 +47,17 @@ export interface Client {
   contactPhone?: string;
   address?: string;
   teamId?: string;
+  favoriteInfluencers: string[];  // お気に入りインフルエンサーのIDリスト
   createdAt: string;
   updatedAt: string;
   user: User;
+}
+
+export enum WorkingStatus {
+  AVAILABLE = 'AVAILABLE',           // 対応可能
+  BUSY = 'BUSY',                     // 多忙
+  UNAVAILABLE = 'UNAVAILABLE',       // 対応不可
+  BREAK = 'BREAK',                   // 休暇中
 }
 
 export interface Influencer {
@@ -64,12 +75,30 @@ export interface Influencer {
   priceMin?: number;
   priceMax?: number;
   isRegistered: boolean;
+  hasInvoiceInfo: boolean;  // インボイス情報登録状況
+  workingStatus: WorkingStatus;     // 稼働状況
+  workingStatusUpdatedAt?: string;  // 稼働状況更新日時
+  workingStatusMessage?: string;    // 稼働状況メッセージ（任意）
   lastUpdated: string;
   createdAt: string;
   updatedAt: string;
   user: User;
   socialAccounts: SocialAccount[];
   portfolio: Portfolio[];
+  invoiceInfo?: {
+    companyName?: string;    // 会社名/屋号
+    registrationNumber?: string;  // 適格請求書発行事業者登録番号
+    postalCode?: string;     // 郵便番号
+    address?: string;        // 住所
+    phoneNumber?: string;    // 電話番号
+    bankInfo?: {
+      bankName: string;      // 銀行名
+      branchName: string;    // 支店名
+      accountType: string;   // 口座種別
+      accountNumber: string; // 口座番号
+      accountName: string;   // 口座名義
+    };
+  };
 }
 
 export interface SocialAccount {
@@ -134,6 +163,14 @@ export interface Message {
   sender: {
     id: string;
     role: UserRole;
+  };
+  messageType?: 'text' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request' | 'direct_comment';
+  directCommentData?: {
+    targetMessageId: string;
+    targetType: 'theme' | 'scene' | 'keyMessage' | 'duration';
+    targetId?: string;
+    targetContent: string;
+    comment: string;
   };
 }
 
@@ -300,5 +337,24 @@ export interface InvoiceListResponse {
     paidAmount: number;
     unpaidAmount: number;
     overdueAmount: number;
+  };
+}
+
+// お気に入り関連の型定義
+export interface Favorite {
+  id: string;
+  clientId: string;
+  influencerId: string;
+  createdAt: string;
+  influencer: Influencer;
+}
+
+export interface FavoriteListResponse {
+  favorites: Favorite[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
   };
 }

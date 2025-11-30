@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { checkAndRedirectForInvoice } from '../utils/invoiceValidation';
+import { checkAndRedirectForNDA } from '../utils/ndaValidation';
 
 interface Application {
   id: string;
@@ -86,6 +87,20 @@ const ProjectDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'applications'>('overview');
+
+  // 成約状態を判定する関数
+  const isContractEstablished = (project: ProjectDetails, currentUser: any): boolean => {
+    if (!project || !currentUser) return false;
+    
+    // インフルエンサーの場合、自分がマッチングされており、かつプロジェクトが進行中以上の状態
+    if (currentUser.role === 'INFLUENCER') {
+      return project.matchedInfluencer?.id === currentUser.id && 
+             (project.status === 'IN_PROGRESS' || project.status === 'COMPLETED');
+    }
+    
+    // 企業の場合は常に表示
+    return true;
+  };
   const [filters, setFilters] = useState({
     minFollowers: 0,
     maxFollowers: 1000000,
@@ -142,199 +157,8 @@ const ProjectDetailPage: React.FC = () => {
       setProject(result);
     } catch (err: any) {
       console.error('Error fetching project details:', err);
-      console.log('Using fallback mock data for project ID:', id);
-      
-      // プロジェクトIDに基づいたフォールバック用のモックデータ
-      const mockProjectsData: Record<string, ProjectDetails> = {
-        '1': {
-          id: '1',
-          title: '新商品コスメのPRキャンペーン',
-          description: '新発売のファンデーションを使用した投稿をお願いします。自然な仕上がりが特徴の商品で、20-30代の女性をターゲットにしています。',
-          category: '美容・化粧品',
-          budget: 300000,
-          status: 'PENDING',
-          targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-          targetPrefecture: '東京都',
-          targetCity: '渋谷区、新宿区',
-          targetGender: 'FEMALE',
-          targetAgeMin: 20,
-          targetAgeMax: 35,
-          targetFollowerMin: 10000,
-          targetFollowerMax: 100000,
-          startDate: '2024-02-01',
-          endDate: '2024-02-28',
-          deliverables: 'Instagram投稿2回、ストーリー投稿3回、TikTok動画1本',
-          requirements: 'ナチュラルメイクでの使用感を重視、#新商品コスメ #ナチュラルメイク のハッシュタグ必須',
-          additionalInfo: '商品サンプル提供、撮影用メイク道具一式貸出可能',
-          // 詳細情報を追加
-          advertiserName: '株式会社ビューティーラボ',
-          brandName: 'NaturalGlow',
-          productName: 'パーフェクトナチュラルファンデーション SPF30',
-          productUrl: 'https://example.com/naturalglow-foundation',
-          productPrice: 3980,
-          productFeatures: '自然な仕上がりと長時間キープが特徴のファンデーション。SPF30でUVカットも可能。20-30代の女性に人気で、薄付きなのにカバー力があり、崩れにくいのが特徴です。',
-          campaignObjective: '新商品の認知拡大とブランドイメージ向上',
-          campaignTarget: '20-35歳の美容に関心の高い女性',
-          postingPeriodStart: '2024-02-01',
-          postingPeriodEnd: '2024-02-28',
-          postingMedia: ['INSTAGRAM', 'TIKTOK'],
-          messageToConvey: 'ナチュラルで美しい肌を演出できることを重視',
-          shootingAngle: '正面・斜め上',
-          packagePhotography: '外装・パッケージ両方',
-          productOrientationSpecified: 'ブランドロゴが見えるように',
-          musicUsage: '商用利用フリー音源のみ',
-          brandContentSettings: '設定必要',
-          advertiserAccount: '@naturalglowjapan',
-          desiredHashtags: ['新商品コスメ', 'ナチュラルメイク', 'ファンデーション', 'UV対策', 'NaturalGlow'],
-          ngItems: '他社化粧品との比較、価格に関する言及',
-          legalRequirements: '薬機法に基づき効果効能の表現に注意',
-          notes: '自然光での撮影を推奨',
-          secondaryUsage: '許可（条件あり）',
-          secondaryUsageScope: '公式サイト・広告での使用',
-          secondaryUsagePeriod: '投稿から1年間',
-          insightDisclosure: '必要',
-          createdAt: '2024-01-15',
-          applications: [
-            {
-              id: 'app1',
-              influencer: {
-                id: 'inf1',
-                displayName: '田中美咲',
-                bio: '美容・ファッション系インフルエンサー。20代女性向けコンテンツ発信中。',
-                categories: ['美容', 'ファッション'],
-                prefecture: '東京都',
-                priceMin: 50000,
-                priceMax: 200000,
-                socialAccounts: [
-                  { platform: 'INSTAGRAM', followerCount: 35000, engagementRate: 3.5 },
-                  { platform: 'YOUTUBE', followerCount: 15000, engagementRate: 2.8 }
-                ]
-              },
-              message: 'この商品にとても興味があります。ナチュラルメイクが得意で、同世代の女性に向けた発信を心がけています。',
-              proposedPrice: 150000,
-              appliedAt: '2024-01-16',
-              isAccepted: false
-            }
-          ]
-        },
-        '2': {
-          id: '2',
-          title: 'ライフスタイル商品のレビュー',
-          description: '日常使いできる便利グッズの紹介をお願いします。実際に使用した感想や活用方法を自然な形で発信してください。',
-          category: 'ライフスタイル',
-          budget: 150000,
-          status: 'IN_PROGRESS',
-          targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
-          targetPrefecture: '全国',
-          targetCity: '',
-          targetGender: '',
-          targetAgeMin: 25,
-          targetAgeMax: 45,
-          targetFollowerMin: 5000,
-          targetFollowerMax: 50000,
-          startDate: '2024-01-20',
-          endDate: '2024-02-20',
-          deliverables: 'YouTube動画1本、Instagram投稿1回、ストーリー投稿2回',
-          requirements: '実際の使用感を重視、#便利グッズ #ライフスタイル のハッシュタグ必須',
-          additionalInfo: '商品サンプル提供、返品不要',
-          // 詳細情報を追加
-          advertiserName: 'ライフスタイル株式会社',
-          brandName: 'SmartLife',
-          productName: 'マルチクリーニングツールセット',
-          productUrl: 'https://example.com/smartlife-cleaning',
-          productPrice: 2980,
-          productFeatures: '1つで多用途に使えるクリーニングツールセット。キッチン、バスルーム、リビングなど様々な場所で活用でき、時短と効率的な掃除を実現します。',
-          campaignObjective: '商品の実用性とライフスタイル向上効果をアピール',
-          campaignTarget: '25-45歳の家事効率化に興味のある方',
-          postingPeriodStart: '2024-01-20',
-          postingPeriodEnd: '2024-02-20',
-          postingMedia: ['YOUTUBE', 'INSTAGRAM'],
-          messageToConvey: '日常生活をより便利で快適にすることを伝える',
-          shootingAngle: '使用シーンを重視',
-          packagePhotography: '外装のみ',
-          productOrientationSpecified: '商品名が見えるように',
-          musicUsage: '商用利用フリー音源のみ',
-          brandContentSettings: '設定不要',
-          advertiserAccount: '@smartlife_japan',
-          desiredHashtags: ['便利グッズ', 'ライフスタイル', 'SmartLife', '時短', '掃除'],
-          ngItems: '清掃が困難な場所での使用例',
-          legalRequirements: '特になし',
-          notes: '実際の使用感を重視した自然な紹介を希望',
-          secondaryUsage: '許可（条件なし）',
-          secondaryUsageScope: 'すべてのマーケティング用途',
-          secondaryUsagePeriod: '無期限',
-          insightDisclosure: '不要',
-          createdAt: '2024-01-10',
-          applications: [
-            {
-              id: 'app2',
-              influencer: {
-                id: 'inf2',
-                displayName: '鈴木さやか',
-                bio: 'ライフスタイル系クリエイター。料理、旅行、美容など幅広く発信。',
-                categories: ['ライフスタイル', '美容', '料理'],
-                prefecture: '大阪府',
-                priceMin: 80000,
-                priceMax: 300000,
-                socialAccounts: [
-                  { platform: 'INSTAGRAM', followerCount: 60000, engagementRate: 4.2 },
-                  { platform: 'TIKTOK', followerCount: 29000, engagementRate: 5.1 }
-                ]
-              },
-              message: 'ライフスタイル商品のレビューは得意分野です。フォロワーからの反響も良いのでぜひ参加させてください。',
-              proposedPrice: 120000,
-              appliedAt: '2024-01-11',
-              isAccepted: true
-            }
-          ],
-          matchedInfluencer: {
-            id: 'inf2',
-            displayName: '鈴木さやか'
-          }
-        }
-      };
-      
-      // プロジェクトIDがmockProjectsDataに存在するかチェック
-      const mockProject = mockProjectsData[id as string];
-      if (mockProject) {
-        setProject(mockProject);
-      } else {
-        // 新規作成されたプロジェクトの場合、動的にモックデータを生成
-        const defaultProject: ProjectDetails = {
-          id: (id || Date.now().toString()) as string,
-          title: `プロジェクト ${id}`,
-          description: 'このプロジェクトの詳細情報を表示しています。実際のデータが利用できない場合のフォールバック表示です。',
-          category: 'その他',
-          budget: 200000,
-          status: 'PENDING',
-          targetPlatforms: ['INSTAGRAM'],
-          targetPrefecture: '東京都',
-          targetCity: '',
-          targetGender: '',
-          targetAgeMin: 20,
-          targetAgeMax: 40,
-          targetFollowerMin: 5000,
-          targetFollowerMax: 50000,
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          deliverables: 'Instagram投稿1回、ストーリー投稿1回',
-          requirements: 'ブランドガイドラインに従った投稿',
-          additionalInfo: 'その他の詳細については別途ご連絡いたします。',
-          createdAt: new Date().toISOString(),
-          applications: [],
-          // デフォルトの詳細情報
-          advertiserName: 'サンプル企業株式会社',
-          brandName: 'サンプルブランド',
-          productName: 'サンプル商品',
-          campaignObjective: 'ブランド認知向上',
-          campaignTarget: '幅広い年齢層',
-          messageToConvey: 'ブランドの魅力を自然に伝える',
-          secondaryUsage: '相談して決定',
-          insightDisclosure: '相談して決定'
-        };
-        setProject(defaultProject);
-      }
-      setError('');
+      setError('プロジェクト詳細の取得に失敗しました。');
+      setProject(null);
     } finally {
       setLoading(false);
     }
@@ -548,38 +372,30 @@ const ProjectDetailPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* プロジェクト概要 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8 transition-all duration-500">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl font-bold text-gray-900">{project.title}</h2>
             <div className="flex items-center space-x-4">
               {/* マッチング成立時のメッセージボタン */}
               {(project.status === 'MATCHED' || project.status === 'IN_PROGRESS' || project.status === 'COMPLETED') && project.matchedInfluencer && (
                 <div className="flex space-x-2">
-                  <Link href={`/chat?project=${project.id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors shadow-lg flex items-center space-x-2"
-                    >
-                      <span>💬</span>
-                      <span>メッセージ</span>
-                    </motion.button>
-                  </Link>
-                  <Link href={`/project-chat/${project.id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition-colors shadow-lg flex items-center space-x-2"
-                    >
-                      <span>📅</span>
-                      <span>プロジェクト管理</span>
-                    </motion.button>
-                  </Link>
+                  <button
+                    onClick={() => {
+                      // NDAチェック（企業・インフルエンサー両方）
+                      if (!checkAndRedirectForNDA(user, router)) {
+                        return;
+                      }
+                      // インフルエンサーの場合はインボイス情報チェック
+                      if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
+                        return;
+                      }
+                      router.push(`/project-chat/${project.id}`);
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 hover:scale-105 transition-all shadow-lg flex items-center space-x-2"
+                  >
+                    <span>💬</span>
+                    <span>チャット</span>
+                  </button>
                 </div>
               )}
               <div className="text-2xl font-bold text-green-600">{formatPrice(project.budget)}</div>
@@ -645,40 +461,39 @@ const ProjectDetailPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Link href={`/chat?project=${project.id}`}>
-                    <button className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors">
-                      💬 メッセージ
-                    </button>
-                  </Link>
-                  <Link href={`/project-chat/${project.id}`}>
-                    <button className="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors">
-                      📅 管理
-                    </button>
-                  </Link>
+                  <button 
+                    onClick={() => {
+                      // NDAチェック（企業・インフルエンサー両方）
+                      if (!checkAndRedirectForNDA(user, router)) {
+                        return;
+                      }
+                      // インフルエンサーの場合はインボイス情報チェック
+                      if (user?.role === 'INFLUENCER' && !checkAndRedirectForInvoice(user, router)) {
+                        return;
+                      }
+                      router.push(`/project-chat/${project.id}`);
+                    }}
+                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    💬 チャット
+                  </button>
                 </div>
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* タブナビゲーション */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-2 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-2 shadow-xl mb-8 transition-all duration-500">
           <div className="flex space-x-2">
             {[
               { key: 'overview', label: '詳細情報', icon: '📋' },
               { key: 'applications', label: '応募一覧', icon: '📝' }
             ].map(tab => (
-              <motion.button
+              <button
                 key={tab.key}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab(tab.key as any)}
-                className={`flex-1 px-6 py-3 rounded-2xl font-semibold transition-all ${
+                className={`flex-1 px-6 py-3 rounded-2xl font-semibold hover:scale-105 transition-all ${
                   activeTab === tab.key
                     ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
                     : 'text-gray-600 hover:bg-gray-100'
@@ -686,19 +501,14 @@ const ProjectDetailPage: React.FC = () => {
               >
                 <span className="mr-2">{tab.icon}</span>
                 {tab.label}
-              </motion.button>
+              </button>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* 詳細情報タブ */}
         {activeTab === 'overview' && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-6"
-          >
+          <div className="space-y-6 transition-all duration-500">
             {/* ターゲット設定 */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">ターゲット設定</h3>
@@ -764,8 +574,21 @@ const ProjectDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 広告主・ブランド情報 */}
-            {(project.advertiserName || project.brandName || project.productName) && (
+            {/* 広告主・ブランド情報 - 成約後のみ表示 */}
+            {!isContractEstablished(project, user) && user?.role === 'INFLUENCER' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-3xl p-8 shadow-xl">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🔒</div>
+                  <h3 className="text-xl font-bold text-yellow-800 mb-2">広告主情報</h3>
+                  <p className="text-yellow-700">
+                    広告主・ブランドの詳細情報は、プロジェクト成約後に表示されます。<br />
+                    まずは案件内容をご確認いただき、ご興味があれば応募してください。
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {isContractEstablished(project, user) && (project.advertiserName || project.brandName || project.productName) && (
               <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">広告主・ブランド情報</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -966,17 +789,12 @@ const ProjectDetailPage: React.FC = () => {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* 応募一覧タブ */}
         {activeTab === 'applications' && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
-          >
+          <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl transition-all duration-500">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">
                 応募一覧 ({applyFilters(project.applications).length}/{project.applications.length}人)
@@ -1004,12 +822,7 @@ const ProjectDetailPage: React.FC = () => {
 
             {/* フィルターセクション */}
             {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="bg-gray-50 rounded-xl p-6 mb-6"
-              >
+              <div className="bg-gray-50 rounded-xl p-6 mb-6 transition-all duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   {/* フォロワー数フィルター */}
                   <div>
@@ -1116,7 +929,7 @@ const ProjectDetailPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
             
             {project.applications.length === 0 ? (
@@ -1160,12 +973,10 @@ const ProjectDetailPage: React.FC = () => {
                   const aiScore = Math.floor(Math.random() * 30 + 70); // 70-100のスコア
                   
                   return (
-                    <motion.div
+                    <div
                       key={application.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="bg-white border rounded-lg hover:shadow-md transition-all"
+                      className="bg-white border rounded-lg hover:shadow-md transition-all duration-300"
+                      style={{ animationDelay: `${index * 0.05}s` }}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center p-3">
                         {/* AIスコア */}
@@ -1290,12 +1101,12 @@ const ProjectDetailPage: React.FC = () => {
                           </button>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
             )}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

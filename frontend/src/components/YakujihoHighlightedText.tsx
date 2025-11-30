@@ -211,14 +211,15 @@ interface YakujihoCheckSummaryProps {
   className?: string;
 }
 
-export const YakujihoCheckSummary: React.FC<YakujihoCheckSummaryProps> = ({
-  violations,
-  riskScore,
+export const YakujihoCheckSummary: React.FC<{result: any, className?: string}> = ({
+  result,
   className = ''
 }) => {
-  const highRiskCount = violations.filter(v => v.violation.severity === 'high').length;
-  const mediumRiskCount = violations.filter(v => v.violation.severity === 'medium').length;
-  const lowRiskCount = violations.filter(v => v.violation.severity === 'low').length;
+  const violations = result.violations || [];
+  const riskScore = result.riskScore || 0;
+  const highRiskCount = violations.filter((v: any) => v.violation.severity === 'high').length;
+  const mediumRiskCount = violations.filter((v: any) => v.violation.severity === 'medium').length;
+  const lowRiskCount = violations.filter((v: any) => v.violation.severity === 'low').length;
 
   if (violations.length === 0) {
     return (

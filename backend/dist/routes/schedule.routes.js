@@ -16,3 +16,4 @@ router.get('/project/:projectId', auth_1.authenticate, schedule_controller_1.get
 // マイルストーン更新
 router.put('/milestone/:id', auth_1.authenticate, schedule_controller_1.updateMilestone);
 exports.default = router;
+//# sourceMappingURL=schedule.routes.js.map

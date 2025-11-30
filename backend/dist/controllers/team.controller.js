@@ -416,3 +416,4 @@ const deleteTeam = async (req, res) => {
     }
 };
 exports.deleteTeam = deleteTeam;
+//# sourceMappingURL=team.controller.js.map

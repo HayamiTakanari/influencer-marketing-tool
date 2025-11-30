@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { searchInfluencers } from '../services/api';
 
@@ -355,13 +354,9 @@ const SearchAdvancedPage: React.FC = () => {
             </svg>
             <span className="font-medium">ダッシュボードに戻る</span>
           </button>
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-          >
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             インフルエンサー検索（高度版）
-          </motion.h1>
+          </h1>
         </div>
 
         {/* パフォーマンス情報 */}
@@ -658,11 +653,8 @@ const SearchAdvancedPage: React.FC = () => {
             {/* インフルエンサーリスト表示（コンパクト版） */}
             <div className="space-y-3 mb-8">
               {influencers.map((influencer, index) => (
-                <motion.div
+                <div
                   key={influencer.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.03 }}
                   className="bg-white/90 backdrop-blur-xl rounded-lg shadow hover:shadow-md transition-all"
                 >
                   <div className="p-4">
@@ -749,7 +741,7 @@ const SearchAdvancedPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 

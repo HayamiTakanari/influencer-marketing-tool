@@ -2,12 +2,11 @@ import express from 'express';
 import { authenticate } from '../middleware/auth';
 import {
   createReview,
-  getReviewsForUser,
+  getUserReviews,
   getMyReviews,
   updateReview,
   deleteReview,
-  getReviewableProjects,
-  getRatingStats,
+  getAverageRating,
 } from '../controllers/review.controller';
 
 const router = express.Router();
@@ -15,25 +14,22 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticate);
 
-// Create a review
+// Create review (Chapter 8)
 router.post('/', createReview);
 
-// Get reviews for a specific user (public)
-router.get('/user/:userId', getReviewsForUser);
-
-// Get rating statistics for a user
-router.get('/user/:userId/stats', getRatingStats);
-
-// Get my reviews (given or received)
+// Get my reviews
 router.get('/my-reviews', getMyReviews);
 
-// Get projects that can be reviewed
-router.get('/reviewable-projects', getReviewableProjects);
+// Get user's reviews
+router.get('/user/:userId', getUserReviews);
 
-// Update a review
+// Get average rating for user
+router.get('/rating/:userId', getAverageRating);
+
+// Update review
 router.put('/:reviewId', updateReview);
 
-// Delete a review
+// Delete review
 router.delete('/:reviewId', deleteReview);
 
 export default router;

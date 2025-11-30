@@ -36,6 +36,7 @@ const portfolioSchema = z.object({
 interface AuthRequest extends Request {
   user?: {
     id: string;
+    email: string;
     role: string;
   };
 }
@@ -43,6 +44,10 @@ interface AuthRequest extends Request {
 export const getMyProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     
     const influencer = await prisma.influencer.findUnique({
       where: { userId },
@@ -74,14 +79,37 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const data = updateProfileSchema.parse(req.body);
 
-    const influencer = await prisma.influencer.update({
+    // Use upsert to handle both create and update
+    const updateData: any = {
+      lastUpdated: new Date(),
+    };
+
+    if (data.displayName) updateData.displayName = data.displayName;
+    if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.gender) updateData.gender = data.gender;
+    if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
+    if (data.address) updateData.address = data.address;
+    if (data.prefecture) updateData.prefecture = data.prefecture;
+    if (data.city) updateData.city = data.city;
+    if (data.categories) updateData.categories = data.categories;
+    if (data.priceMin !== undefined) updateData.priceMin = data.priceMin;
+    if (data.priceMax !== undefined) updateData.priceMax = data.priceMax;
+    if (data.birthDate) updateData.birthDate = new Date(data.birthDate);
+
+    const influencer = await (prisma.influencer as any).upsert({
       where: { userId },
-      data: {
-        ...data,
-        birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
-        lastUpdated: new Date(),
+      update: updateData,
+      create: {
+        userId,
+        displayName: data.displayName || 'New User',
+        ...updateData,
       },
       include: {
         socialAccounts: true,
@@ -359,5 +387,66 @@ export const completeRegistration = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Complete registration error:', error);
     res.status(500).json({ error: 'Failed to complete registration' });
+  }
+};
+
+export const getProfileCompletion = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const influencer = await prisma.influencer.findUnique({
+      where: { userId },
+      include: {
+        user: true,
+        socialAccounts: true,
+        portfolio: true,
+        achievements: true,
+      },
+    });
+
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    const fields = [
+      { name: '表示名', key: 'displayName', value: influencer.displayName, weight: 5 },
+      { name: '自己紹介', key: 'bio', value: influencer.bio, weight: 10 },
+      { name: '性別', key: 'gender', value: influencer.gender !== 'NOT_SPECIFIED' ? influencer.gender : null, weight: 5 },
+      { name: '生年月日', key: 'birthDate', value: influencer.birthDate, weight: 5 },
+      { name: '電話番号', key: 'phoneNumber', value: influencer.phoneNumber, weight: 5 },
+      { name: '住所', key: 'address', value: influencer.address, weight: 5 },
+      { name: '都道府県', key: 'prefecture', value: influencer.prefecture, weight: 5 },
+      { name: '市区町村', key: 'city', value: influencer.city, weight: 5 },
+      { name: 'カテゴリー', key: 'categories', value: influencer.categories.length > 0 ? influencer.categories : null, weight: 10 },
+      { name: '最低単価', key: 'priceMin', value: influencer.priceMin, weight: 5 },
+      { name: '最高単価', key: 'priceMax', value: influencer.priceMax, weight: 5 },
+      { name: 'SNSアカウント', key: 'socialAccounts', value: influencer.socialAccounts.length > 0 ? influencer.socialAccounts : null, weight: 15 },
+      { name: 'ポートフォリオ', key: 'portfolio', value: influencer.portfolio.length > 0 ? influencer.portfolio : null, weight: 10 },
+    ];
+
+    const completedFields = fields.filter(field => field.value !== null && field.value !== undefined && field.value !== '');
+    const missingFields = fields.filter(field => field.value === null || field.value === undefined || field.value === '');
+
+    const totalWeight = fields.reduce((sum, field) => sum + field.weight, 0);
+    const completedWeight = completedFields.reduce((sum, field) => sum + field.weight, 0);
+    const completionPercentage = Math.round((completedWeight / totalWeight) * 100);
+
+    res.json({
+      completionPercentage,
+      completedFields: completedFields.map(f => ({ name: f.name, key: f.key })),
+      missingFields: missingFields.map(f => ({ name: f.name, key: f.key, weight: f.weight })),
+      stats: {
+        totalFields: fields.length,
+        completedCount: completedFields.length,
+        missingCount: missingFields.length,
+      }
+    });
+  } catch (error) {
+    console.error('Get profile completion error:', error);
+    res.status(500).json({ error: 'Failed to get profile completion' });
   }
 };

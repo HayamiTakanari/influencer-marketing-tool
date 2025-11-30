@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-10-29.clover',
 });
 
 const createPaymentIntentSchema = z.object({
@@ -21,6 +21,7 @@ const confirmPaymentSchema = z.object({
 interface AuthRequest extends Request {
   user?: {
     id: string;
+    email: string;
     role: string;
   };
 }
@@ -157,7 +158,7 @@ export const getPaymentHistory = async (req: AuthRequest, res: Response) => {
 
     let whereClause: any = {};
 
-    if (userRole === 'CLIENT') {
+    if (userRole === 'CLIENT' || userRole === 'COMPANY') {
       whereClause = {
         project: {
           client: {
@@ -199,7 +200,7 @@ export const getPaymentHistory = async (req: AuthRequest, res: Response) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    res.json(transactions);
+    res.json({ transactions });
   } catch (error) {
     console.error('Get payment history error:', error);
     res.status(500).json({ error: 'Failed to get payment history' });
@@ -273,61 +274,122 @@ export const getPaymentStats = async (req: AuthRequest, res: Response) => {
 
     let whereClause: any = {};
 
-    if (userRole === 'CLIENT') {
-      whereClause = {
-        project: {
-          client: {
-            user: { id: userId },
-          },
-        },
-      };
-    } else if (userRole === 'INFLUENCER') {
+    if (userRole === 'INFLUENCER') {
       whereClause = {
         project: {
           matchedInfluencer: {
             user: { id: userId },
           },
         },
+        status: 'completed',
+      };
+    } else if (userRole === 'CLIENT' || userRole === 'COMPANY') {
+      whereClause = {
+        project: {
+          client: {
+            user: { id: userId },
+          },
+        },
+        status: 'completed',
       };
     } else {
       return res.status(403).json({ error: 'Invalid user role' });
     }
 
-    const [totalSpent, totalEarned, completedTransactions] = await Promise.all([
-      prisma.transaction.aggregate({
-        where: {
-          ...whereClause,
-          status: 'completed',
+    // Original whereClause for backward compatibility
+    const influencerWhereClause = {
+      project: {
+        matchedInfluencer: {
+          user: { id: userId },
         },
+      },
+      status: 'completed',
+    };
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const [totalEarnings, currentMonthEarnings, completedProjects, recentProjects] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: whereClause,
         _sum: {
           amount: true,
-          fee: true,
         },
       }),
       prisma.transaction.aggregate({
         where: {
           ...whereClause,
-          status: 'completed',
+          createdAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
         },
         _sum: {
           amount: true,
         },
       }),
       prisma.transaction.count({
+        where: whereClause,
+      }),
+      prisma.project.findMany({
         where: {
-          ...whereClause,
-          status: 'completed',
+          matchedInfluencer: {
+            user: { id: userId },
+          },
+          status: 'COMPLETED',
         },
+        include: {
+          client: {
+            select: {
+              companyName: true,
+            },
+          },
+          transaction: {
+            select: {
+              amount: true,
+            },
+          },
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        take: 10,
       }),
     ]);
 
-    const stats = {
-      totalSpent: userRole === 'CLIENT' ? (totalSpent._sum.amount || 0) + (totalSpent._sum.fee || 0) : 0,
-      totalEarned: userRole === 'INFLUENCER' ? totalEarned._sum.amount || 0 : 0,
-      completedTransactions,
-    };
+    const totalEarned = totalEarnings._sum.amount || 0;
+    const currentMonthEarned = currentMonthEarnings._sum.amount || 0;
+    const averageProjectValue = completedProjects > 0 ? Math.round(totalEarned / completedProjects) : 0;
 
-    res.json(stats);
+    const pendingPayments = await prisma.project.count({
+      where: {
+        matchedInfluencer: {
+          user: { id: userId },
+        },
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    const formattedProjects = recentProjects.map(project => ({
+      id: project.id,
+      title: project.title,
+      amount: project.transaction?.amount || 0,
+      status: 'completed',
+      completedAt: project.updatedAt.toISOString(),
+      client: {
+        companyName: project.client.companyName,
+      },
+    }));
+
+    res.json({
+      totalEarnings: totalEarned,
+      currentMonthEarnings: currentMonthEarned,
+      completedProjects,
+      pendingPayments,
+      averageProjectValue,
+      recentProjects: formattedProjects,
+    });
   } catch (error) {
     console.error('Get payment stats error:', error);
     res.status(500).json({ error: 'Failed to get payment stats' });

@@ -1,24 +1,34 @@
 import { TwitterApi } from 'twitter-api-v2';
 import { PrismaClient, Platform } from '@prisma/client';
+import { TikTokService } from './tiktok.service';
 
 const prisma = new PrismaClient();
 
 // Twitter API service
 export class TwitterService {
-  private client: TwitterApi;
+  private client: TwitterApi | null = null;
 
   constructor() {
-    this.client = new TwitterApi({
-      appKey: process.env.TWITTER_API_KEY!,
-      appSecret: process.env.TWITTER_API_SECRET!,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN!,
-      accessSecret: process.env.TWITTER_ACCESS_SECRET!,
-    });
+    if (process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET) {
+      this.client = new TwitterApi({
+        appKey: process.env.TWITTER_API_KEY,
+        appSecret: process.env.TWITTER_API_SECRET,
+        accessToken: process.env.TWITTER_ACCESS_TOKEN,
+        accessSecret: process.env.TWITTER_ACCESS_SECRET,
+      });
+    }
+  }
+
+  private ensureClient() {
+    if (!this.client) {
+      throw new Error('Twitter API credentials not configured');
+    }
+    return this.client;
   }
 
   async getUserInfo(username: string) {
     try {
-      const user = await this.client.v2.userByUsername(username, {
+      const user = await this.ensureClient().v2.userByUsername(username, {
         'user.fields': ['public_metrics', 'verified', 'profile_image_url'],
       });
 
@@ -40,12 +50,12 @@ export class TwitterService {
 
   async getUserTweets(userId: string, maxResults = 10) {
     try {
-      const tweets = await this.client.v2.userTimeline(userId, {
+      const tweets = await this.ensureClient().v2.userTimeline(userId, {
         max_results: maxResults,
         'tweet.fields': ['public_metrics', 'created_at'],
       });
 
-      return tweets.data?.map((tweet: any) => ({
+      return tweets.data.data?.map((tweet: any) => ({
         id: tweet.id,
         text: tweet.text,
         createdAt: tweet.created_at,
@@ -239,10 +249,12 @@ export class YouTubeService {
 export class SNSSyncService {
   private twitterService: TwitterService;
   private youtubeService: YouTubeService;
+  private tiktokService: TikTokService;
 
   constructor() {
     this.twitterService = new TwitterService();
     this.youtubeService = new YouTubeService();
+    this.tiktokService = new TikTokService();
   }
 
   async syncSocialAccount(socialAccountId: string) {
@@ -296,6 +308,37 @@ export class SNSSyncService {
           // Instagram requires user-specific access token
           // This would be implemented with OAuth flow
           throw new Error('Instagram sync requires user authentication');
+
+        case Platform.TIKTOK:
+          // For TikTok, we use the profileUrl to fetch user info
+          // The profileUrl should be a valid TikTok profile URL or video URL
+          try {
+            const tiktokUserInfo = await this.tiktokService.getUserInfo(socialAccount.profileUrl);
+
+            // Note: The RapidAPI endpoint we're using returns video-level stats
+            // For a more complete implementation, you would need:
+            // 1. TikTok Official API access for complete user stats
+            // 2. Or aggregation of multiple video stats
+
+            updatedData = {
+              username: tiktokUserInfo.username,
+              // Note: profileUrl will be updated if different
+              // engagementRate would be calculated from videos
+              // For now, we set placeholder values
+              followerCount: 0, // Would need official API for this
+              engagementRate: 0, // Would calculate from multiple videos
+              isVerified: false, // Would need official API for this
+            };
+          } catch (error: any) {
+            // If single video approach fails, it might be a profile URL
+            // In production, implement proper TikTok profile scraping or use official API
+            console.warn(`TikTok sync warning for ${socialAccount.username}:`, error.message);
+            updatedData = {
+              // Keep existing data if sync fails
+              isVerified: false,
+            };
+          }
+          break;
 
         default:
           throw new Error(`Unsupported platform: ${socialAccount.platform}`);

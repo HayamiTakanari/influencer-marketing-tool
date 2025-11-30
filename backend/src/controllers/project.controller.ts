@@ -16,14 +16,14 @@ const getAvailableProjectsSchema = z.object({
 });
 
 const applyToProjectSchema = z.object({
-  projectId: z.string(),
+  projectId: z.string().optional(),
   message: z.string().min(1, 'Message is required'),
   proposedPrice: z.number().min(0, 'Proposed price must be positive'),
 });
 
 export const getAvailableProjects = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'INFLUENCER') {
@@ -41,35 +41,62 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
       },
     });
 
-    if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
+    // インフルエンサーが連携しているプラットフォームを取得
+    let connectedPlatforms: any[] = [];
+    if (influencer) {
+      connectedPlatforms = influencer.socialAccounts
+        .filter(acc => acc.isVerified)
+        .map(acc => acc.platform);
+    }
+
+    // Build the platform filter
+    let platformFilter: any;
+    if (connectedPlatforms.length > 0) {
+      platformFilter = {
+        OR: [
+          { targetPlatforms: { isEmpty: true } }, // プラットフォーム指定なしの案件
+          { targetPlatforms: { hasSome: connectedPlatforms } } // 連携済みプラットフォームを含む案件
+        ]
+      };
+    } else {
+      // 連携していない場合はすべての案件を表示（プラットフォーム制限なし）
+      platformFilter = {}; // No platform filter for influencers without connected accounts
     }
 
     const where: any = {
       status: 'PENDING',
-      endDate: { gte: new Date() }, // Only show projects that haven't ended
+      AND: [
+        {
+          OR: [
+            { endDate: { gte: new Date() } }, // Projects with future end dates
+            { endDate: null } // Projects without end dates
+          ]
+        },
+        platformFilter
+      ]
     };
 
     if (query.category) {
-      where.category = query.category;
+      where.AND.push({ category: query.category });
     }
 
     if (query.minBudget !== undefined || query.maxBudget !== undefined) {
-      where.budget = {};
+      const budgetFilter: any = {};
       if (query.minBudget !== undefined) {
-        where.budget.gte = query.minBudget;
+        budgetFilter.gte = query.minBudget;
       }
       if (query.maxBudget !== undefined) {
-        where.budget.lte = query.maxBudget;
+        budgetFilter.lte = query.maxBudget;
       }
+      where.AND.push({ budget: budgetFilter });
     }
 
     if (query.platforms && query.platforms.length > 0) {
-      where.targetPlatforms = { hasSome: query.platforms };
+      where.AND.push({ targetPlatforms: { hasSome: query.platforms } });
     }
 
     if (query.prefecture) {
-      where.targetPrefecture = query.prefecture;
+      where.AND.push({ targetPrefecture: query.prefecture });
     }
 
     const [projects, total] = await Promise.all([
@@ -86,9 +113,9 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
             },
           },
           applications: {
-            where: {
+            where: influencer ? {
               influencerId: influencer.id,
-            },
+            } : undefined,
           },
         },
         skip,
@@ -101,52 +128,57 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
     // Calculate if each project matches the influencer's profile
     const projectsWithMatchInfo = projects.map(project => {
       const isApplied = project.applications.length > 0;
-      
+
       // Check if influencer matches project criteria
       let matchesProfile = true;
-      
-      // Check age requirements
-      if (project.targetAgeMin && project.targetAgeMax && influencer.birthDate) {
-        const age = new Date().getFullYear() - influencer.birthDate.getFullYear();
-        if (age < project.targetAgeMin || age > project.targetAgeMax) {
+
+      // If no influencer profile, still show projects but don't match profile
+      if (influencer) {
+        // Check age requirements
+        if (project.targetAgeMin && project.targetAgeMax && influencer.birthDate) {
+          const age = new Date().getFullYear() - influencer.birthDate.getFullYear();
+          if (age < project.targetAgeMin || age > project.targetAgeMax) {
+            matchesProfile = false;
+          }
+        }
+
+        // Check gender requirements
+        if (project.targetGender && project.targetGender !== influencer.gender) {
           matchesProfile = false;
         }
-      }
-      
-      // Check gender requirements
-      if (project.targetGender && project.targetGender !== influencer.gender) {
-        matchesProfile = false;
-      }
-      
-      // Check location requirements
-      if (project.targetPrefecture && project.targetPrefecture !== '全国' && 
-          project.targetPrefecture !== influencer.prefecture) {
-        matchesProfile = false;
-      }
-      
-      // Check platform requirements
-      if (project.targetPlatforms.length > 0) {
-        const influencerPlatforms = influencer.socialAccounts.map(acc => acc.platform);
-        const hasMatchingPlatform = project.targetPlatforms.some(platform => 
-          influencerPlatforms.includes(platform)
-        );
-        if (!hasMatchingPlatform) {
+
+        // Check location requirements
+        if (project.targetPrefecture && project.targetPrefecture !== '全国' &&
+            project.targetPrefecture !== influencer.prefecture) {
           matchesProfile = false;
         }
-      }
-      
-      // Check follower count requirements
-      if (project.targetFollowerMin || project.targetFollowerMax) {
-        const totalFollowers = influencer.socialAccounts.reduce(
-          (sum, acc) => sum + acc.followerCount, 
-          0
-        );
-        
-        if (project.targetFollowerMin && totalFollowers < project.targetFollowerMin) {
-          matchesProfile = false;
+
+        // Check platform requirements - インフルエンサーが連携していないSNSを使用する案件は除外
+        if (project.targetPlatforms.length > 0) {
+          const connectedPlatforms = influencer.socialAccounts
+            .filter(acc => acc.isVerified)
+            .map(acc => acc.platform);
+          const hasMatchingPlatform = project.targetPlatforms.some(platform =>
+            connectedPlatforms.includes(platform)
+          );
+          if (!hasMatchingPlatform) {
+            matchesProfile = false;
+          }
         }
-        if (project.targetFollowerMax && totalFollowers > project.targetFollowerMax) {
-          matchesProfile = false;
+
+        // Check follower count requirements
+        if (project.targetFollowerMin || project.targetFollowerMax) {
+          const totalFollowers = influencer.socialAccounts.reduce(
+            (sum, acc) => sum + acc.followerCount,
+            0
+          );
+
+          if (project.targetFollowerMin && totalFollowers < project.targetFollowerMin) {
+            matchesProfile = false;
+          }
+          if (project.targetFollowerMax && totalFollowers > project.targetFollowerMax) {
+            matchesProfile = false;
+          }
         }
       }
 
@@ -177,23 +209,16 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
 
 export const applyToProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
-    
+
     if (userRole !== 'INFLUENCER') {
       return res.status(403).json({ error: 'Only influencers can apply to projects' });
     }
 
-    const { projectId, message, proposedPrice } = applyToProjectSchema.parse(req.body);
-
-    // Get influencer profile
-    const influencer = await prisma.influencer.findUnique({
-      where: { userId },
-    });
-
-    if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
-    }
+    // Get projectId from either URL params or request body
+    const projectId = req.params.projectId || req.body.projectId;
+    const { message, proposedPrice } = applyToProjectSchema.parse(req.body);
 
     // Check if project exists and is available
     const project = await prisma.project.findUnique({
@@ -213,6 +238,28 @@ export const applyToProject = async (req: Request, res: Response) => {
 
     if (project.endDate < new Date()) {
       return res.status(400).json({ error: 'Project application deadline has passed' });
+    }
+
+    // Get or create influencer profile
+    let influencer = await prisma.influencer.findUnique({
+      where: { userId },
+    });
+
+    // If influencer profile doesn't exist, create a basic one
+    if (!influencer) {
+      influencer = await prisma.influencer.create({
+        data: {
+          userId,
+          displayName: '',
+          bio: '',
+          birthDate: null,
+          gender: null,
+          prefecture: '',
+          socialAccounts: {
+            create: [],
+          },
+        },
+      });
     }
 
     // Check if already applied
@@ -286,7 +333,7 @@ export const applyToProject = async (req: Request, res: Response) => {
 
 export const getMyApplications = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'INFLUENCER') {
@@ -333,7 +380,7 @@ export const getMyApplications = async (req: Request, res: Response) => {
 
 export const getApplicationsForMyProjects = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
     if (userRole !== 'CLIENT') {
@@ -378,7 +425,7 @@ export const getApplicationsForMyProjects = async (req: Request, res: Response) 
 
 export const acceptApplication = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { applicationId } = req.params;
     
@@ -431,6 +478,7 @@ export const acceptApplication = async (req: Request, res: Response) => {
             include: {
               user: {
                 select: {
+                  id: true,
                   email: true,
                 },
               },
@@ -495,7 +543,7 @@ export const acceptApplication = async (req: Request, res: Response) => {
 
 export const rejectApplication = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { applicationId } = req.params;
     
@@ -580,18 +628,63 @@ const createProjectSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid end date'),
 });
 
-const updateProjectSchema = createProjectSchema.partial();
+// Additional fields for detailed project information
+const detailedProjectFields = z.object({
+  deliverables: z.string().optional(),
+  requirements: z.string().optional(),
+  additionalInfo: z.string().optional(),
+  advertiserName: z.string().optional(),
+  brandName: z.string().optional(),
+  productName: z.string().optional(),
+  productUrl: z.string().optional(),
+  productPrice: z.number().optional(),
+  productFeatures: z.string().optional(),
+  campaignObjective: z.string().optional(),
+  campaignTarget: z.string().optional(),
+  postingPeriodStart: z.string().optional(),
+  postingPeriodEnd: z.string().optional(),
+  postingMedia: z.array(z.string()).optional(),
+  messageToConvey: z.array(z.string()).optional(),
+  shootingAngle: z.string().optional(),
+  packagePhotography: z.string().optional(),
+  productOrientationSpecified: z.string().optional(),
+  musicUsage: z.string().optional(),
+  brandContentSettings: z.string().optional(),
+  advertiserAccount: z.string().optional(),
+  desiredHashtags: z.array(z.string()).optional(),
+  ngItems: z.string().optional(),
+  legalRequirements: z.string().optional(),
+  notes: z.string().optional(),
+  secondaryUsage: z.string().optional(),
+  secondaryUsageScope: z.string().optional(),
+  secondaryUsagePeriod: z.string().optional(),
+  insightDisclosure: z.string().optional(),
+});
+
+const updateProjectSchema = createProjectSchema.partial().merge(detailedProjectFields);
 
 export const createProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
-    
+
+    console.log('Creating project - userId:', userId, 'userRole:', userRole);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+
     if (userRole !== 'CLIENT') {
       return res.status(403).json({ error: 'Only clients can create projects' });
     }
 
-    const data = createProjectSchema.parse(req.body);
+    let data;
+    try {
+      data = createProjectSchema.parse(req.body);
+    } catch (validationError: any) {
+      console.error('Validation error:', validationError);
+      return res.status(400).json({
+        error: 'Validation error',
+        details: validationError.errors || validationError.message
+      });
+    }
 
     // Get client profile
     const client = await prisma.client.findUnique({
@@ -605,12 +698,22 @@ export const createProject = async (req: Request, res: Response) => {
     // Validate dates
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
-    
+
+    // UTC 00:00 に設定して、ローカルタイムゾーンの影響を避ける
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    console.log('Start date:', startDate, 'End date:', endDate, 'Today:', todayStart);
+
     if (startDate >= endDate) {
       return res.status(400).json({ error: 'End date must be after start date' });
     }
-    
-    if (startDate < new Date()) {
+
+    // 本日以降の日付を許可（本日は許可）
+    if (startDate < todayStart) {
       return res.status(400).json({ error: 'Start date cannot be in the past' });
     }
 
@@ -655,19 +758,32 @@ export const createProject = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json(project);
-  } catch (error) {
+    res.status(201).json({
+      project: project,
+      message: 'Project created successfully'
+    });
+  } catch (error: any) {
     console.error('Create project error:', error);
+
+    // より詳細なエラーメッセージを返す
+    if (error.name === 'ZodError') {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: error.errors
+      });
+    }
+
     res.status(500).json({ error: 'Failed to create project' });
   }
 };
 
 export const getMyProjects = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
-    
-    if (userRole !== 'CLIENT') {
+
+    // Accept both 'CLIENT' and 'COMPANY' roles (COMPANY is used in frontend)
+    if (userRole !== 'CLIENT' && userRole !== 'COMPANY') {
       return res.status(403).json({ error: 'Only clients can view their projects' });
     }
 
@@ -732,7 +848,7 @@ export const getMyProjects = async (req: Request, res: Response) => {
 
 export const getProjectById = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
 
@@ -805,25 +921,15 @@ export const getProjectById = async (req: Request, res: Response) => {
         return res.status(403).json({ error: 'Access denied' });
       }
     } else if (userRole === 'INFLUENCER') {
-      const influencer = await prisma.influencer.findUnique({
-        where: { userId },
-      });
-      if (!influencer) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-      
-      // Check if influencer has applied or is matched
-      const hasAccess = project.applications.some(app => app.influencerId === influencer.id) ||
-                       project.matchedInfluencerId === influencer.id;
-      
-      if (!hasAccess) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
+      // Influencers can view any available project details
+      // Just verify that the user has the INFLUENCER role
+      // No need to check if they have an influencer profile or if they've applied
+      // This allows influencers to view projects even if their profile is not fully set up yet
     } else {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    res.json(project);
+    res.json({ project });
   } catch (error) {
     console.error('Get project by ID error:', error);
     res.status(500).json({ error: 'Failed to get project' });
@@ -832,7 +938,7 @@ export const getProjectById = async (req: Request, res: Response) => {
 
 export const updateProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
     
@@ -873,14 +979,14 @@ export const updateProject = async (req: Request, res: Response) => {
     let startDate, endDate;
     if (data.startDate) {
       startDate = new Date(data.startDate);
-      if (startDate < new Date()) {
-        return res.status(400).json({ error: 'Start date cannot be in the past' });
-      }
     }
     if (data.endDate) {
       endDate = new Date(data.endDate);
     }
-    if (startDate && endDate && startDate >= endDate) {
+    // Only validate end date is after start date if both are provided
+    const dateToCheck = startDate || existingProject.startDate;
+    const endDateToCheck = endDate || existingProject.endDate;
+    if (dateToCheck && endDateToCheck && dateToCheck >= endDateToCheck) {
       return res.status(400).json({ error: 'End date must be after start date' });
     }
 
@@ -907,6 +1013,37 @@ export const updateProject = async (req: Request, res: Response) => {
     if (data.targetFollowerMax !== undefined) updateData.targetFollowerMax = data.targetFollowerMax;
     if (startDate !== undefined) updateData.startDate = startDate;
     if (endDate !== undefined) updateData.endDate = endDate;
+
+    // Add detailed project information fields
+    if (data.deliverables !== undefined) updateData.deliverables = data.deliverables;
+    if (data.requirements !== undefined) updateData.requirements = data.requirements;
+    if (data.additionalInfo !== undefined) updateData.additionalInfo = data.additionalInfo;
+    if (data.advertiserName !== undefined) updateData.advertiserName = data.advertiserName;
+    if (data.brandName !== undefined) updateData.brandName = data.brandName;
+    if (data.productName !== undefined) updateData.productName = data.productName;
+    if (data.productUrl !== undefined) updateData.productUrl = data.productUrl;
+    if (data.productPrice !== undefined) updateData.productPrice = data.productPrice;
+    if (data.productFeatures !== undefined) updateData.productFeatures = data.productFeatures;
+    if (data.campaignObjective !== undefined) updateData.campaignObjective = data.campaignObjective;
+    if (data.campaignTarget !== undefined) updateData.campaignTarget = data.campaignTarget;
+    if (data.postingPeriodStart !== undefined) updateData.postingPeriodStart = data.postingPeriodStart ? new Date(data.postingPeriodStart) : null;
+    if (data.postingPeriodEnd !== undefined) updateData.postingPeriodEnd = data.postingPeriodEnd ? new Date(data.postingPeriodEnd) : null;
+    if (data.postingMedia !== undefined) updateData.postingMedia = data.postingMedia;
+    if (data.messageToConvey !== undefined) updateData.messageToConvey = data.messageToConvey;
+    if (data.shootingAngle !== undefined) updateData.shootingAngle = data.shootingAngle;
+    if (data.packagePhotography !== undefined) updateData.packagePhotography = data.packagePhotography;
+    if (data.productOrientationSpecified !== undefined) updateData.productOrientationSpecified = data.productOrientationSpecified;
+    if (data.musicUsage !== undefined) updateData.musicUsage = data.musicUsage;
+    if (data.brandContentSettings !== undefined) updateData.brandContentSettings = data.brandContentSettings;
+    if (data.advertiserAccount !== undefined) updateData.advertiserAccount = data.advertiserAccount;
+    if (data.desiredHashtags !== undefined) updateData.desiredHashtags = data.desiredHashtags;
+    if (data.ngItems !== undefined) updateData.ngItems = data.ngItems;
+    if (data.legalRequirements !== undefined) updateData.legalRequirements = data.legalRequirements;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+    if (data.secondaryUsage !== undefined) updateData.secondaryUsage = data.secondaryUsage;
+    if (data.secondaryUsageScope !== undefined) updateData.secondaryUsageScope = data.secondaryUsageScope;
+    if (data.secondaryUsagePeriod !== undefined) updateData.secondaryUsagePeriod = data.secondaryUsagePeriod;
+    if (data.insightDisclosure !== undefined) updateData.insightDisclosure = data.insightDisclosure;
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
@@ -958,7 +1095,7 @@ export const updateProject = async (req: Request, res: Response) => {
 
 export const deleteProject = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
     
@@ -1016,7 +1153,7 @@ export const deleteProject = async (req: Request, res: Response) => {
 
 export const updateProjectStatus = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const { projectId } = req.params;
     const { status } = z.object({ status: z.nativeEnum(ProjectStatus) }).parse(req.body);
@@ -1092,5 +1229,364 @@ export const updateProjectStatus = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Update project status error:', error);
     res.status(500).json({ error: 'Failed to update project status' });
+  }
+};
+
+// Get company projects with matched influencers (for project chats)
+export const getCompanyProjects = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+
+    // Only clients can view their company projects
+    if (userRole !== 'CLIENT' && userRole !== 'COMPANY') {
+      return res.status(403).json({ error: 'Only clients can view their projects' });
+    }
+
+    // Get client profile
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client profile not found' });
+    }
+
+    // Get all projects with matched influencers
+    const projects = await prisma.project.findMany({
+      where: {
+        clientId: client.id,
+        matchedInfluencerId: {
+          not: null, // Only projects with matched influencers
+        },
+      },
+      include: {
+        matchedInfluencer: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+            socialAccounts: true,
+          },
+        },
+        client: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(projects);
+  } catch (error) {
+    console.error('Get company projects error:', error);
+    res.status(500).json({ error: 'Failed to get company projects' });
+  }
+};
+
+// Get matched projects for influencer (for project chats)
+export const getMatchedProjects = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+
+    // Only influencers can view their matched projects
+    if (userRole !== 'INFLUENCER') {
+      return res.status(403).json({ error: 'Only influencers can view matched projects' });
+    }
+
+    // Get influencer profile
+    const influencer = await prisma.influencer.findUnique({
+      where: { userId },
+    });
+
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    // Get all projects where this influencer is matched
+    const projects = await prisma.project.findMany({
+      where: {
+        matchedInfluencerId: influencer.id,
+        status: {
+          in: ['MATCHED', 'IN_PROGRESS'],
+        },
+      },
+      include: {
+        client: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+            team: true,
+          },
+        },
+        matchedInfluencer: {
+          include: {
+            socialAccounts: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(projects);
+  } catch (error) {
+    console.error('Get matched projects error:', error);
+    res.status(500).json({ error: 'Failed to get matched projects' });
+  }
+};
+
+// Copy a project (for clients)
+export const copyProject = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+    const { projectId } = req.params;
+
+    if (userRole !== 'CLIENT' && userRole !== 'COMPANY') {
+      return res.status(403).json({ error: 'Only clients can copy projects' });
+    }
+
+    // Get the original project
+    const originalProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!originalProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Verify the user owns the project
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client || originalProject.clientId !== client.id) {
+      return res.status(403).json({ error: 'You do not have permission to copy this project' });
+    }
+
+    // Create a copy of the project with a new title
+    const copiedProject = await prisma.project.create({
+      data: {
+        title: `${originalProject.title} (コピー)`,
+        description: originalProject.description,
+        category: originalProject.category,
+        budget: originalProject.budget,
+        status: 'PENDING',
+        targetPlatforms: originalProject.targetPlatforms,
+        targetPrefecture: originalProject.targetPrefecture,
+        targetCity: originalProject.targetCity || undefined,
+        targetGender: originalProject.targetGender || undefined,
+        targetAgeMin: originalProject.targetAgeMin || undefined,
+        targetAgeMax: originalProject.targetAgeMax || undefined,
+        targetFollowerMin: originalProject.targetFollowerMin || undefined,
+        targetFollowerMax: originalProject.targetFollowerMax || undefined,
+        startDate: originalProject.startDate,
+        endDate: originalProject.endDate,
+        clientId: client.id,
+      },
+      include: {
+        client: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Project copied successfully',
+      data: copiedProject,
+    });
+  } catch (error) {
+    console.error('Copy project error:', error);
+    res.status(500).json({ error: 'Failed to copy project' });
+  }
+};
+
+// Chapter 2-8: Unpublish project (change from public to private)
+export const unpublishProject = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const { projectId } = req.params;
+
+    // Get client profile
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client profile not found' });
+    }
+
+    // Get existing project
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        client: true,
+      },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (existingProject.clientId !== client.id) {
+      return res.status(403).json({ error: 'You can only unpublish your own projects' });
+    }
+
+    // Update project to be private
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        status: 'CANCELLED',
+      },
+      include: {
+        client: {
+          select: {
+            companyName: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Create notification
+    const applications = await prisma.application.findMany({
+      where: { projectId },
+      include: { influencer: { select: { userId: true } } },
+    });
+
+    for (const app of applications) {
+      await prisma.notification.create({
+        data: {
+          userId: app.influencer.userId,
+          type: 'PROJECT_STATUS_CHANGED',
+          title: 'プロジェクトが非公開になりました',
+          message: `「${existingProject.title}」が非公開（招待制）に変更されました`,
+          data: {
+            projectId,
+          },
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Project unpublished successfully',
+      data: updatedProject,
+    });
+  } catch (error) {
+    console.error('Unpublish project error:', error);
+    res.status(500).json({ error: 'Failed to unpublish project' });
+  }
+};
+
+// Chapter 2-8: End project (mark as completed and close to new applications)
+export const endProject = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const { projectId } = req.params;
+
+    // Get client profile
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client profile not found' });
+    }
+
+    // Get existing project
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (existingProject.clientId !== client.id) {
+      return res.status(403).json({ error: 'You can only end your own projects' });
+    }
+
+    // Can only end if project is MATCHED or IN_PROGRESS
+    if (!['MATCHED', 'IN_PROGRESS'].includes(existingProject.status)) {
+      return res.status(400).json({
+        error: `Cannot end project with status ${existingProject.status}`,
+      });
+    }
+
+    // Update project status to COMPLETED
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        status: 'COMPLETED' as any,
+        endDate: new Date(),
+      },
+      include: {
+        client: {
+          select: {
+            companyName: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Notify matched influencer
+    if (existingProject.matchedInfluencerId) {
+      const influencer = await prisma.influencer.findUnique({
+        where: { id: existingProject.matchedInfluencerId },
+        select: { userId: true },
+      });
+
+      if (influencer) {
+        await prisma.notification.create({
+          data: {
+            userId: influencer.userId,
+            type: 'PROJECT_STATUS_CHANGED',
+            title: 'プロジェクトが完了しました',
+            message: `「${existingProject.title}」が完了状態に更新されました`,
+            data: {
+              projectId,
+              status: 'COMPLETED',
+            },
+          },
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Project ended successfully',
+      data: updatedProject,
+    });
+  } catch (error) {
+    console.error('End project error:', error);
+    res.status(500).json({ error: 'Failed to end project' });
   }
 };

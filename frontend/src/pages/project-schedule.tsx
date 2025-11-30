@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { getMyProjects, getProjectSchedule, generateInvoiceFromProject } from '../services/api';
 import GanttChart from '../components/GanttChart';
@@ -7,11 +6,11 @@ import GanttChart from '../components/GanttChart';
 type PhaseType = 
   | 'FORMAL_REQUEST'         // 正式依頼
   | 'PRODUCT_RECEIPT'        // 商品受領
-  | 'DRAFT_CONTE_CREATION'   // 初稿コンテ作成
-  | 'DRAFT_CONTE_SUBMIT'     // 初稿コンテ提出
-  | 'CONTE_FEEDBACK'         // 字コンテ戻し
-  | 'CONTE_REVISION'         // コンテ修正
-  | 'CONTE_FINALIZE'         // 修正稿コンテFIX
+  | 'DRAFT_CONTE_CREATION'   // 初稿構成案作成
+  | 'DRAFT_CONTE_SUBMIT'     // 初稿構成案提出
+  | 'CONTE_FEEDBACK'         // 字構成案戻し
+  | 'CONTE_REVISION'         // 構成案修正
+  | 'CONTE_FINALIZE'         // 修正稿構成案FIX
   | 'SHOOTING'               // 撮影
   | 'DRAFT_VIDEO_SUBMIT'     // 初稿動画提出
   | 'VIDEO_FEEDBACK'         // 初稿動画戻し
@@ -53,11 +52,11 @@ interface Project {
 const PHASE_CONFIG: Record<PhaseType, { title: string; description: string; color: string; icon: string; isDateRange: boolean }> = {
   FORMAL_REQUEST: { title: '正式依頼', description: 'プロジェクトの正式依頼日', color: 'bg-blue-500', icon: '📄', isDateRange: false },
   PRODUCT_RECEIPT: { title: '商品受領', description: 'PR商品の受領日', color: 'bg-green-500', icon: '📦', isDateRange: false },
-  DRAFT_CONTE_CREATION: { title: '初稿コンテ作成', description: '初稿コンテンツの企画・作成期間', color: 'bg-purple-500', icon: '✏️', isDateRange: true },
-  DRAFT_CONTE_SUBMIT: { title: '初稿コンテ提出', description: '初稿コンテンツの提出日', color: 'bg-indigo-500', icon: '📝', isDateRange: false },
-  CONTE_FEEDBACK: { title: '字コンテ戻し', description: 'コンテンツに対するフィードバック期間', color: 'bg-yellow-500', icon: '💬', isDateRange: true },
-  CONTE_REVISION: { title: 'コンテ修正', description: 'コンテンツの修正・改善期間', color: 'bg-orange-500', icon: '🔄', isDateRange: true },
-  CONTE_FINALIZE: { title: '修正稿コンテFIX', description: '修正稿コンテンツの確定日', color: 'bg-red-500', icon: '✅', isDateRange: false },
+  DRAFT_CONTE_CREATION: { title: '初稿構成案作成', description: '初稿コンテンツの企画・作成期間', color: 'bg-purple-500', icon: '✏️', isDateRange: true },
+  DRAFT_CONTE_SUBMIT: { title: '初稿構成案提出', description: '初稿コンテンツの提出日', color: 'bg-indigo-500', icon: '📝', isDateRange: false },
+  CONTE_FEEDBACK: { title: '字構成案戻し', description: 'コンテンツに対するフィードバック期間', color: 'bg-yellow-500', icon: '💬', isDateRange: true },
+  CONTE_REVISION: { title: '構成案修正', description: 'コンテンツの修正・改善期間', color: 'bg-orange-500', icon: '🔄', isDateRange: true },
+  CONTE_FINALIZE: { title: '修正稿構成案FIX', description: '修正稿コンテンツの確定日', color: 'bg-red-500', icon: '✅', isDateRange: false },
   SHOOTING: { title: '撮影', description: 'コンテンツ撮影期間', color: 'bg-pink-500', icon: '🎥', isDateRange: true },
   DRAFT_VIDEO_SUBMIT: { title: '初稿動画提出', description: '編集した初稿動画の提出日', color: 'bg-teal-500', icon: '🎬', isDateRange: false },
   VIDEO_FEEDBACK: { title: '初稿動画戻し', description: '初稿動画に対するフィードバック期間', color: 'bg-cyan-500', icon: '📹', isDateRange: true },
@@ -115,29 +114,8 @@ const ProjectSchedulePage: React.FC = () => {
         setSelectedProject(projectList[0].id);
         await fetchSchedules(projectList);
       } else {
-        console.log('プロジェクトが見つからないため、モックプロジェクトを生成します');
-        // モックプロジェクトを生成
-        const mockProjects: Project[] = [
-          {
-            id: 'mock-project-1',
-            title: 'サンプルプロジェクト 1',
-            description: 'デモ用のサンプルプロジェクトです',
-            status: 'IN_PROGRESS',
-            createdAt: new Date().toISOString(),
-            clientId: 'mock-client-1'
-          },
-          {
-            id: 'mock-project-2', 
-            title: 'サンプルプロジェクト 2',
-            description: 'デモ用のサンプルプロジェクトです',
-            status: 'PLANNING',
-            createdAt: new Date().toISOString(),
-            clientId: 'mock-client-1'
-          }
-        ];
-        setProjects(mockProjects);
-        setSelectedProject(mockProjects[0].id);
-        await fetchSchedules(mockProjects);
+        console.log('プロジェクトが見つかりませんでした');
+        setError('プロジェクトが見つかりませんでした。');
       }
     } catch (err: any) {
       console.error('Error fetching data:', err);
@@ -156,24 +134,15 @@ const ProjectSchedulePage: React.FC = () => {
     for (const project of projectList) {
       try {
         console.log(`プロジェクト ${project.title} のスケジュールを取得中...`);
-        
-        // 現在は常にモックデータを使用（バックエンドとの型不整合のため）
-        // 詳細なフェーズ管理が必要なため、モックデータで15段階のフローを表示
-        scheduleData[project.id] = generateMockSchedule(project);
-        console.log(`プロジェクト ${project.title} のモックスケジュールを生成しました`);
-        
-        // APIからの実データは一旦コメントアウト
-        // const schedule = await getProjectSchedule(project.id);
-        // TODO: バックエンドのMilestoneTypeを15のPhaseTypeに拡張後、以下を有効化
-        // if (schedule && schedule.phases && schedule.phases.length > 4) {
-        //   scheduleData[project.id] = schedule;
-        // } else {
-        //   scheduleData[project.id] = generateMockSchedule(project);
-        // }
+        const schedule = await getProjectSchedule(project.id);
+        if (schedule && schedule.phases && schedule.phases.length > 0) {
+          scheduleData[project.id] = schedule;
+        }
+        console.log(`プロジェクト ${project.title} のスケジュールを取得しました`);
       } catch (error) {
-        console.error(`Error generating schedule for project ${project.id}:`, error);
-        // エラーが発生してもモックデータを生成
-        scheduleData[project.id] = generateMockSchedule(project);
+        console.error(`Error fetching schedule for project ${project.id}:`, error);
+        // APIエラーの場合は空のスケジュールを設定
+        scheduleData[project.id] = { phases: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
       }
     }
     
@@ -216,54 +185,6 @@ const ProjectSchedulePage: React.FC = () => {
     return Math.round((completedPhases.length / schedule.phases.length) * 100);
   };
 
-  const generateMockSchedule = (project: Project): ProjectSchedule => {
-    const startDate = new Date();
-    const phases: Phase[] = [];
-    
-    const phaseTypes: PhaseType[] = [
-      'FORMAL_REQUEST', 'PRODUCT_RECEIPT', 'DRAFT_CONTE_CREATION', 'DRAFT_CONTE_SUBMIT',
-      'CONTE_FEEDBACK', 'CONTE_REVISION', 'CONTE_FINALIZE', 'SHOOTING',
-      'DRAFT_VIDEO_SUBMIT', 'VIDEO_FEEDBACK', 'VIDEO_REVISION', 'VIDEO_DATA_SUBMIT',
-      'VIDEO_FINALIZE', 'POSTING', 'INSIGHT_SUBMIT'
-    ];
-
-    phaseTypes.forEach((type, index) => {
-      const config = PHASE_CONFIG[type];
-      const phaseStartDate = new Date(startDate);
-      phaseStartDate.setDate(startDate.getDate() + index * 2); // 2日間隔に短縮
-      
-      let endDate = undefined;
-      if (config.isDateRange) {
-        const phaseEndDate = new Date(phaseStartDate);
-        phaseEndDate.setDate(phaseStartDate.getDate() + (index < 5 ? 1 : 2)); // 初期フェーズは短く
-        endDate = phaseEndDate.toISOString();
-      }
-
-      // より現実的なステータス設定
-      let status: 'pending' | 'in_progress' | 'completed' = 'pending';
-      if (index < 3) status = 'completed';        // 最初の3つは完了
-      else if (index === 3) status = 'in_progress'; // 4番目は進行中
-      
-      phases.push({
-        id: `${project.id}-phase-${index}`,
-        type,
-        title: config.title,
-        description: config.description,
-        startDate: phaseStartDate.toISOString(),
-        endDate,
-        status,
-        isDateRange: config.isDateRange,
-        color: config.color,
-        icon: config.icon
-      });
-    });
-
-    return {
-      phases,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  };
 
   const getProjectBorderColor = (schedule: ProjectSchedule) => {
     const projectIndex = Object.values(schedules).indexOf(schedule);
@@ -414,28 +335,6 @@ const ProjectSchedulePage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         
-        {/* データ取得警告バナー */}
-        {projects.length > 0 && (projects[0]?.id?.includes('mock-project') || projects[0]?.id === '1') && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-r-lg"
-          >
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="text-blue-800 font-medium">
-                  デモデータ表示中
-                </p>
-                <p className="text-blue-700 text-sm">
-                  新しい15段階フェーズ管理機能をサンプルデータで体験できます。ガントチャートもご利用いただけます。
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-4">
@@ -448,13 +347,11 @@ const ProjectSchedulePage: React.FC = () => {
               </svg>
               <span className="font-medium">ダッシュボードに戻る</span>
             </button>
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+            <h1 
+              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent transition-all duration-500"
             >
               プロジェクトスケジュール
-            </motion.h1>
+            </h1>
           </div>
         </div>
 
@@ -521,10 +418,8 @@ const ProjectSchedulePage: React.FC = () => {
 
         {/* プロジェクト別タブ */}
         {activeTab === 'project' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+          <div
+            className="space-y-6 transition-all duration-500"
           >
             {/* プロジェクト選択 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -533,11 +428,9 @@ const ProjectSchedulePage: React.FC = () => {
                 const completed = isProjectCompleted(project.id);
                 
                 return (
-                  <motion.div
+                  <div
                     key={project.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg transition-all ${
+                    className={`bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:scale-105 transition-all ${
                       selectedProject === project.id ? 'ring-2 ring-blue-500' : ''
                     }`}
                   >
@@ -594,7 +487,7 @@ const ProjectSchedulePage: React.FC = () => {
                         </button>
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -609,11 +502,9 @@ const ProjectSchedulePage: React.FC = () => {
                 {viewMode === 'calendar' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {schedules[selectedProject].phases.map((phase) => (
-                      <motion.div
+                      <div
                         key={phase.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`${phase.color} rounded-xl p-4 text-white shadow-lg`}
+                        className={`${phase.color} rounded-xl p-4 text-white shadow-lg transition-all duration-300`}
                       >
                         <div className="flex items-center mb-2">
                           <span className="text-2xl mr-2">{phase.icon}</span>
@@ -634,17 +525,15 @@ const ProjectSchedulePage: React.FC = () => {
                              phase.status === 'in_progress' ? '進行中' : '待機中'}
                           </span>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {schedules[selectedProject].phases.map((phase) => (
-                      <motion.div
+                      <div
                         key={phase.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl transition-all duration-300"
                       >
                         <div className="flex items-center space-x-4">
                           <div className={`w-4 h-4 rounded-full ${
@@ -671,21 +560,19 @@ const ProjectSchedulePage: React.FC = () => {
                              phase.status === 'in_progress' ? '進行中' : '待機中'}
                           </span>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* 全体スケジュールタブ */}
         {activeTab === 'overview' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+          <div
+            className="space-y-6 transition-all duration-500"
           >
             {/* プロジェクト凡例 */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
@@ -719,11 +606,9 @@ const ProjectSchedulePage: React.FC = () => {
                       const textColor = getProjectTextColor(schedule);
                       
                       return (
-                        <motion.div
+                        <div
                           key={`${phase.projectId}-${phase.id}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`${phase.color} rounded-xl p-4 text-white shadow-lg border-l-8 ${borderColor}`}
+                          className={`${phase.color} rounded-xl p-4 text-white shadow-lg border-l-8 ${borderColor} transition-all duration-300`}
                         >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center">
@@ -749,7 +634,7 @@ const ProjectSchedulePage: React.FC = () => {
                                phase.status === 'in_progress' ? '進行中' : '待機中'}
                             </span>
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     });
                   })()}
@@ -764,11 +649,9 @@ const ProjectSchedulePage: React.FC = () => {
                       const textColor = getProjectTextColor(schedule);
                       
                       return (
-                        <motion.div
+                        <div
                           key={`${phase.projectId}-${phase.id}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl border-l-4 ${borderColor}`}
+                          className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl border-l-4 ${borderColor} transition-all duration-300`}
                         >
                           <div className="flex items-center space-x-4">
                             <div className={`w-4 h-4 rounded-full ${
@@ -800,22 +683,20 @@ const ProjectSchedulePage: React.FC = () => {
                                phase.status === 'in_progress' ? '進行中' : '待機中'}
                             </span>
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     });
                   })()}
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* ガントチャートタブ */}
         {activeTab === 'gantt' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+          <div
+            className="space-y-6 transition-all duration-500"
           >
             {/* プロジェクト選択（ガントチャート用） */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
@@ -898,7 +779,7 @@ const ProjectSchedulePage: React.FC = () => {
                 <p>• プロジェクトボタンで特定のプロジェクトのみ表示することもできます</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

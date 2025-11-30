@@ -12,6 +12,7 @@ const sendMessageSchema = z.object({
 interface AuthRequest extends Request {
   user?: {
     id: string;
+    email: string;
     role: string;
   };
 }
@@ -211,15 +212,19 @@ export const getChatList = async (req: AuthRequest, res: Response) => {
           client: {
             user: { id: userId },
           },
-          status: 'MATCHED',
+          status: {
+            in: ['MATCHED', 'IN_PROGRESS', 'COMPLETED'],
+          },
         },
         include: {
           matchedInfluencer: {
-            include: {
+            select: {
+              displayName: true,
               user: {
                 select: {
                   id: true,
                   email: true,
+                  role: true,
                 },
               },
             },
@@ -228,6 +233,9 @@ export const getChatList = async (req: AuthRequest, res: Response) => {
             take: 1,
             orderBy: { createdAt: 'desc' },
           },
+        },
+        orderBy: {
+          updatedAt: 'desc',
         },
       });
     } else if (userRole === 'INFLUENCER') {
@@ -236,15 +244,20 @@ export const getChatList = async (req: AuthRequest, res: Response) => {
           matchedInfluencer: {
             user: { id: userId },
           },
-          status: 'MATCHED',
+          status: {
+            in: ['MATCHED', 'IN_PROGRESS', 'COMPLETED'],
+          },
         },
         include: {
           client: {
-            include: {
+            select: {
+              companyName: true,
+              contactName: true,
               user: {
                 select: {
                   id: true,
                   email: true,
+                  role: true,
                 },
               },
             },
@@ -254,13 +267,15 @@ export const getChatList = async (req: AuthRequest, res: Response) => {
             orderBy: { createdAt: 'desc' },
           },
         },
+        orderBy: {
+          updatedAt: 'desc',
+        },
       });
     } else {
       return res.status(403).json({ error: 'Invalid user role' });
     }
 
-    // Get unread counts for each project
-    const projectsWithUnreadCount = await Promise.all(
+    const formattedChats = await Promise.all(
       projects.map(async (project) => {
         const unreadCount = await prisma.message.count({
           where: {
@@ -270,14 +285,28 @@ export const getChatList = async (req: AuthRequest, res: Response) => {
           },
         });
 
+        const lastMessage = project.messages[0];
+
         return {
-          ...project,
+          id: project.id,
+          projectId: project.id,
+          projectTitle: project.title,
+          lastMessage: lastMessage?.content || '',
+          lastMessageTime: lastMessage?.createdAt.toISOString() || project.updatedAt.toISOString(),
           unreadCount,
+          sender: {
+            name: userRole === 'CLIENT'
+              ? project.matchedInfluencer?.displayName || 'インフルエンサー'
+              : project.client?.companyName || '企業',
+            role: userRole === 'CLIENT'
+              ? project.matchedInfluencer?.user.role || 'INFLUENCER'
+              : project.client?.user.role || 'CLIENT',
+          },
         };
       })
     );
 
-    res.json(projectsWithUnreadCount);
+    res.json(formattedChats);
   } catch (error) {
     console.error('Get chat list error:', error);
     res.status(500).json({ error: 'Failed to get chat list' });

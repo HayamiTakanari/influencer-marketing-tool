@@ -12,9 +12,7 @@ export const servicePricingSchema = z.object({
     'CONSULTATION',
     'LIVE_STREAMING',
     'EVENT_APPEARANCE'
-  ], {
-    required_error: 'サービスタイプを選択してください',
-  }),
+  ], 'サービスタイプを選択してください'),
   price: z.number().min(1, '料金は1円以上で設定してください'),
   unit: z.string().default('per_post'),
   description: z.string().optional(),

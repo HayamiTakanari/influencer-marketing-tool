@@ -1,5 +1,6 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth';
+import { verifySNSConnections } from '../middleware/sns-verification';
 import {
   getAvailableProjects,
   applyToProject,
@@ -14,6 +15,11 @@ import {
   updateProject,
   deleteProject,
   updateProjectStatus,
+  getCompanyProjects,
+  getMatchedProjects,
+  copyProject,
+  unpublishProject,
+  endProject,
 } from '../controllers/project.controller';
 import {
   getProjectSchedule,
@@ -29,8 +35,11 @@ router.use(authenticate);
 // Get available projects (for influencers)
 router.get('/available', getAvailableProjects);
 
-// Apply to a project (for influencers)
-router.post('/apply', applyToProject);
+// Apply to a project (for influencers) - SNS連携必須
+router.post('/apply', verifySNSConnections, applyToProject);
+
+// Apply to a specific project (for influencers) - SNS連携必須
+router.post('/:projectId/apply', verifySNSConnections, applyToProject);
 
 // Get my applications (for influencers)
 router.get('/my-applications', getMyApplications);
@@ -54,6 +63,12 @@ router.post('/', createProject);
 // Get my projects (for clients)
 router.get('/my-projects', getMyProjects);
 
+// Get company projects with matched influencers (for project chats)
+router.get('/company', getCompanyProjects);
+
+// Get matched projects for influencer (for project chats)
+router.get('/matched', getMatchedProjects);
+
 // Get project by ID
 router.get('/:projectId', getProjectById);
 
@@ -70,5 +85,14 @@ router.put('/:projectId/status', updateProjectStatus);
 
 // Delete project (for clients)
 router.delete('/:projectId', deleteProject);
+
+// Copy project (for clients)
+router.post('/:projectId/copy', copyProject);
+
+// Unpublish project (for clients) - Chapter 2-8
+router.put('/:projectId/unpublish', unpublishProject);
+
+// End project (for clients) - Chapter 2-8
+router.put('/:projectId/end', endProject);
 
 export default router;

@@ -1,0 +1,20 @@
+import { Request, Response } from 'express';
+export declare const getAvailableProjects: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const applyToProject: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getMyApplications: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getApplicationsForMyProjects: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const acceptApplication: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const rejectApplication: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getProjectCategories: (req: Request, res: Response) => Promise<void>;
+export declare const createProject: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getMyProjects: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getProjectById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const updateProject: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const deleteProject: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const updateProjectStatus: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getCompanyProjects: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getMatchedProjects: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const copyProject: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const unpublishProject: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const endProject: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+//# sourceMappingURL=project.controller.d.ts.map

@@ -18,3 +18,4 @@ router.get('/:id', auth_1.authenticate, bulkInquiry_controller_1.getBulkInquiryB
 // 問い合わせ回答更新
 router.put('/response/:id', auth_1.authenticate, bulkInquiry_controller_1.updateInquiryResponse);
 exports.default = router;
+//# sourceMappingURL=bulkInquiry.routes.js.map

@@ -382,7 +382,7 @@ const ProfileManagement: React.FC = () => {
                 </button>
               </div>
 
-              {profile?.socialAccounts.map((account) => (
+              {profile?.socialAccounts.map((account: any) => (
                 <div key={account.id} className="bg-gray-50 rounded-lg p-4 mb-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -485,7 +485,7 @@ const ProfileManagement: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {profile?.portfolio.map((item) => (
+                {profile?.portfolio.map((item: any) => (
                   <div key={item.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                     {item.imageUrl && (
                       <img 

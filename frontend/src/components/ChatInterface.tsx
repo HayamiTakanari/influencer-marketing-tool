@@ -160,7 +160,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ token }) => {
           <h2 className="text-xl font-semibold text-gray-900">チャット</h2>
         </div>
         <div className="overflow-y-auto">
-          {chatList.map((chat) => (
+          {chatList.map((chat: any) => (
             <ChatListItem
               key={chat.id}
               chat={chat}
@@ -196,7 +196,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ token }) => {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
+              {messages.map((message: any) => (
                 <MessageBubble key={message.id} message={message} />
               ))}
               {typingUsers.length > 0 && (

@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JWTPayload } from '../utils/jwt';
+import { sendUnauthorized, sendForbidden } from '../utils/api-response';
 
 export interface AuthRequest extends Request {
   user?: JWTPayload;
+  requestId?: string;
 }
 
 export const authenticate = (
@@ -12,31 +14,31 @@ export const authenticate = (
 ): void => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No token provided' });
+      sendUnauthorized(res, 'No token provided', req.requestId);
       return;
     }
 
     const token = authHeader.substring(7);
     const payload = verifyToken(token);
-    
+
     req.user = payload;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
+    sendUnauthorized(res, 'Invalid token', req.requestId);
   }
 };
 
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      res.status(401).json({ error: 'Unauthorized' });
+      sendUnauthorized(res, 'Unauthorized', req.requestId);
       return;
     }
 
     if (roles.length && !roles.includes(req.user.role)) {
-      res.status(403).json({ error: 'Forbidden' });
+      sendForbidden(res, 'Insufficient permissions', req.requestId);
       return;
     }
 
@@ -47,12 +49,13 @@ export const authorize = (...roles: string[]) => {
 export const authorizeRole = (roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      res.status(401).json({ error: 'Unauthorized' });
+      sendUnauthorized(res, 'Unauthorized', req.requestId);
       return;
     }
 
     if (!roles.includes(req.user.role)) {
-      res.status(403).json({ error: 'Forbidden' });
+      console.error(`[ROLE_AUTH_FAIL] User role '${req.user.role}' not in allowed roles: [${roles.join(', ')}]. Path: ${req.path}`);
+      sendForbidden(res, 'Insufficient permissions for this role', req.requestId);
       return;
     }
 

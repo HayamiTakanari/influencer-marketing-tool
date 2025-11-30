@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { 
   getInvoiceById, 
@@ -223,11 +222,7 @@ const InvoiceDetailPage: React.FC = () => {
         </div>
 
         {/* 請求書本文 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-xl overflow-hidden"
-        >
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* 請求書ヘッダー */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8">
             <div className="flex justify-between items-start">
@@ -372,7 +367,7 @@ const InvoiceDetailPage: React.FC = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -47,6 +47,22 @@ async function main() {
       priceMin: 50000,
       priceMax: 200000,
       isRegistered: true,
+      socialAccounts: {
+        create: [
+          {
+            platform: 'INSTAGRAM',
+            username: 'test_influencer',
+            profileUrl: 'https://instagram.com/test_influencer',
+            isVerified: true,
+          },
+          {
+            platform: 'YOUTUBE',
+            username: 'TestInfluencerChannel',
+            profileUrl: 'https://youtube.com/@TestInfluencerChannel',
+            isVerified: true,
+          },
+        ],
+      },
     },
   });
 
@@ -105,6 +121,16 @@ async function main() {
       priceMin: 30000,
       priceMax: 150000,
       isRegistered: true,
+      socialAccounts: {
+        create: [
+          {
+            platform: 'INSTAGRAM',
+            username: 'beauty_influencer',
+            profileUrl: 'https://instagram.com/beauty_influencer',
+            isVerified: true,
+          },
+        ],
+      },
     },
   });
 
@@ -129,6 +155,22 @@ async function main() {
       priceMin: 20000,
       priceMax: 100000,
       isRegistered: true,
+      socialAccounts: {
+        create: [
+          {
+            platform: 'INSTAGRAM',
+            username: 'food_influencer',
+            profileUrl: 'https://instagram.com/food_influencer',
+            isVerified: true,
+          },
+          {
+            platform: 'YOUTUBE',
+            username: 'FoodReviewChannel',
+            profileUrl: 'https://youtube.com/@FoodReviewChannel',
+            isVerified: true,
+          },
+        ],
+      },
     },
   });
 

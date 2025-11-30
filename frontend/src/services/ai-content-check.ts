@@ -1,5 +1,5 @@
 // AI コンテンツチェック機能
-// プロジェクト情報とコンテ内容の整合性、薬機法違反をAIで判定
+// プロジェクト情報と構成案内容の整合性、薬機法違反をAIで判定
 
 import { checkYakujihoViolations, YakujihoCheckResult, detectProductCategory } from './yakujiho-checker';
 
@@ -61,7 +61,7 @@ interface AIContentCheckResult {
   yakujihoResult?: YakujihoCheckResult;
 }
 
-// メッセージからコンテ情報を抽出するヘルパー関数
+// メッセージから構成案情報を抽出するヘルパー関数
 const extractConteFromMessage = (messageContent: string): ConteInfo => {
   const conte: ConteInfo = { messageContent };
   
@@ -100,7 +100,7 @@ export const checkConteAlignment = async (
   projectInfo: ProjectInfo, 
   conteInfo: ConteInfo | string // 文字列の場合は自動抽出
 ): Promise<AIContentCheckResult> => {
-  // 文字列の場合はコンテ情報を自動抽出
+  // 文字列の場合は構成案情報を自動抽出
   const conte = typeof conteInfo === 'string' ? extractConteFromMessage(conteInfo) : conteInfo;
   
   console.log('🤖 AIチェック開始:', { project: projectInfo.title, conte: conte.overallTheme });
@@ -172,7 +172,7 @@ export const checkConteAlignment = async (
         category: 'theme',
         severity: 'high',
         title: '❗ テーマとプロジェクト内容の不一致',
-        description: `コンテのテーマ「${conte.overallTheme}」がプロジェクトの趣旨と合致していません。`,
+        description: `構成案のテーマ「${conte.overallTheme}」がプロジェクトの趣旨と合致していません。`,
         affectedElement: 'overall_theme',
         suggestion: `プロジェクト「${projectInfo.title}」の目的「${projectInfo.campaignObjective}」に沿ったテーマに変更することをお勧めします。`
       });
@@ -205,7 +205,7 @@ export const checkConteAlignment = async (
         category: 'message',
         severity: 'medium',
         title: '⚠️ キーメッセージの内容不足',
-        description: `コンテのキーメッセージがプロジェクトで伝えたい内容と十分に合致していません。一致率: ${Math.round(alignmentRatio * 100)}%`,
+        description: `構成案のキーメッセージがプロジェクトで伝えたい内容と十分に合致していません。一致率: ${Math.round(alignmentRatio * 100)}%`,
         affectedElement: 'key_message',
         suggestion: `プロジェクトで重視している「${projectMessages.join('」「')}」の要素をキーメッセージに含めることをお勧めします。`
       });

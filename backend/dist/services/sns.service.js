@@ -3,21 +3,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SNSSyncService = exports.YouTubeService = exports.InstagramService = exports.TwitterService = void 0;
 const twitter_api_v2_1 = require("twitter-api-v2");
 const client_1 = require("@prisma/client");
+const tiktok_service_1 = require("./tiktok.service");
 const prisma = new client_1.PrismaClient();
 // Twitter API service
 class TwitterService {
-    client;
     constructor() {
-        this.client = new twitter_api_v2_1.TwitterApi({
-            appKey: process.env.TWITTER_API_KEY,
-            appSecret: process.env.TWITTER_API_SECRET,
-            accessToken: process.env.TWITTER_ACCESS_TOKEN,
-            accessSecret: process.env.TWITTER_ACCESS_SECRET,
-        });
+        this.client = null;
+        if (process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET) {
+            this.client = new twitter_api_v2_1.TwitterApi({
+                appKey: process.env.TWITTER_API_KEY,
+                appSecret: process.env.TWITTER_API_SECRET,
+                accessToken: process.env.TWITTER_ACCESS_TOKEN,
+                accessSecret: process.env.TWITTER_ACCESS_SECRET,
+            });
+        }
+    }
+    ensureClient() {
+        if (!this.client) {
+            throw new Error('Twitter API credentials not configured');
+        }
+        return this.client;
     }
     async getUserInfo(username) {
         try {
-            const user = await this.client.v2.userByUsername(username, {
+            const user = await this.ensureClient().v2.userByUsername(username, {
                 'user.fields': ['public_metrics', 'verified', 'profile_image_url'],
             });
             return {
@@ -38,11 +47,11 @@ class TwitterService {
     }
     async getUserTweets(userId, maxResults = 10) {
         try {
-            const tweets = await this.client.v2.userTimeline(userId, {
+            const tweets = await this.ensureClient().v2.userTimeline(userId, {
                 max_results: maxResults,
                 'tweet.fields': ['public_metrics', 'created_at'],
             });
-            return tweets.data?.map((tweet) => ({
+            return tweets.data.data?.map((tweet) => ({
                 id: tweet.id,
                 text: tweet.text,
                 createdAt: tweet.created_at,
@@ -72,7 +81,6 @@ class TwitterService {
 exports.TwitterService = TwitterService;
 // Instagram Basic Display API service
 class InstagramService {
-    accessToken;
     constructor(accessToken) {
         this.accessToken = accessToken;
     }
@@ -118,7 +126,6 @@ class InstagramService {
 exports.InstagramService = InstagramService;
 // YouTube Data API service
 class YouTubeService {
-    apiKey;
     constructor() {
         this.apiKey = process.env.YOUTUBE_API_KEY;
     }
@@ -201,11 +208,10 @@ class YouTubeService {
 exports.YouTubeService = YouTubeService;
 // SNS synchronization service
 class SNSSyncService {
-    twitterService;
-    youtubeService;
     constructor() {
         this.twitterService = new TwitterService();
         this.youtubeService = new YouTubeService();
+        this.tiktokService = new tiktok_service_1.TikTokService();
     }
     async syncSocialAccount(socialAccountId) {
         try {
@@ -242,6 +248,35 @@ class SNSSyncService {
                     // Instagram requires user-specific access token
                     // This would be implemented with OAuth flow
                     throw new Error('Instagram sync requires user authentication');
+                case client_1.Platform.TIKTOK:
+                    // For TikTok, we use the profileUrl to fetch user info
+                    // The profileUrl should be a valid TikTok profile URL or video URL
+                    try {
+                        const tiktokUserInfo = await this.tiktokService.getUserInfo(socialAccount.profileUrl);
+                        // Note: The RapidAPI endpoint we're using returns video-level stats
+                        // For a more complete implementation, you would need:
+                        // 1. TikTok Official API access for complete user stats
+                        // 2. Or aggregation of multiple video stats
+                        updatedData = {
+                            username: tiktokUserInfo.username,
+                            // Note: profileUrl will be updated if different
+                            // engagementRate would be calculated from videos
+                            // For now, we set placeholder values
+                            followerCount: 0, // Would need official API for this
+                            engagementRate: 0, // Would calculate from multiple videos
+                            isVerified: false, // Would need official API for this
+                        };
+                    }
+                    catch (error) {
+                        // If single video approach fails, it might be a profile URL
+                        // In production, implement proper TikTok profile scraping or use official API
+                        console.warn(`TikTok sync warning for ${socialAccount.username}:`, error.message);
+                        updatedData = {
+                            // Keep existing data if sync fails
+                            isVerified: false,
+                        };
+                    }
+                    break;
                 default:
                     throw new Error(`Unsupported platform: ${socialAccount.platform}`);
             }
@@ -305,3 +340,4 @@ class SNSSyncService {
     }
 }
 exports.SNSSyncService = SNSSyncService;
+//# sourceMappingURL=sns.service.js.map

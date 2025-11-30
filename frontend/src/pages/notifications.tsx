@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import Card from '../components/shared/Card';
+import Button from '../components/shared/Button';
+import LoadingState from '../components/common/LoadingState';
+import EmptyState from '../components/common/EmptyState';
+import ErrorState from '../components/common/ErrorState';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 interface Notification {
   id: string;
@@ -28,10 +33,8 @@ const NotificationsPage: React.FC = () => {
     total: 0,
     totalPages: 0,
   });
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [smartSuggestions, setSmartSuggestions] = useState<any[]>([]);
-  const [showAnalytics, setShowAnalytics] = useState(false);
   const router = useRouter();
+  const { handleError, handleSuccess } = useErrorHandler();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -53,105 +56,14 @@ const NotificationsPage: React.FC = () => {
       setNotifications(result.notifications || []);
       setPagination(result.pagination || { page: 1, limit: 20, total: 0, totalPages: 0 });
       setUnreadCount((result.notifications || []).filter((n: Notification) => !n.isRead).length);
-      
-      // 分析データとスマート提案を生成
-      generateAnalytics(result.notifications || []);
-      generateSmartSuggestions(result.notifications || []);
     } catch (err: any) {
-      console.error('Error fetching notifications:', err);
+      handleError(err, '通知の取得');
       setError('通知の取得に失敗しました。');
     } finally {
       setLoading(false);
     }
   };
 
-  const generateAnalytics = (notifications: Notification[]) => {
-    const now = new Date();
-    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    const recent7Days = notifications.filter(n => new Date(n.createdAt) >= last7Days);
-    const recent30Days = notifications.filter(n => new Date(n.createdAt) >= last30Days);
-
-    const typeDistribution = notifications.reduce((acc, n) => {
-      acc[n.type] = (acc[n.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const readRate = notifications.length > 0 
-      ? (notifications.filter(n => n.isRead).length / notifications.length * 100).toFixed(1)
-      : '0';
-
-    const avgResponseTime = notifications
-      .filter(n => n.isRead && n.readAt)
-      .map(n => new Date(n.readAt!).getTime() - new Date(n.createdAt).getTime())
-      .reduce((sum, time, _, arr) => sum + (time / arr.length), 0);
-
-    setAnalytics({
-      total: notifications.length,
-      unread: notifications.filter(n => !n.isRead).length,
-      recent7Days: recent7Days.length,
-      recent30Days: recent30Days.length,
-      readRate: parseFloat(readRate),
-      avgResponseTime: Math.round(avgResponseTime / (1000 * 60 * 60)), // hours
-      typeDistribution,
-      highPriority: notifications.filter(n => getNotificationPriority(n.type) === 'high').length
-    });
-  };
-
-  const generateSmartSuggestions = (notifications: Notification[]) => {
-    const suggestions = [];
-    const unreadNotifications = notifications.filter(n => !n.isRead);
-    const highPriorityUnread = unreadNotifications.filter(n => getNotificationPriority(n.type) === 'high');
-
-    if (highPriorityUnread.length > 0) {
-      suggestions.push({
-        type: 'urgent',
-        title: '重要な未読通知があります',
-        message: `${highPriorityUnread.length}件の重要な通知を確認してください`,
-        action: () => setFilter('unread'),
-        icon: '🚨'
-      });
-    }
-
-    if (unreadNotifications.length > 10) {
-      suggestions.push({
-        type: 'bulk_action',
-        title: '一括処理をお勧めします',
-        message: `${unreadNotifications.length}件の未読通知があります。一括で既読にしませんか？`,
-        action: handleMarkAllAsRead,
-        icon: '📚'
-      });
-    }
-
-    const applicationNotifications = notifications.filter(n => n.type === 'APPLICATION_RECEIVED' && !n.isRead);
-    if (applicationNotifications.length >= 3) {
-      suggestions.push({
-        type: 'workflow',
-        title: '新しい応募が複数あります',
-        message: `${applicationNotifications.length}件の応募を確認し、対応を検討してください`,
-        action: () => router.push('/applications'),
-        icon: '📝'
-      });
-    }
-
-    const oldUnread = unreadNotifications.filter(n => {
-      const days = (Date.now() - new Date(n.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-      return days > 7;
-    });
-
-    if (oldUnread.length > 0) {
-      suggestions.push({
-        type: 'maintenance',
-        title: '古い未読通知があります',
-        message: `1週間以上前の未読通知が${oldUnread.length}件あります`,
-        action: () => setFilter('unread'),
-        icon: '🗂️'
-      });
-    }
-
-    setSmartSuggestions(suggestions);
-  };
 
   const handleMarkAsRead = async (notificationId: string) => {
     setProcessing(notificationId);
@@ -162,7 +74,7 @@ const NotificationsPage: React.FC = () => {
         n.id === notificationId ? { ...n, isRead: true, readAt: new Date().toISOString() } : n
       ));
     } catch (err: any) {
-      console.error('Error marking notification as read:', err);
+      handleError(err, '通知の既読化');
     } finally {
       setProcessing(null);
     }
@@ -284,233 +196,72 @@ const NotificationsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
-      </div>
+      <DashboardLayout title="通知" subtitle="読み込み中...">
+        <LoadingState />
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">IM</span>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                通知
-                {unreadCount > 0 && (
-                  <span className="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
-              </h1>
-              <p className="text-sm text-gray-600">あなたの通知を確認</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <DashboardLayout
+      title={`通知${unreadCount > 0 ? ` (${unreadCount})` : ''}`}
+      subtitle="あなたの通知を確認"
+    >
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
-            {error}
-          </motion.div>
+          <Card className="mb-6 bg-red-50 border-red-200">
+            <div className="text-red-700">
+              {error}
+            </div>
+          </Card>
         )}
 
         {/* フィルターとアクション */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mb-8"
-        >
+        <Card className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex gap-2">
               {[
                 { value: 'all', label: 'すべて' },
                 { value: 'unread', label: '未読のみ' }
               ].map(filterOption => (
-                <motion.button
+                <Button
                   key={filterOption.value}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  variant={filter === filterOption.value ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setFilter(filterOption.value)}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                    filter === filterOption.value
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
                 >
                   {filterOption.label}
-                </motion.button>
+                </Button>
               ))}
             </div>
             
-            <div className="flex items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowAnalytics(!showAnalytics)}
-                className="px-4 py-2 bg-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                📊 分析表示
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleMarkAllAsRead}
-                disabled={processing === 'all'}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
-              >
-                {processing === 'all' ? '処理中...' : '全て既読にする'}
-              </motion.button>
-            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              disabled={processing === 'all'}
+              loading={processing === 'all'}
+            >
+              全て既読にする
+            </Button>
           </div>
 
-          {/* 分析セクション */}
-          {showAnalytics && analytics && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="border-t border-gray-200 pt-6"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 通知分析</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                  <div className="text-2xl font-bold text-blue-600">{analytics.total}</div>
-                  <div className="text-sm text-gray-600">総通知数</div>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl">
-                  <div className="text-2xl font-bold text-red-600">{analytics.unread}</div>
-                  <div className="text-sm text-gray-600">未読数</div>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-                  <div className="text-2xl font-bold text-green-600">{analytics.readRate}%</div>
-                  <div className="text-sm text-gray-600">既読率</div>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-                  <div className="text-2xl font-bold text-purple-600">{analytics.avgResponseTime}h</div>
-                  <div className="text-sm text-gray-600">平均応答時間</div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">期間別統計</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">過去7日</span>
-                      <span className="font-semibold">{analytics.recent7Days}件</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">過去30日</span>
-                      <span className="font-semibold">{analytics.recent30Days}件</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">重要通知</span>
-                      <span className="font-semibold text-red-600">{analytics.highPriority}件</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">通知タイプ別</h4>
-                  <div className="space-y-2">
-                    {Object.entries(analytics.typeDistribution).slice(0, 5).map(([type, count]) => (
-                      <div key={type} className="flex justify-between">
-                        <span className="text-gray-600 flex items-center">
-                          {getNotificationIcon(type)} 
-                          <span className="ml-2 text-xs">{type.replace('_', ' ')}</span>
-                        </span>
-                        <span className="font-semibold">{count as number}件</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
+        </Card>
 
-        {/* スマート提案 */}
-        {smartSuggestions.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-3xl p-6 shadow-xl mb-8"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              🤖 スマート提案
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {smartSuggestions.map((suggestion, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-white rounded-xl p-4 shadow-md border border-yellow-100"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-3">
-                      <span className="text-2xl">{suggestion.icon}</span>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-1">{suggestion.title}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{suggestion.message}</p>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={suggestion.action}
-                          className="px-3 py-1 bg-yellow-500 text-white rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors"
-                        >
-                          実行
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
         {/* 通知一覧 */}
         <div className="space-y-4">
           {notifications.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔔</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">通知がありません</h3>
-              <p className="text-gray-600">新しい通知が届くとここに表示されます。</p>
-            </div>
+            <EmptyState
+              icon="🔔"
+              title="通知がありません"
+              description="新しい通知が届くとここに表示されます。"
+            />
           ) : (
             notifications.map((notification, index) => (
-              <motion.div
+              <div
                 key={notification.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                className={`border rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer ${
+                className={`border rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                   notification.isRead 
                     ? 'bg-white/80 border-gray-200' 
                     : `${getNotificationColor(notification.type)} border-l-4`
@@ -552,9 +303,7 @@ const NotificationsPage: React.FC = () => {
                   
                   <div className="flex space-x-2 ml-4">
                     {!notification.isRead && (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleMarkAsRead(notification.id);
@@ -563,11 +312,9 @@ const NotificationsPage: React.FC = () => {
                         className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
                       >
                         {processing === notification.id ? '処理中...' : '既読'}
-                      </motion.button>
+                      </button>
                     )}
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteNotification(notification.id);
@@ -576,54 +323,46 @@ const NotificationsPage: React.FC = () => {
                       className="px-3 py-1 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
                     >
                       削除
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))
           )}
         </div>
 
         {/* ページネーション */}
         {pagination.totalPages > 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-6 shadow-xl mt-8"
-          >
+          <Card className="mt-8">
             <div className="flex items-center justify-between">
               <div className="text-gray-600">
                 {pagination.total}件中 {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)}件を表示
               </div>
-              <div className="flex space-x-2">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => fetchNotifications(pagination.page - 1)}
                   disabled={pagination.page === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   前へ
-                </motion.button>
+                </Button>
                 <span className="px-4 py-2 text-gray-600">
                   {pagination.page} / {pagination.totalPages}
                 </span>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => fetchNotifications(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   次へ
-                </motion.button>
+                </Button>
               </div>
             </div>
-          </motion.div>
+          </Card>
         )}
-      </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

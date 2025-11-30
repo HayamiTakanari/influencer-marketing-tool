@@ -24,3 +24,4 @@ router.put('/:teamId/members/:memberId/role', team_controller_1.updateMemberRole
 // Delete team
 router.delete('/:teamId', team_controller_1.deleteTeam);
 exports.default = router;
+//# sourceMappingURL=team.routes.js.map

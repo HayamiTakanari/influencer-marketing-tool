@@ -185,15 +185,19 @@ const getChatList = async (req, res) => {
                     client: {
                         user: { id: userId },
                     },
-                    status: 'MATCHED',
+                    status: {
+                        in: ['MATCHED', 'IN_PROGRESS', 'COMPLETED'],
+                    },
                 },
                 include: {
                     matchedInfluencer: {
-                        include: {
+                        select: {
+                            displayName: true,
                             user: {
                                 select: {
                                     id: true,
                                     email: true,
+                                    role: true,
                                 },
                             },
                         },
@@ -202,6 +206,9 @@ const getChatList = async (req, res) => {
                         take: 1,
                         orderBy: { createdAt: 'desc' },
                     },
+                },
+                orderBy: {
+                    updatedAt: 'desc',
                 },
             });
         }
@@ -211,15 +218,20 @@ const getChatList = async (req, res) => {
                     matchedInfluencer: {
                         user: { id: userId },
                     },
-                    status: 'MATCHED',
+                    status: {
+                        in: ['MATCHED', 'IN_PROGRESS', 'COMPLETED'],
+                    },
                 },
                 include: {
                     client: {
-                        include: {
+                        select: {
+                            companyName: true,
+                            contactName: true,
                             user: {
                                 select: {
                                     id: true,
                                     email: true,
+                                    role: true,
                                 },
                             },
                         },
@@ -229,13 +241,15 @@ const getChatList = async (req, res) => {
                         orderBy: { createdAt: 'desc' },
                     },
                 },
+                orderBy: {
+                    updatedAt: 'desc',
+                },
             });
         }
         else {
             return res.status(403).json({ error: 'Invalid user role' });
         }
-        // Get unread counts for each project
-        const projectsWithUnreadCount = await Promise.all(projects.map(async (project) => {
+        const formattedChats = await Promise.all(projects.map(async (project) => {
             const unreadCount = await prisma.message.count({
                 where: {
                     projectId: project.id,
@@ -243,12 +257,25 @@ const getChatList = async (req, res) => {
                     isRead: false,
                 },
             });
+            const lastMessage = project.messages[0];
             return {
-                ...project,
+                id: project.id,
+                projectId: project.id,
+                projectTitle: project.title,
+                lastMessage: lastMessage?.content || '',
+                lastMessageTime: lastMessage?.createdAt.toISOString() || project.updatedAt.toISOString(),
                 unreadCount,
+                sender: {
+                    name: userRole === 'CLIENT'
+                        ? project.matchedInfluencer?.displayName || 'インフルエンサー'
+                        : project.client?.companyName || '企業',
+                    role: userRole === 'CLIENT'
+                        ? project.matchedInfluencer?.user.role || 'INFLUENCER'
+                        : project.client?.user.role || 'CLIENT',
+                },
             };
         }));
-        res.json(projectsWithUnreadCount);
+        res.json(formattedChats);
     }
     catch (error) {
         console.error('Get chat list error:', error);
@@ -256,3 +283,4 @@ const getChatList = async (req, res) => {
     }
 };
 exports.getChatList = getChatList;
+//# sourceMappingURL=chat.controller.js.map

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
@@ -64,44 +63,14 @@ const AdminSNSSyncPage: React.FC = () => {
           return;
         }
       } catch (apiError) {
-        console.warn('API not available, using mock data:', apiError);
+        console.warn('API not available:', apiError);
       }
-      
-      // Fallback to mock data if API is not available
-      const mockStatus: SyncStatus = {
-        totalAccounts: 15,
-        accounts: [
-          {
-            id: 'acc1',
-            platform: 'INSTAGRAM',
-            username: 'beauty_influencer',
-            lastSynced: '2024-01-20T10:30:00Z',
-            followerCount: 45000,
-            engagementRate: 3.2,
-            isVerified: true
-          },
-          {
-            id: 'acc2',
-            platform: 'YOUTUBE',
-            username: 'lifestyle_channel',
-            lastSynced: null,
-            followerCount: 12000,
-            engagementRate: 4.1,
-            isVerified: false
-          },
-          {
-            id: 'acc3',
-            platform: 'TWITTER',
-            username: 'tech_reviewer',
-            lastSynced: '2024-01-19T15:20:00Z',
-            followerCount: 28000,
-            engagementRate: 2.8,
-            isVerified: true
-          }
-        ]
-      };
 
-      setSyncStatus(mockStatus);
+      // No fallback mock data - API is required
+      setSyncStatus({
+        totalAccounts: 0,
+        accounts: []
+      });
     } catch (error) {
       console.error('Error fetching sync status:', error);
       setError('同期状況の取得に失敗しました');
@@ -177,27 +146,11 @@ const AdminSNSSyncPage: React.FC = () => {
           return;
         }
       } catch (apiError) {
-        console.warn('API not available, showing mock sync:', apiError);
-        setSyncLogs(prev => [...prev, 'API接続エラー: モック同期を実行中...']);
+        console.warn('API not available:', apiError);
+        setSyncLogs(prev => [...prev, 'API接続エラー: 同期処理に失敗しました']);
       }
-      
-      // Fallback mock sync if API not available
-      setSyncLogs(prev => [...prev, 'バックグラウンドで同期処理を開始しました（モック）']);
-      setSyncLogs(prev => [...prev, 'この処理は完了まで数分かかる場合があります']);
-      
-      setTimeout(() => {
-        setSyncLogs(prev => [...prev, 'インフルエンサー 1/10 の同期完了']);
-      }, 2000);
-      
-      setTimeout(() => {
-        setSyncLogs(prev => [...prev, 'インフルエンサー 5/10 の同期完了']);
-      }, 5000);
-      
-      setTimeout(() => {
-        setSyncLogs(prev => [...prev, '全てのインフルエンサーの同期が完了しました（モック）']);
-        fetchSyncStatus();
-        setSyncing(false);
-      }, 8000);
+
+      setSyncing(false);
 
     } catch (err: any) {
       console.error('Error syncing all influencers:', err);
@@ -273,22 +226,13 @@ const AdminSNSSyncPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* エラーメッセージ */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
-          >
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 transition-all">
             {error}
-          </motion.div>
+          </div>
         )}
 
         {/* API設定状況 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8 transition-all">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">API設定状況</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -329,26 +273,19 @@ const AdminSNSSyncPage: React.FC = () => {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* 同期コントロール */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl mb-8 transition-all">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">一括同期</h2>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={handleSyncAllInfluencers}
               disabled={syncing}
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
             >
               {syncing ? '同期中...' : '🔄 全インフルエンサー同期'}
-            </motion.button>
+            </button>
           </div>
 
           {syncLogs.length > 0 && (
@@ -360,15 +297,10 @@ const AdminSNSSyncPage: React.FC = () => {
               ))}
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* 同期状況一覧 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl"
-        >
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-3xl p-8 shadow-xl transition-all">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">SNSアカウント同期状況</h2>
           
           {syncStatus && (
@@ -383,11 +315,8 @@ const AdminSNSSyncPage: React.FC = () => {
 
               <div className="space-y-4">
                 {syncStatus.accounts.map((account, index) => (
-                  <motion.div
+                  <div
                     key={account.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
                     className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all"
                   >
                     <div className="flex items-center justify-between">
@@ -423,20 +352,15 @@ const AdminSNSSyncPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </>
           )}
-        </motion.div>
+        </div>
 
         {/* 設定ガイド */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="bg-blue-50/80 backdrop-blur-xl border border-blue-200 rounded-3xl p-8 shadow-xl mt-8"
-        >
+        <div className="bg-blue-50/80 backdrop-blur-xl border border-blue-200 rounded-3xl p-8 shadow-xl mt-8 transition-all">
           <h3 className="text-xl font-bold text-gray-900 mb-4">💡 API設定ガイド</h3>
           <div className="space-y-4 text-sm text-gray-700">
             <div>
@@ -466,7 +390,7 @@ const AdminSNSSyncPage: React.FC = () => {
               <p>各インフルエンサーが個別にInstagramアカウントを連携する必要があります。</p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
