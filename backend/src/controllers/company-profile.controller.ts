@@ -10,15 +10,30 @@ const updateCompanyProfileSchema = z.object({
   contactName: z.string().max(100).optional(),
   contactPhone: z.string().max(20).optional(),
   address: z.string().max(500).optional(),
-  website: z.string().url().optional(),
+  website: z.union([
+    z.string().url(),
+    z.string().max(0)  // Allow empty string
+  ]).optional(),
   description: z.string().max(2000).optional(),
-  instagramUrl: z.string().url().optional().nullable(),
+  instagramUrl: z.union([
+    z.string().url(),
+    z.string().max(0)  // Allow empty string
+  ]).optional().nullable(),
   instagramUserId: z.string().max(100).optional().nullable(),
-  tiktokUrl: z.string().url().optional().nullable(),
+  tiktokUrl: z.union([
+    z.string().url(),
+    z.string().max(0)  // Allow empty string
+  ]).optional().nullable(),
   tiktokUserId: z.string().max(100).optional().nullable(),
-  youtubeUrl: z.string().url().optional().nullable(),
+  youtubeUrl: z.union([
+    z.string().url(),
+    z.string().max(0)  // Allow empty string
+  ]).optional().nullable(),
   youtubeUserId: z.string().max(100).optional().nullable(),
-  twitterUrl: z.string().url().optional().nullable(),
+  twitterUrl: z.union([
+    z.string().url(),
+    z.string().max(0)  // Allow empty string
+  ]).optional().nullable(),
   twitterUserId: z.string().max(100).optional().nullable(),
   bankName: z.string().max(100).optional(),
   branchName: z.string().max(100).optional(),
