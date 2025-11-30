@@ -134,24 +134,15 @@ const ProjectSchedulePage: React.FC = () => {
     for (const project of projectList) {
       try {
         console.log(`プロジェクト ${project.title} のスケジュールを取得中...`);
-        
-        // 現在は常にモックデータを使用（バックエンドとの型不整合のため）
-        // 詳細なフェーズ管理が必要なため、モックデータで15段階のフローを表示
-        scheduleData[project.id] = generateMockSchedule(project);
-        console.log(`プロジェクト ${project.title} のモックスケジュールを生成しました`);
-        
-        // APIからの実データは一旦コメントアウト
-        // const schedule = await getProjectSchedule(project.id);
-        // TODO: バックエンドのMilestoneTypeを15のPhaseTypeに拡張後、以下を有効化
-        // if (schedule && schedule.phases && schedule.phases.length > 4) {
-        //   scheduleData[project.id] = schedule;
-        // } else {
-        //   scheduleData[project.id] = generateMockSchedule(project);
-        // }
+        const schedule = await getProjectSchedule(project.id);
+        if (schedule && schedule.phases && schedule.phases.length > 0) {
+          scheduleData[project.id] = schedule;
+        }
+        console.log(`プロジェクト ${project.title} のスケジュールを取得しました`);
       } catch (error) {
-        console.error(`Error generating schedule for project ${project.id}:`, error);
-        // エラーが発生してもモックデータを生成
-        scheduleData[project.id] = generateMockSchedule(project);
+        console.error(`Error fetching schedule for project ${project.id}:`, error);
+        // APIエラーの場合は空のスケジュールを設定
+        scheduleData[project.id] = { phases: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
       }
     }
     
@@ -194,54 +185,6 @@ const ProjectSchedulePage: React.FC = () => {
     return Math.round((completedPhases.length / schedule.phases.length) * 100);
   };
 
-  const generateMockSchedule = (project: Project): ProjectSchedule => {
-    const startDate = new Date();
-    const phases: Phase[] = [];
-    
-    const phaseTypes: PhaseType[] = [
-      'FORMAL_REQUEST', 'PRODUCT_RECEIPT', 'DRAFT_CONTE_CREATION', 'DRAFT_CONTE_SUBMIT',
-      'CONTE_FEEDBACK', 'CONTE_REVISION', 'CONTE_FINALIZE', 'SHOOTING',
-      'DRAFT_VIDEO_SUBMIT', 'VIDEO_FEEDBACK', 'VIDEO_REVISION', 'VIDEO_DATA_SUBMIT',
-      'VIDEO_FINALIZE', 'POSTING', 'INSIGHT_SUBMIT'
-    ];
-
-    phaseTypes.forEach((type, index) => {
-      const config = PHASE_CONFIG[type];
-      const phaseStartDate = new Date(startDate);
-      phaseStartDate.setDate(startDate.getDate() + index * 2); // 2日間隔に短縮
-      
-      let endDate = undefined;
-      if (config.isDateRange) {
-        const phaseEndDate = new Date(phaseStartDate);
-        phaseEndDate.setDate(phaseStartDate.getDate() + (index < 5 ? 1 : 2)); // 初期フェーズは短く
-        endDate = phaseEndDate.toISOString();
-      }
-
-      // より現実的なステータス設定
-      let status: 'pending' | 'in_progress' | 'completed' = 'pending';
-      if (index < 3) status = 'completed';        // 最初の3つは完了
-      else if (index === 3) status = 'in_progress'; // 4番目は進行中
-      
-      phases.push({
-        id: `${project.id}-phase-${index}`,
-        type,
-        title: config.title,
-        description: config.description,
-        startDate: phaseStartDate.toISOString(),
-        endDate,
-        status,
-        isDateRange: config.isDateRange,
-        color: config.color,
-        icon: config.icon
-      });
-    });
-
-    return {
-      phases,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  };
 
   const getProjectBorderColor = (schedule: ProjectSchedule) => {
     const projectIndex = Object.values(schedules).indexOf(schedule);
@@ -392,26 +335,6 @@ const ProjectSchedulePage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         
-        {/* データ取得警告バナー */}
-        {projects.length > 0 && (projects[0]?.id?.includes('mock-project') || projects[0]?.id === '1') && (
-          <div
-            className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-r-lg transition-all duration-500"
-          >
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="text-blue-800 font-medium">
-                  デモデータ表示中
-                </p>
-                <p className="text-blue-700 text-sm">
-                  新しい15段階フェーズ管理機能をサンプルデータで体験できます。ガントチャートもご利用いただけます。
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-4">

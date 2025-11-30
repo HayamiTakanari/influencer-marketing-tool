@@ -158,27 +158,7 @@ const TeamManagementPage: React.FC = () => {
       setError('');
     } catch (err: any) {
       handleError(err, 'メンバーの追加');
-      if (err.code === 'ERR_NETWORK' || err.message?.includes('addTeamMember is not a function')) {
-        // ローカルでメンバーを追加（モック）
-        const newMember: TeamMember = {
-          id: `mock-member-${Date.now()}`,
-          isOwner: memberIsOwner,
-          joinedAt: new Date().toISOString(),
-          user: {
-            id: `mock-user-${Date.now()}`,
-            email: memberEmail.trim(),
-            role: 'CLIENT',
-            createdAt: new Date().toISOString()
-          }
-        };
-        setTeam({ ...team, members: [...team.members, newMember] });
-        setShowAddMemberForm(false);
-        setMemberEmail('');
-        setMemberIsOwner(false);
-        setError('');
-      } else {
-        setError('メンバーの追加に失敗しました。開発中の機能です。');
-      }
+      setError('メンバーの追加に失敗しました。開発中の機能です。');
     } finally {
       setSubmitting(false);
     }

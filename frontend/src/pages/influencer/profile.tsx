@@ -445,11 +445,8 @@ const ProfilePage: React.FC = () => {
         }
       } catch (apiError) {
         console.warn('API not available for sync:', apiError);
+        setError('SNSアカウントの同期に失敗しました。');
       }
-      
-      // Mock sync if API not available
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      handleSuccess('SNSアカウントの同期が完了しました！');
       
     } catch (err: any) {
       handleError(err, 'SNSアカウントの同期');
@@ -481,11 +478,8 @@ const ProfilePage: React.FC = () => {
         }
       } catch (apiError) {
         console.warn('API not available for sync-all:', apiError);
+        setError('全てのSNSアカウントの同期に失敗しました。');
       }
-      
-      // Mock sync all if API not available
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      handleSuccess('全てのSNSアカウントの同期が完了しました！');
       
     } catch (err: any) {
       handleError(err, 'SNSアカウントの一括同期');
