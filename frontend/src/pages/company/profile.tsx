@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
-import { FaInstagram, FaTiktok, FaYoutube, FaTwitter, FaLine } from 'react-icons/fa';
+import { FaInstagram, FaTiktok, FaYoutube, FaXTwitter, FaLine } from 'react-icons/fa';
 
 const CompanyProfilePage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -291,41 +291,17 @@ const CompanyProfilePage: React.FC = () => {
                 <FaInstagram className="text-pink-600" size={24} />
                 <h5 className="font-semibold text-gray-900">Instagram</h5>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">URL</label>
-                  <input
-                    type="url"
-                    name="instagramUrl"
-                    placeholder="https://instagram.com/..."
-                    value={formData.instagramUrl}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                  {!isEditing && formData.instagramUrl && (
-                    <a
-                      href={formData.instagramUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
-                    >
-                      リンクを開く
-                    </a>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                  <input
-                    type="text"
-                    name="instagramUserId"
-                    placeholder="@username"
-                    value={formData.instagramUserId}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                <input
+                  type="text"
+                  name="instagramUserId"
+                  placeholder="@username"
+                  value={formData.instagramUserId}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+                />
               </div>
             </div>
 
@@ -335,41 +311,17 @@ const CompanyProfilePage: React.FC = () => {
                 <FaTiktok className="text-gray-900" size={24} />
                 <h5 className="font-semibold text-gray-900">TikTok</h5>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">URL</label>
-                  <input
-                    type="url"
-                    name="tiktokUrl"
-                    placeholder="https://tiktok.com/..."
-                    value={formData.tiktokUrl}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                  {!isEditing && formData.tiktokUrl && (
-                    <a
-                      href={formData.tiktokUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
-                    >
-                      リンクを開く
-                    </a>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                  <input
-                    type="text"
-                    name="tiktokUserId"
-                    placeholder="@username"
-                    value={formData.tiktokUserId}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                <input
+                  type="text"
+                  name="tiktokUserId"
+                  placeholder="@username"
+                  value={formData.tiktokUserId}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+                />
               </div>
             </div>
 
@@ -379,129 +331,57 @@ const CompanyProfilePage: React.FC = () => {
                 <FaYoutube className="text-red-600" size={24} />
                 <h5 className="font-semibold text-gray-900">YouTube</h5>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">URL</label>
-                  <input
-                    type="url"
-                    name="youtubeUrl"
-                    placeholder="https://youtube.com/..."
-                    value={formData.youtubeUrl}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                  {!isEditing && formData.youtubeUrl && (
-                    <a
-                      href={formData.youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
-                    >
-                      リンクを開く
-                    </a>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                  <input
-                    type="text"
-                    name="youtubeUserId"
-                    placeholder="@username"
-                    value={formData.youtubeUserId}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                <input
+                  type="text"
+                  name="youtubeUserId"
+                  placeholder="@username"
+                  value={formData.youtubeUserId}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+                />
               </div>
             </div>
 
-            {/* Twitter / X */}
+            {/* X (formerly Twitter) */}
             <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
-                <FaTwitter className="text-blue-400" size={24} />
-                <h5 className="font-semibold text-gray-900">Twitter / X</h5>
+                <FaXTwitter className="text-gray-900" size={24} />
+                <h5 className="font-semibold text-gray-900">X</h5>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">URL</label>
-                  <input
-                    type="url"
-                    name="twitterUrl"
-                    placeholder="https://twitter.com/..."
-                    value={formData.twitterUrl}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                  {!isEditing && formData.twitterUrl && (
-                    <a
-                      href={formData.twitterUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
-                    >
-                      リンクを開く
-                    </a>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                  <input
-                    type="text"
-                    name="twitterUserId"
-                    placeholder="@username"
-                    value={formData.twitterUserId}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                <input
+                  type="text"
+                  name="twitterUserId"
+                  placeholder="@username"
+                  value={formData.twitterUserId}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+                />
               </div>
             </div>
 
-            {/* LINE - Full width */}
+            {/* LINE */}
             <div className="md:col-span-2 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
                 <FaLine className="text-green-600" size={24} />
                 <h5 className="font-semibold text-gray-900">LINE</h5>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">URL</label>
-                  <input
-                    type="url"
-                    name="lineUrl"
-                    placeholder="https://line.me/..."
-                    value={formData.lineUrl}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                  {!isEditing && formData.lineUrl && (
-                    <a
-                      href={formData.lineUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
-                    >
-                      リンクを開く
-                    </a>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                  <input
-                    type="text"
-                    name="lineUserId"
-                    placeholder="ID or username"
-                    value={formData.lineUserId}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                <input
+                  type="text"
+                  name="lineUserId"
+                  placeholder="ID or username"
+                  value={formData.lineUserId}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+                />
               </div>
             </div>
           </div>
