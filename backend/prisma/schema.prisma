@@ -173,12 +173,18 @@ model Company {
   website            String? // Webサイト
   description        String? // 会社概要
   logoUrl            String?
-  // SNS Accounts
+  // SNS Accounts - URLs
   instagramUrl       String?
   tiktokUrl          String?
   youtubeUrl         String?
   twitterUrl         String?
   lineUrl            String?
+  // SNS Accounts - User IDs
+  instagramUserId    String?
+  tiktokUserId       String?
+  youtubeUserId      String?
+  twitterUserId      String?
+  lineUserId         String?
   isVerified         Boolean    @default(false)
   verifiedAt         DateTime?
   status             UserStatus @default(PROVISIONAL)
