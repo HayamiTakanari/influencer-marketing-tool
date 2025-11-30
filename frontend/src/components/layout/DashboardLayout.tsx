@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import { BreadcrumbItem } from '../common/BreadcrumbNav';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title, subtitle }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title, subtitle, breadcrumbs }) => {
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const router = useRouter();
@@ -56,7 +58,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title, subt
       {/* メインコンテンツ */}
       <main className={`transition-all duration-200 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {/* トップバー */}
-        <Header title={title} subtitle={subtitle} />
+        <Header title={title} subtitle={subtitle} breadcrumbs={breadcrumbs} />
 
         {/* コンテンツエリア */}
         <div className="p-4">

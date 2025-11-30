@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
+import { BreadcrumbItem } from '../../components/common/BreadcrumbNav';
 import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa';
 import { SiX } from 'react-icons/si';
 
@@ -157,16 +158,20 @@ const CompanyProfilePage: React.FC = () => {
     }
   };
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: '企業プロフィール' }
+  ];
+
   if (loading) {
     return (
-      <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理">
+      <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理" breadcrumbs={breadcrumbs}>
         <LoadingState />
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理">
+    <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理" breadcrumbs={breadcrumbs}>
       <div className="w-full space-y-4">
         {/* Unified Card */}
         <Card padding="md">
