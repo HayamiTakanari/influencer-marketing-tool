@@ -155,7 +155,10 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Update company profile error:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      return res.status(400).json({
+        error: 'Invalid input',
+        details: (error as any).errors
+      });
     }
     res.status(500).json({ error: 'Failed to update company profile' });
   }
