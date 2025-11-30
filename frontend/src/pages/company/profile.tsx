@@ -295,18 +295,34 @@ const CompanyProfilePage: React.FC = () => {
                 <FaInstagram className="text-pink-600" size={24} />
                 <h5 className="font-semibold text-gray-900">Instagram</h5>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                <input
-                  type="text"
-                  name="instagramUserId"
-                  placeholder="@username"
-                  value={formData.instagramUserId}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                />
-              </div>
+              {isEditing ? (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                  <input
+                    type="text"
+                    name="instagramUserId"
+                    placeholder="@username"
+                    value={formData.instagramUserId}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                  />
+                </div>
+              ) : (
+                <div>
+                  {formData.instagramUserId ? (
+                    <a
+                      href={`https://instagram.com/${formData.instagramUserId.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-pink-600 hover:text-pink-800 hover:underline text-sm font-medium break-all"
+                    >
+                      @{formData.instagramUserId.replace('@', '')}
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 text-sm">未設定</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* TikTok */}
@@ -315,18 +331,34 @@ const CompanyProfilePage: React.FC = () => {
                 <FaTiktok className="text-gray-900" size={24} />
                 <h5 className="font-semibold text-gray-900">TikTok</h5>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                <input
-                  type="text"
-                  name="tiktokUserId"
-                  placeholder="@username"
-                  value={formData.tiktokUserId}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                />
-              </div>
+              {isEditing ? (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                  <input
+                    type="text"
+                    name="tiktokUserId"
+                    placeholder="@username"
+                    value={formData.tiktokUserId}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                  />
+                </div>
+              ) : (
+                <div>
+                  {formData.tiktokUserId ? (
+                    <a
+                      href={`https://www.tiktok.com/@${formData.tiktokUserId.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-900 hover:text-gray-700 hover:underline text-sm font-medium break-all"
+                    >
+                      @{formData.tiktokUserId.replace('@', '')}
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 text-sm">未設定</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* YouTube */}
@@ -335,18 +367,34 @@ const CompanyProfilePage: React.FC = () => {
                 <FaYoutube className="text-red-600" size={24} />
                 <h5 className="font-semibold text-gray-900">YouTube</h5>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                <input
-                  type="text"
-                  name="youtubeUserId"
-                  placeholder="@username"
-                  value={formData.youtubeUserId}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                />
-              </div>
+              {isEditing ? (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                  <input
+                    type="text"
+                    name="youtubeUserId"
+                    placeholder="@username"
+                    value={formData.youtubeUserId}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                  />
+                </div>
+              ) : (
+                <div>
+                  {formData.youtubeUserId ? (
+                    <a
+                      href={`https://youtube.com/@${formData.youtubeUserId.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-600 hover:text-red-800 hover:underline text-sm font-medium break-all"
+                    >
+                      @{formData.youtubeUserId.replace('@', '')}
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 text-sm">未設定</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* X (formerly Twitter) */}
@@ -355,18 +403,34 @@ const CompanyProfilePage: React.FC = () => {
                 <SiX className="text-gray-900" size={24} />
                 <h5 className="font-semibold text-gray-900">X</h5>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                <input
-                  type="text"
-                  name="twitterUserId"
-                  placeholder="@username"
-                  value={formData.twitterUserId}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                />
-              </div>
+              {isEditing ? (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
+                  <input
+                    type="text"
+                    name="twitterUserId"
+                    placeholder="@username"
+                    value={formData.twitterUserId}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                  />
+                </div>
+              ) : (
+                <div>
+                  {formData.twitterUserId ? (
+                    <a
+                      href={`https://x.com/${formData.twitterUserId.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-900 hover:text-gray-700 hover:underline text-sm font-medium break-all"
+                    >
+                      @{formData.twitterUserId.replace('@', '')}
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 text-sm">未設定</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </Card>
