@@ -48,7 +48,7 @@ const AdminProjects: React.FC = () => {
     try {
       // Fetch all projects from Supabase
       const { data: projectsData } = await supabase
-        .from('Project')
+        .from('project')
         .select('id, title, budget, status, clientId, matchedInfluencerId, startDate, endDate, createdAt')
         .order('createdAt', { ascending: false });
 
@@ -60,7 +60,7 @@ const AdminProjects: React.FC = () => {
 
           if (project.clientId) {
             const { data: clientData } = await supabase
-              .from('Client')
+              .from('client')
               .select('companyName')
               .eq('id', project.clientId)
               .single();
@@ -69,7 +69,7 @@ const AdminProjects: React.FC = () => {
 
           if (project.matchedInfluencerId) {
             const { data: influencerData } = await supabase
-              .from('Influencer')
+              .from('influencer')
               .select('displayName')
               .eq('id', project.matchedInfluencerId)
               .single();

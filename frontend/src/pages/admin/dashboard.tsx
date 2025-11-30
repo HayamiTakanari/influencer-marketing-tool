@@ -55,23 +55,23 @@ const AdminDashboard: React.FC = () => {
       setError('');
 
       // Fetch total users
-      const { count: totalUsers } = await supabase
-        .from('User')
+      const { count: totalUsers, error: usersError } = await supabase
+        .from('user')
         .select('*', { count: 'exact', head: true });
 
       // Fetch total companies
-      const { count: totalCompanies } = await supabase
-        .from('Company')
+      const { count: totalCompanies, error: companiesError } = await supabase
+        .from('company')
         .select('*', { count: 'exact', head: true });
 
       // Fetch total influencers
-      const { count: totalInfluencers } = await supabase
-        .from('Influencer')
+      const { count: totalInfluencers, error: influencersError } = await supabase
+        .from('influencer')
         .select('*', { count: 'exact', head: true });
 
       // Fetch projects by status
-      const { data: projects } = await supabase
-        .from('Project')
+      const { data: projects, error: projectsError } = await supabase
+        .from('project')
         .select('id, title, budget, status, clientId, matchedInfluencerId, createdAt')
         .order('createdAt', { ascending: false })
         .limit(10);
@@ -81,8 +81,8 @@ const AdminDashboard: React.FC = () => {
       const completedProjects = projects?.filter(p => p.status === 'COMPLETED').length || 0;
 
       // Calculate total revenue from transactions
-      const { data: transactions } = await supabase
-        .from('Transaction')
+      const { data: transactions, error: transactionsError } = await supabase
+        .from('transaction')
         .select('amount');
 
       const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0;
@@ -95,7 +95,7 @@ const AdminDashboard: React.FC = () => {
 
           if (project.clientId) {
             const { data: clientData } = await supabase
-              .from('Client')
+              .from('client')
               .select('companyName')
               .eq('id', project.clientId)
               .single();
@@ -104,7 +104,7 @@ const AdminDashboard: React.FC = () => {
 
           if (project.matchedInfluencerId) {
             const { data: influencerData } = await supabase
-              .from('Influencer')
+              .from('influencer')
               .select('displayName')
               .eq('id', project.matchedInfluencerId)
               .single();
