@@ -53,7 +53,7 @@ const CompanyProfilePage: React.FC = () => {
 
   const fetchCompanyProfile = async (token: string) => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
       const response = await fetch(`${apiBaseUrl}/company-profile/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -108,7 +108,7 @@ const CompanyProfilePage: React.FC = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
 
       // 企業情報をバックエンドに送信（すべてのフィールド）
       const payload = {

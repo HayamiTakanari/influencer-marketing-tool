@@ -33,7 +33,7 @@ const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({ onNavigat
   const fetchProfileCompletion = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/profile/me/completion`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/profile/me/completion`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -41,6 +41,13 @@ const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({ onNavigat
       });
 
       if (!response.ok) {
+        if (response.status === 404) {
+          // Silently handle when endpoint is not available
+          setError('');
+          setCompletion(null);
+          setLoading(false);
+          return;
+        }
         throw new Error('Failed to fetch profile completion');
       }
 
@@ -48,8 +55,9 @@ const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({ onNavigat
       setCompletion(data);
       setError('');
     } catch (err: any) {
-      handleError(err, 'プロフィール完成度の取得');
-      setError('プロフィール完成度の取得に失敗しました。');
+      // Silently handle network errors without logging
+      setError('');
+      setCompletion(null);
     } finally {
       setLoading(false);
     }

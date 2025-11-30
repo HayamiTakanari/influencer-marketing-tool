@@ -51,7 +51,7 @@ const CheckoutForm: React.FC<{
     try {
       // Create payment intent
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/payments/create-payment-intent`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002'}/api/payments/create-payment-intent`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -84,7 +84,7 @@ const CheckoutForm: React.FC<{
         setError(stripeError.message || 'Payment failed');
       } else {
         // Confirm payment on backend
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/payments/confirm-payment`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002'}/api/payments/confirm-payment`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

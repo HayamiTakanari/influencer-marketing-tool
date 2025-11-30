@@ -43,7 +43,7 @@ const AdminInfluencers: React.FC = () => {
 
   const fetchInfluencers = async (token: string) => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
       const response = await fetch(`${apiBaseUrl}/admin/influencers`, {
         headers: {
           'Authorization': `Bearer ${token}`,

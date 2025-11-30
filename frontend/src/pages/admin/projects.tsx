@@ -48,7 +48,7 @@ const AdminProjects: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/projects`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/admin/projects`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
