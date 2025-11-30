@@ -38,7 +38,7 @@ const ProjectInfoCard: React.FC<ProjectInfoCardProps> = ({
                 <span>企業: {project.client.companyName}</span>
               )}
               <span>•</span>
-              <span>インフルエンサー: {project.matchedInfluencer.displayName}</span>
+              <span>インフルエンサー: {project.matchedInfluencer?.displayName || '未決定'}</span>
             </div>
           </div>
         </div>

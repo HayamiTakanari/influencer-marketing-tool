@@ -55,6 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, user, onLogout }) =
     { label: '案件を探す', path: '/influencer/opportunities', icon: MdSearch },
     { label: '応募した案件', path: '/influencer/applications', icon: MdFolder },
     { label: 'メッセージ', path: '/influencer/messages', icon: MdMessage },
+    { label: '提出物管理', path: '/influencer/submissions', icon: MdAttachMoney },
     { label: 'プロフィール', path: '/influencer/profile', icon: MdPerson },
     { label: '実績', path: '/influencer/achievements', icon: MdEmojiEvents },
     { label: '収益', path: '/influencer/revenue', icon: MdAttachMoney },
@@ -66,9 +67,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, user, onLogout }) =
     { label: 'ホーム', path: '/company/dashboard', icon: MdHome },
     { label: 'インフルエンサー検索', path: '/company/influencers/search', icon: MdSearch },
     { label: 'プロジェクト', path: '/company/projects/list', icon: MdFolder },
+    { label: 'メッセージ', path: '/company/messages', icon: MdMessage },
     { label: '支払い履歴', path: '/company/payments/history', icon: MdAttachMoney },
     { label: '企業プロフィール', path: '/company/profile', icon: MdBusiness },
-    { label: '設定', path: '/influencer/settings', icon: MdSettings },
+    { label: '設定', path: '/company/settings', icon: MdSettings },
   ];
 
   const navigationItems = isInfluencer ? influencerNavigation : companyNavigation;

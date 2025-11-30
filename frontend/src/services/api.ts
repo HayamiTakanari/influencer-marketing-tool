@@ -1241,6 +1241,13 @@ export const getMessages = async (projectId: string, page = 1, limit = 50) => {
   return response.data;
 };
 
+export const getProjectMessages = async (projectId: string, page = 1, limit = 50) => {
+  const response = await api.get(`/chat/messages/${projectId}`, {
+    params: { page, limit },
+  });
+  return response.data;
+};
+
 export const sendMessage = async (projectId: string, content: string) => {
   const response = await api.post('/chat/messages', { projectId, content });
   return response.data;

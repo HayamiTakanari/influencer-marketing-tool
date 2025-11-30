@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import { checkConteAlignment, AIContentCheckResult, ProjectInfo, ConteInfo } from '../../services/ai-content-check';
 import { checkYakujihoViolations, YakujihoCheckResult } from '../../services/yakujiho-checker';
 import { YakujihoHighlightedText, YakujihoCheckSummary } from '../../components/YakujihoHighlightedText';
@@ -175,23 +176,36 @@ const ProjectChatPage: React.FC = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || !project) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      createdAt: new Date().toISOString(),
-      senderId: user.id,
-      messageType: 'text',
-      sender: {
-        id: user.id,
-        role: user.role,
-        displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
-      }
-    };
-
-    setMessages(prev => [...prev, message]);
+    const messageContent = newMessage;
     setNewMessage('');
-    
-    // TODO: Send message to server
+
+    try {
+      // Import and call the sendMessage API
+      const { sendMessage } = await import('../../services/api');
+      const messageFromServer = await sendMessage(project.id, messageContent);
+
+      // Add the server-returned message to the messages list
+      if (messageFromServer) {
+        const message: Message = {
+          id: messageFromServer.id,
+          content: messageFromServer.content,
+          createdAt: messageFromServer.createdAt,
+          senderId: messageFromServer.senderId,
+          messageType: messageFromServer.messageType || 'text',
+          sender: {
+            id: messageFromServer.sender?.id || user.id,
+            role: messageFromServer.sender?.role || user.role,
+            displayName: user.role === 'CLIENT' ? project.client.displayName : (project.matchedInfluencer?.displayName || 'インフルエンサー')
+          }
+        };
+        setMessages(prev => [...prev, message]);
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Restore the message in the input if sending fails
+      setNewMessage(messageContent);
+      setError('メッセージの送信に失敗しました');
+    }
   };
 
   // 提出物一覧関連の関数
@@ -309,10 +323,10 @@ const ProjectChatPage: React.FC = () => {
       sender: {
         id: user.id,
         role: user.role,
-        displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
+        displayName: user.role === 'CLIENT' ? project.client.displayName : (project.matchedInfluencer?.displayName || 'インフルエンサー')
       }
     };
-    
+
     setMessages(prev => [...prev, proposalMessage]);
     setShowDatePicker(null);
     setProposedDate('');
@@ -357,10 +371,10 @@ const ProjectChatPage: React.FC = () => {
       sender: {
         id: user.id,
         role: user.role,
-        displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
+        displayName: user.role === 'CLIENT' ? project.client.displayName : (project.matchedInfluencer?.displayName || 'インフルエンサー')
       }
     };
-    
+
     setMessages(prev => [...prev, agreedMessage]);
   };
   
@@ -402,10 +416,10 @@ const ProjectChatPage: React.FC = () => {
       sender: {
         id: user.id,
         role: user.role,
-        displayName: user.role === 'CLIENT' ? project.client.displayName : project.matchedInfluencer.displayName
+        displayName: user.role === 'CLIENT' ? project.client.displayName : (project.matchedInfluencer?.displayName || 'インフルエンサー')
       }
     };
-    
+
     setMessages(prev => [...prev, rejectMessage]);
   };
 
@@ -457,78 +471,60 @@ const ProjectChatPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">プロジェクトを読み込み中...</p>
+      <DashboardLayout title="プロジェクトチャット" subtitle="読み込み中...">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">プロジェクトを読み込み中...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
-            再読み込み
-          </button>
+      <DashboardLayout title="プロジェクトチャット" subtitle="エラーが発生しました">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-6xl mb-4">❌</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              再読み込み
+            </button>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">📋</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトが見つかりません</h3>
-          <p className="text-gray-600 mb-4">指定されたプロジェクトは存在しないか、アクセス権限がありません。</p>
-          <button
-            onClick={() => router.push('/projects')}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
-            プロジェクト一覧に戻る
-          </button>
+      <DashboardLayout title="プロジェクトチャット" subtitle="プロジェクトが見つかりません">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-6xl mb-4">📋</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">プロジェクトが見つかりません</h3>
+            <p className="text-gray-600 mb-4">指定されたプロジェクトは存在しないか、アクセス権限がありません。</p>
+            <button
+              onClick={() => router.push('/projects')}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              プロジェクト一覧に戻る
+            </button>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* ヘッダー */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/projects" className="flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg hover:shadow-xl transition-all text-gray-700 hover:text-blue-600">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="font-medium">プロジェクトに戻る</span>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">プロジェクトチャット</h1>
-              <p className="text-sm text-gray-600">{project?.title}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700">{user?.email}</span>
-            <Link href="/dashboard" className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              ダッシュボード
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <DashboardLayout title="プロジェクトチャット" subtitle={project?.title}>
+      <div className="space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 transition-all duration-300 ease-in-out">
             {error}
@@ -582,7 +578,11 @@ const ProjectChatPage: React.FC = () => {
                   {message.messageType === 'text' && (
                     <p className="text-sm">{message.content}</p>
                   )}
-                  
+
+                  {message.messageType === 'nda_approved' && (
+                    <p className="text-sm font-medium">🎉 NDA（秘密保持契約）が承認されました。チャットが有効化されました。</p>
+                  )}
+
                   <div className="text-xs mt-2 opacity-75">
                     {formatTimestamp(message.createdAt)}
                   </div>
@@ -617,7 +617,7 @@ const ProjectChatPage: React.FC = () => {
           />
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

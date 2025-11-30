@@ -16,7 +16,7 @@ const getAvailableProjectsSchema = z.object({
 });
 
 const applyToProjectSchema = z.object({
-  projectId: z.string(),
+  projectId: z.string().optional(),
   message: z.string().min(1, 'Message is required'),
   proposedPrice: z.number().min(0, 'Proposed price must be positive'),
 });
@@ -41,14 +41,13 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
       },
     });
 
-    if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
-    }
-
     // インフルエンサーが連携しているプラットフォームを取得
-    const connectedPlatforms = influencer.socialAccounts
-      .filter(acc => acc.isVerified)
-      .map(acc => acc.platform);
+    let connectedPlatforms: any[] = [];
+    if (influencer) {
+      connectedPlatforms = influencer.socialAccounts
+        .filter(acc => acc.isVerified)
+        .map(acc => acc.platform);
+    }
 
     // Build the platform filter
     let platformFilter: any;
@@ -114,9 +113,9 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
             },
           },
           applications: {
-            where: {
+            where: influencer ? {
               influencerId: influencer.id,
-            },
+            } : undefined,
           },
         },
         skip,
@@ -129,54 +128,57 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
     // Calculate if each project matches the influencer's profile
     const projectsWithMatchInfo = projects.map(project => {
       const isApplied = project.applications.length > 0;
-      
+
       // Check if influencer matches project criteria
       let matchesProfile = true;
-      
-      // Check age requirements
-      if (project.targetAgeMin && project.targetAgeMax && influencer.birthDate) {
-        const age = new Date().getFullYear() - influencer.birthDate.getFullYear();
-        if (age < project.targetAgeMin || age > project.targetAgeMax) {
+
+      // If no influencer profile, still show projects but don't match profile
+      if (influencer) {
+        // Check age requirements
+        if (project.targetAgeMin && project.targetAgeMax && influencer.birthDate) {
+          const age = new Date().getFullYear() - influencer.birthDate.getFullYear();
+          if (age < project.targetAgeMin || age > project.targetAgeMax) {
+            matchesProfile = false;
+          }
+        }
+
+        // Check gender requirements
+        if (project.targetGender && project.targetGender !== influencer.gender) {
           matchesProfile = false;
         }
-      }
-      
-      // Check gender requirements
-      if (project.targetGender && project.targetGender !== influencer.gender) {
-        matchesProfile = false;
-      }
-      
-      // Check location requirements
-      if (project.targetPrefecture && project.targetPrefecture !== '全国' && 
-          project.targetPrefecture !== influencer.prefecture) {
-        matchesProfile = false;
-      }
-      
-      // Check platform requirements - インフルエンサーが連携していないSNSを使用する案件は除外
-      if (project.targetPlatforms.length > 0) {
-        const connectedPlatforms = influencer.socialAccounts
-          .filter(acc => acc.isVerified)
-          .map(acc => acc.platform);
-        const hasMatchingPlatform = project.targetPlatforms.some(platform => 
-          connectedPlatforms.includes(platform)
-        );
-        if (!hasMatchingPlatform) {
+
+        // Check location requirements
+        if (project.targetPrefecture && project.targetPrefecture !== '全国' &&
+            project.targetPrefecture !== influencer.prefecture) {
           matchesProfile = false;
         }
-      }
-      
-      // Check follower count requirements
-      if (project.targetFollowerMin || project.targetFollowerMax) {
-        const totalFollowers = influencer.socialAccounts.reduce(
-          (sum, acc) => sum + acc.followerCount, 
-          0
-        );
-        
-        if (project.targetFollowerMin && totalFollowers < project.targetFollowerMin) {
-          matchesProfile = false;
+
+        // Check platform requirements - インフルエンサーが連携していないSNSを使用する案件は除外
+        if (project.targetPlatforms.length > 0) {
+          const connectedPlatforms = influencer.socialAccounts
+            .filter(acc => acc.isVerified)
+            .map(acc => acc.platform);
+          const hasMatchingPlatform = project.targetPlatforms.some(platform =>
+            connectedPlatforms.includes(platform)
+          );
+          if (!hasMatchingPlatform) {
+            matchesProfile = false;
+          }
         }
-        if (project.targetFollowerMax && totalFollowers > project.targetFollowerMax) {
-          matchesProfile = false;
+
+        // Check follower count requirements
+        if (project.targetFollowerMin || project.targetFollowerMax) {
+          const totalFollowers = influencer.socialAccounts.reduce(
+            (sum, acc) => sum + acc.followerCount,
+            0
+          );
+
+          if (project.targetFollowerMin && totalFollowers < project.targetFollowerMin) {
+            matchesProfile = false;
+          }
+          if (project.targetFollowerMax && totalFollowers > project.targetFollowerMax) {
+            matchesProfile = false;
+          }
         }
       }
 
@@ -209,21 +211,14 @@ export const applyToProject = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
-    
+
     if (userRole !== 'INFLUENCER') {
       return res.status(403).json({ error: 'Only influencers can apply to projects' });
     }
 
-    const { projectId, message, proposedPrice } = applyToProjectSchema.parse(req.body);
-
-    // Get influencer profile
-    const influencer = await prisma.influencer.findUnique({
-      where: { userId },
-    });
-
-    if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
-    }
+    // Get projectId from either URL params or request body
+    const projectId = req.params.projectId || req.body.projectId;
+    const { message, proposedPrice } = applyToProjectSchema.parse(req.body);
 
     // Check if project exists and is available
     const project = await prisma.project.findUnique({
@@ -243,6 +238,28 @@ export const applyToProject = async (req: Request, res: Response) => {
 
     if (project.endDate < new Date()) {
       return res.status(400).json({ error: 'Project application deadline has passed' });
+    }
+
+    // Get or create influencer profile
+    let influencer = await prisma.influencer.findUnique({
+      where: { userId },
+    });
+
+    // If influencer profile doesn't exist, create a basic one
+    if (!influencer) {
+      influencer = await prisma.influencer.create({
+        data: {
+          userId,
+          displayName: '',
+          bio: '',
+          birthDate: null,
+          gender: null,
+          prefecture: '',
+          socialAccounts: {
+            create: [],
+          },
+        },
+      });
     }
 
     // Check if already applied
@@ -871,25 +888,15 @@ export const getProjectById = async (req: Request, res: Response) => {
         return res.status(403).json({ error: 'Access denied' });
       }
     } else if (userRole === 'INFLUENCER') {
-      const influencer = await prisma.influencer.findUnique({
-        where: { userId },
-      });
-      if (!influencer) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-      
-      // Check if influencer has applied or is matched
-      const hasAccess = project.applications.some(app => app.influencerId === influencer.id) ||
-                       project.matchedInfluencerId === influencer.id;
-      
-      if (!hasAccess) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
+      // Influencers can view any available project details
+      // Just verify that the user has the INFLUENCER role
+      // No need to check if they have an influencer profile or if they've applied
+      // This allows influencers to view projects even if their profile is not fully set up yet
     } else {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    res.json(project);
+    res.json({ project });
   } catch (error) {
     console.error('Get project by ID error:', error);
     res.status(500).json({ error: 'Failed to get project' });
@@ -1158,5 +1165,119 @@ export const updateProjectStatus = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Update project status error:', error);
     res.status(500).json({ error: 'Failed to update project status' });
+  }
+};
+
+// Get company projects with matched influencers (for project chats)
+export const getCompanyProjects = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+
+    // Only clients can view their company projects
+    if (userRole !== 'CLIENT' && userRole !== 'COMPANY') {
+      return res.status(403).json({ error: 'Only clients can view their projects' });
+    }
+
+    // Get client profile
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client profile not found' });
+    }
+
+    // Get all projects with matched influencers
+    const projects = await prisma.project.findMany({
+      where: {
+        clientId: client.id,
+        matchedInfluencerId: {
+          not: null, // Only projects with matched influencers
+        },
+      },
+      include: {
+        matchedInfluencer: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+            socialAccounts: true,
+          },
+        },
+        client: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(projects);
+  } catch (error) {
+    console.error('Get company projects error:', error);
+    res.status(500).json({ error: 'Failed to get company projects' });
+  }
+};
+
+// Get matched projects for influencer (for project chats)
+export const getMatchedProjects = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+
+    // Only influencers can view their matched projects
+    if (userRole !== 'INFLUENCER') {
+      return res.status(403).json({ error: 'Only influencers can view matched projects' });
+    }
+
+    // Get influencer profile
+    const influencer = await prisma.influencer.findUnique({
+      where: { userId },
+    });
+
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    // Get all projects where this influencer is matched
+    const projects = await prisma.project.findMany({
+      where: {
+        matchedInfluencerId: influencer.id,
+        status: {
+          in: ['MATCHED', 'IN_PROGRESS'],
+        },
+      },
+      include: {
+        client: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+            team: true,
+          },
+        },
+        matchedInfluencer: {
+          include: {
+            socialAccounts: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(projects);
+  } catch (error) {
+    console.error('Get matched projects error:', error);
+    res.status(500).json({ error: 'Failed to get matched projects' });
   }
 };

@@ -24,6 +24,7 @@ interface Project {
   targetFollowerMax?: number;
   startDate: string;
   endDate: string;
+  isApplied?: boolean;
   client: {
     companyName: string;
     user: {
@@ -85,9 +86,9 @@ const OpportunitiesPage: React.FC = () => {
     fetchData();
   }, [isMounted, router]);
 
-  const filteredProjects = selectedCategory
-    ? projects.filter(p => p.category === selectedCategory)
-    : projects;
+  const filteredProjects = projects
+    .filter(p => !p.isApplied)
+    .filter(p => (selectedCategory ? p.category === selectedCategory : true));
 
   if (!isMounted || loading) {
     return (
@@ -187,7 +188,7 @@ const OpportunitiesPage: React.FC = () => {
                   </div>
 
                   <div className="ml-4">
-                    <Link href={`/influencer/opportunities/${project.id}`}>
+                    <Link href={`/opportunities/${project.id}`}>
                       <Button className="whitespace-nowrap">詳細を見る</Button>
                     </Link>
                   </div>

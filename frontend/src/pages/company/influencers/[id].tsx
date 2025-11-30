@@ -2,278 +2,255 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardLayout from '../../../components/layout/DashboardLayout';
-import { getInfluencerById } from '../../../services/api';
+import Card from '../../../components/shared/Card';
+import Button from '../../../components/shared/Button';
+import LoadingState from '../../../components/common/LoadingState';
+import api from '../../../services/api';
+import { useErrorHandler } from '../../../hooks/useErrorHandler';
 
-interface SNSAnalytics {
-  // 性別割合
-  maleFollowerPercentage: number;
-  femaleFollowerPercentage: number;
-
-  // エンゲージメント指標
-  prEngagement: number;
-  generalEngagement: number;
-  averageComments: number;
-  averageLikes: number;
-
-  // 年齢・性別別割合
-  age35to44FemalePercentage: number;
-  age35to44MalePercentage: number;
-  age45to64MalePercentage: number;
-  age45to64FemalePercentage: number;
-
-  // ブランド属性・興味
-  topBrandAffinity: string;
-  secondBrandAffinity: string;
-  topInterest: string;
-  secondInterest: string;
+interface SocialAccount {
+  id: string;
+  platform: string;
+  handle: string;
+  followerCount: number;
+  isVerified: boolean;
 }
 
-interface InfluencerDetails {
+interface PortfolioItem {
   id: string;
-  user: {
-    id: string;
-    email: string;
-  };
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  createdAt: string;
+}
+
+interface InfluencerDetail {
+  id: string;
   displayName: string;
-  bio: string;
-  categories: string[];
-  prefecture: string;
-  city: string;
-  priceMin: number;
-  priceMax: number;
-  gender: string;
-  birthDate: string;
-  socialAccounts: {
-    id: string;
-    platform: string;
-    username: string;
-    profileUrl: string;
-    followerCount: number;
-    engagementRate: number;
-    isVerified: boolean;
-    analytics?: SNSAnalytics; // SNS API から取得するデータ
-  }[];
-  portfolio: {
-    id: string;
-    title: string;
-    description: string;
-    imageUrl: string;
-    link: string;
-    platform: string;
-  }[];
+  bio?: string;
+  gender?: string;
+  birthDate?: string;
+  prefecture?: string;
+  city?: string;
+  user: {
+    email: string;
+    createdAt: string;
+  };
+  socialAccounts: SocialAccount[];
+  portfolio: PortfolioItem[];
 }
 
 const InfluencerDetailPage: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
-  const [influencer, setInfluencer] = useState<InfluencerDetails | null>(null);
+  const [influencer, setInfluencer] = useState<InfluencerDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // コンタクト機能は削除されました
   const router = useRouter();
   const { id } = router.query;
+  const { handleError } = useErrorHandler();
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
+    if (!id || typeof id !== 'string') return;
 
-    const loadData = async () => {
-      const userData = localStorage.getItem('user');
+    const fetchInfluencer = async () => {
       const token = localStorage.getItem('token');
 
-      if (!userData || !token) {
+      if (!token) {
         router.push('/login');
         return;
       }
 
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-
-      // 企業ユーザーのみアクセス可能
-      if (parsedUser.role !== 'CLIENT' && parsedUser.role !== 'COMPANY') {
-        router.push('/dashboard');
-        return;
-      }
-
-      if (id) {
-        unsubscribe = await fetchInfluencerDetails();
+      try {
+        const response = await api.get(`/influencers/${id}`);
+        setInfluencer(response.data);
+        setError('');
+      } catch (err) {
+        handleError(err, 'インフルエンサー情報の取得に失敗しました');
+        setError('インフルエンサー情報が見つかりません');
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadData();
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
+    fetchInfluencer();
   }, [id, router]);
 
-  const fetchInfluencerDetails = async (): Promise<(() => void) | undefined> => {
-    try {
-      // Fetch initial data from backend API
-      const data = await getInfluencerById(id as string);
-      if (data) {
-        setInfluencer(data as InfluencerDetails);
-      } else {
-        setError('インフルエンサーが見つかりませんでした。');
-      }
-    } catch (err: any) {
-      console.error('Error fetching influencer details:', err);
-      setError('インフルエンサーの詳細を取得できませんでした。');
-    } finally {
-      setLoading(false);
-    }
-    // Return undefined as we're not using realtime subscriptions anymore
-    return undefined;
-  };
-
-  // handleContactSubmit 関数は削除されました
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: 'JPY',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const formatNumber = (num: number) => {
-    if (num >= 10000) {
-      return (num / 10000).toFixed(1) + '万';
-    }
-    return num.toLocaleString();
-  };
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case 'instagram': return '📸';
-      case 'youtube': return '🎥';
-      case 'tiktok': return '🎵';
-      case 'twitter': return '🐦';
-      default: return '📱';
-    }
-  };
-
-  const getTotalFollowers = (socialAccounts: any[]) => {
-    return socialAccounts.reduce((total, account) => total + account.followerCount, 0);
-  };
-
-  const getAverageEngagement = (socialAccounts: any[]) => {
-    if (socialAccounts.length === 0) return 0;
-    const total = socialAccounts.reduce((sum, account) => sum + account.engagementRate, 0);
-    return (total / socialAccounts.length).toFixed(1);
-  };
 
   if (loading) {
     return (
       <DashboardLayout title="インフルエンサー詳細" subtitle="読み込み中...">
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">読み込み中...</p>
-          </div>
-        </div>
+        <LoadingState />
       </DashboardLayout>
     );
   }
 
   if (error || !influencer) {
     return (
-      <DashboardLayout title="インフルエンサー詳細" subtitle="エラー">
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="text-6xl mb-4">❌</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h3>
-            <p className="text-gray-600 mb-4">{error || 'インフルエンサーが見つかりませんでした。'}</p>
-            <Link href="/company/influencers/search" className="text-blue-600 hover:underline">
-              検索ページに戻る
-            </Link>
-          </div>
-        </div>
+      <DashboardLayout title="エラー" subtitle="インフルエンサーが見つかりません">
+        <Card className="text-center py-12">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">
+            {error || 'インフルエンサーが見つかりませんでした。'}
+          </h3>
+          <Link href="/company/projects/list?tab=applications">
+            <Button variant="primary">応募一覧に戻る</Button>
+          </Link>
+        </Card>
       </DashboardLayout>
     );
   }
 
+  const totalFollowers = influencer.socialAccounts.reduce(
+    (sum, acc) => sum + acc.followerCount,
+    0
+  );
+
+  const age = influencer.birthDate
+    ? new Date().getFullYear() - new Date(influencer.birthDate).getFullYear()
+    : null;
+
   return (
-    <DashboardLayout
-      title="インフルエンサー詳細"
-      subtitle={`${influencer.displayName}のプロフィール`}
-    >
-      <div className="max-w-4xl mx-auto">
-        {/* プロフィール */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row gap-6 items-start">
-            {/* 画像 */}
-            <div className="flex-shrink-0">
-              <div className="w-28 h-28 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-4xl">
-                {influencer.displayName.charAt(0)}
-              </div>
-            </div>
-
-            {/* 基本情報 */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{influencer.displayName}</h1>
-              <p className="text-sm text-gray-600 mb-3">{influencer.prefecture}{influencer.city && `, ${influencer.city}`} • {influencer.gender}</p>
-              <p className="text-sm text-gray-700 mb-3 line-clamp-2">{influencer.bio}</p>
-
-              {/* カテゴリー */}
-              <div className="flex flex-wrap gap-2 mb-3">
-                {influencer.categories.slice(0, 3).map(category => (
-                  <span key={category} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-                    {category}
-                  </span>
-                ))}
-              </div>
-
-              {/* キーメトリクス */}
-              <div className="grid grid-cols-4 gap-3 text-center">
-                <div>
-                  <div className="text-lg font-bold text-gray-900">{formatNumber(getTotalFollowers(influencer.socialAccounts))}</div>
-                  <div className="text-xs text-gray-600">フォロワー</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-gray-900">{getAverageEngagement(influencer.socialAccounts)}%</div>
-                  <div className="text-xs text-gray-600">エンゲージ</div>
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-gray-900">{formatPrice(influencer.priceMin).replace('¥', '')}</div>
-                  <div className="text-xs text-gray-600">最低料金</div>
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-gray-900">{formatPrice(influencer.priceMax).replace('¥', '')}</div>
-                  <div className="text-xs text-gray-600">最高料金</div>
-                </div>
-              </div>
+    <DashboardLayout title={influencer.displayName} subtitle="インフルエンサー詳細">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* 基本情報 */}
+        <Card>
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {influencer.displayName}
+              </h1>
+              <p className="text-sm text-gray-600">{influencer.user.email}</p>
+              {influencer.bio && (
+                <p className="text-gray-700 mt-3 line-clamp-3">{influencer.bio}</p>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* SNSアカウント */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">SNSアカウント</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {influencer.socialAccounts.map(account => (
-              <a
-                key={account.id}
-                href={account.profileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{getPlatformIcon(account.platform)}</span>
-                  <div className="text-xs">
-                    <div className="font-medium text-gray-900">{account.platform}</div>
-                    <div className="text-gray-600">{formatNumber(account.followerCount)}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t">
+            <div>
+              <p className="text-sm text-gray-600">総フォロワー数</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {totalFollowers?.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">性別</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {influencer.gender || '-'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">年齢</p>
+              <p className="text-lg font-semibold text-gray-900">{age || '-'}才</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">登録日</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {new Date(influencer.user.createdAt).toLocaleDateString('ja-JP')}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* 所在地情報 */}
+        <Card>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">所在地</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">都道府県</p>
+              <p className="font-semibold text-gray-900">{influencer.prefecture || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">市区町村</p>
+              <p className="font-semibold text-gray-900">{influencer.city || '-'}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* SNS情報 */}
+        <Card>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">連携SNS</h2>
+          {influencer.socialAccounts && influencer.socialAccounts.length > 0 ? (
+            <div className="space-y-4">
+              {influencer.socialAccounts.map(account => (
+                <div
+                  key={account.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-block bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full font-medium">
+                        {account.platform}
+                      </span>
+                      {account.isVerified && (
+                        <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
+                          認証済み
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-sm text-gray-600">ハンドル</p>
+                      <p className="font-semibold text-gray-900">@{account.handle}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">フォロワー数</p>
+                      <p className="font-semibold text-gray-900">
+                        {account.followerCount?.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <span className="text-xs text-gray-500">{account.engagementRate}%</span>
-              </a>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center py-8 text-gray-500">連携SNSがありません</p>
+          )}
+        </Card>
+
+        {/* ポートフォリオ */}
+        {influencer.portfolio && influencer.portfolio.length > 0 && (
+          <Card>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">ポートフォリオ</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {influencer.portfolio.map(item => (
+                <div
+                  key={item.id}
+                  className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  {item.imageUrl && (
+                    <div className="bg-gray-200 h-40 overflow-hidden">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                    {item.description && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      {new Date(item.createdAt).toLocaleDateString('ja-JP')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* アクション */}
+        <div className="flex gap-3">
+          <Link href="/company/projects/list?tab=applications">
+            <Button variant="secondary">応募一覧に戻る</Button>
+          </Link>
         </div>
       </div>
-
-      {/* コンタクトフォームは削除されました */}
     </DashboardLayout>
   );
 };

@@ -31,7 +31,7 @@ interface Message {
   };
 }
 
-const InfluencerMessagesPage: React.FC = () => {
+const CompanyMessagesPage: React.FC = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -163,17 +163,14 @@ const InfluencerMessagesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <DashboardLayout title="メッセージ" subtitle="企業とのメッセージを管理">
+      <DashboardLayout title="メッセージ" subtitle="インフルエンサーとのメッセージを管理">
         <LoadingState />
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout
-      title="メッセージ"
-      subtitle="企業とのメッセージを管理"
-    >
+    <DashboardLayout title="メッセージ" subtitle="インフルエンサーとのメッセージを管理">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-250px)]">
         {/* チャットリスト */}
         <div className="md:col-span-1">
@@ -302,4 +299,4 @@ const InfluencerMessagesPage: React.FC = () => {
   );
 };
 
-export default InfluencerMessagesPage;
+export default CompanyMessagesPage;

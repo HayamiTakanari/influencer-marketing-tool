@@ -8,6 +8,7 @@ import Card from '../../../components/shared/Card';
 import Button from '../../../components/shared/Button';
 import { getMyProjects } from '../../../services/api';
 import { useErrorHandler } from '../../../hooks/useErrorHandler';
+import api from '../../../services/api';
 
 interface Project {
   id: string;
@@ -23,12 +24,41 @@ interface Project {
   createdAt: string;
 }
 
+interface Application {
+  id: string;
+  projectId: string;
+  project: {
+    id: string;
+    title: string;
+    category: string;
+  };
+  influencer: {
+    id: string;
+    displayName: string;
+    user: {
+      email: string;
+    };
+    socialAccounts: Array<{
+      platform: string;
+      followerCount: number;
+      isVerified: boolean;
+    }>;
+  };
+  message: string;
+  proposedPrice: number;
+  isAccepted: boolean;
+  appliedAt: string;
+}
+
 const ProjectListPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<'projects' | 'applications'>('projects');
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedAppStatus, setSelectedAppStatus] = useState<'all' | 'pending' | 'accepted'>('all');
   const router = useRouter();
   const { handleError } = useErrorHandler();
 
@@ -60,12 +90,26 @@ const ProjectListPage: React.FC = () => {
       setUser(parsedUser);
 
       try {
-        // Fetch projects from backend API
-        const data = await getMyProjects();
-        setProjects(data || []);
+        // Fetch projects and applications
+        const [projectsData, applicationsData] = await Promise.all([
+          getMyProjects(),
+          (async () => {
+            try {
+              const response = await (await import('../../../services/api')).default.get('/projects/applications');
+              return (response.data || []).sort((a: Application, b: Application) =>
+                new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime()
+              );
+            } catch (error) {
+              console.error('Error fetching applications:', error);
+              return [];
+            }
+          })()
+        ]);
+        setProjects(projectsData || []);
+        setApplications(applicationsData || []);
       } catch (error) {
-        console.error('Error fetching projects:', error);
-        handleError(error, 'プロジェクト一覧の取得に失敗しました');
+        console.error('Error fetching data:', error);
+        handleError(error, 'データの取得に失敗しました');
       } finally {
         setLoading(false);
       }
@@ -73,6 +117,30 @@ const ProjectListPage: React.FC = () => {
 
     fetchProjects();
   }, [isMounted]);
+
+  const handleAccept = async (applicationId: string) => {
+    try {
+      await api.put(`/projects/applications/${applicationId}/accept`);
+      // Update local state
+      setApplications(apps =>
+        apps.map(app =>
+          app.id === applicationId ? { ...app, isAccepted: true } : app
+        )
+      );
+    } catch (error) {
+      handleError(error, '応募の承認に失敗しました');
+    }
+  };
+
+  const handleReject = async (applicationId: string) => {
+    try {
+      await api.delete(`/projects/applications/${applicationId}/reject`);
+      // Remove from local state
+      setApplications(apps => apps.filter(app => app.id !== applicationId));
+    } catch (error) {
+      handleError(error, '応募の却下に失敗しました');
+    }
+  };
 
   const filteredProjects = selectedStatus
     ? projects.filter(p => p.status === selectedStatus)
@@ -108,18 +176,50 @@ const ProjectListPage: React.FC = () => {
   }
 
   return (
-    <DashboardLayout title="プロジェクト管理" subtitle="あなたのプロジェクト一覧">
+    <DashboardLayout title="プロジェクト管理" subtitle="プロジェクトと応募を一元管理">
       <div className="space-y-6">
-        {/* アクション */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">プロジェクト一覧</h3>
-            <p className="text-sm text-gray-600 mt-1">全 {projects.length} 件</p>
-          </div>
-          <Link href="/company/projects/create">
-            <Button>＋ 新しいプロジェクトを作成</Button>
-          </Link>
+        {/* タブ */}
+        <div className="flex gap-4 border-b border-gray-200">
+          <button
+            onClick={() => {
+              setSelectedTab('projects');
+              setSelectedStatus(null);
+            }}
+            className={`pb-3 px-2 font-medium transition-colors ${
+              selectedTab === 'projects'
+                ? 'text-emerald-600 border-b-2 border-emerald-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            プロジェクト ({projects.length})
+          </button>
+          <button
+            onClick={() => {
+              setSelectedTab('applications');
+              setSelectedAppStatus('all');
+            }}
+            className={`pb-3 px-2 font-medium transition-colors ${
+              selectedTab === 'applications'
+                ? 'text-emerald-600 border-b-2 border-emerald-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            応募 ({applications.length})
+          </button>
         </div>
+
+        {selectedTab === 'projects' && (
+          <>
+            {/* アクション */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">プロジェクト一覧</h3>
+                <p className="text-sm text-gray-600 mt-1">全 {projects.length} 件</p>
+              </div>
+              <Link href="/company/projects/create">
+                <Button>＋ 新しいプロジェクトを作成</Button>
+              </Link>
+            </div>
 
         {/* ステータスフィルター */}
         <Card>
@@ -267,6 +367,157 @@ const ProjectListPage: React.FC = () => {
             title={selectedStatus ? `${selectedStatus} のプロジェクトがありません` : 'プロジェクトがありません'}
             description="新しいプロジェクトを作成して始めましょう"
           />
+        )}
+          </>
+        )}
+
+        {selectedTab === 'applications' && (
+          <>
+            {/* 応募一覧タイトル */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">応募一覧</h3>
+              <p className="text-sm text-gray-600 mt-1">全 {applications.length} 件</p>
+            </div>
+
+            {/* ステータスフィルター */}
+            <Card>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">ステータスで絞り込み</h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedAppStatus('all')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedAppStatus === 'all'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  すべて ({applications.length})
+                </button>
+                <button
+                  onClick={() => setSelectedAppStatus('pending')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedAppStatus === 'pending'
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                  }`}
+                >
+                  待機中 ({applications.filter(a => !a.isAccepted).length})
+                </button>
+                <button
+                  onClick={() => setSelectedAppStatus('accepted')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedAppStatus === 'accepted'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
+                >
+                  承認済み ({applications.filter(a => a.isAccepted).length})
+                </button>
+              </div>
+            </Card>
+
+            {/* 応募テーブル */}
+            {applications.filter(app => {
+              if (selectedAppStatus === 'all') return true;
+              if (selectedAppStatus === 'pending') return !app.isAccepted;
+              if (selectedAppStatus === 'accepted') return app.isAccepted;
+              return true;
+            }).length > 0 ? (
+              <Card>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="text-left py-4 px-4 font-semibold text-gray-900">インフルエンサー</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-900">プロジェクト</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-900">ステータス</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-900">フォロワー数</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-900">提案価格</th>
+                        <th className="text-left py-4 px-4 font-semibold text-gray-900">応募日</th>
+                        <th className="text-center py-4 px-4 font-semibold text-gray-900">アクション</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {applications.filter(app => {
+                        if (selectedAppStatus === 'all') return true;
+                        if (selectedAppStatus === 'pending') return !app.isAccepted;
+                        if (selectedAppStatus === 'accepted') return app.isAccepted;
+                        return true;
+                      }).map(app => {
+                        const totalFollowers = app.influencer.socialAccounts.reduce(
+                          (sum, acc) => sum + acc.followerCount,
+                          0
+                        );
+
+                        return (
+                          <tr key={app.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td className="py-4 px-4">
+                              <div className="flex flex-col">
+                                <p className="font-medium text-gray-900">{app.influencer.displayName}</p>
+                                <p className="text-xs text-gray-500 mt-1">{app.influencer.user.email}</p>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="font-medium text-gray-900 line-clamp-1">{app.project.title}</p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <span className={`inline-block px-3 py-1 ${
+                                app.isAccepted
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-yellow-100 text-yellow-700'
+                              } text-xs font-medium rounded-full`}>
+                                {app.isAccepted ? '承認済み' : '待機中'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="font-semibold text-gray-900">{totalFollowers?.toLocaleString()}</p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="font-semibold text-gray-900">
+                                {app.proposedPrice ? `¥${app.proposedPrice.toLocaleString()}` : '-'}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-gray-700">{new Date(app.appliedAt).toLocaleDateString('ja-JP')}</p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex gap-2 justify-center">
+                                {!app.isAccepted && (
+                                  <>
+                                    <button
+                                      onClick={() => handleAccept(app.id)}
+                                      className="text-sm text-green-600 hover:text-green-700 font-medium"
+                                    >
+                                      承認
+                                    </button>
+                                    <button
+                                      onClick={() => handleReject(app.id)}
+                                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                    >
+                                      却下
+                                    </button>
+                                  </>
+                                )}
+                                <Link href={`/company/influencers/${app.influencer.id}`}>
+                                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">詳細</button>
+                                </Link>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            ) : (
+              <EmptyState
+                icon="📋"
+                title={selectedAppStatus !== 'all' ? `${selectedAppStatus}の応募はありません` : '応募がありません'}
+                description="インフルエンサーからの応募をお待ちしています"
+              />
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>

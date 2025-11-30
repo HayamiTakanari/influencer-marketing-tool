@@ -78,14 +78,37 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const data = updateProfileSchema.parse(req.body);
 
-    const influencer = await prisma.influencer.update({
+    // Use upsert to handle both create and update
+    const updateData: any = {
+      lastUpdated: new Date(),
+    };
+
+    if (data.displayName) updateData.displayName = data.displayName;
+    if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.gender) updateData.gender = data.gender;
+    if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
+    if (data.address) updateData.address = data.address;
+    if (data.prefecture) updateData.prefecture = data.prefecture;
+    if (data.city) updateData.city = data.city;
+    if (data.categories) updateData.categories = data.categories;
+    if (data.priceMin !== undefined) updateData.priceMin = data.priceMin;
+    if (data.priceMax !== undefined) updateData.priceMax = data.priceMax;
+    if (data.birthDate) updateData.birthDate = new Date(data.birthDate);
+
+    const influencer = await (prisma.influencer as any).upsert({
       where: { userId },
-      data: {
-        ...data,
-        birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
-        lastUpdated: new Date(),
+      update: updateData,
+      create: {
+        userId,
+        displayName: data.displayName || 'New User',
+        ...updateData,
       },
       include: {
         socialAccounts: true,

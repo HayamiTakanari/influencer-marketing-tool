@@ -55,13 +55,12 @@ const NDAConsentPage: React.FC = () => {
     setIsAgreeing(true);
 
     try {
-      // TODO: 実際のAPI呼び出しでNDA同意を記録
-      // const { agreeToNDA } = await import('../services/api');
-      // await agreeToNDA();
-      
-      // モック処理
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // API call to record NDA agreement
+      const api = await import('../services/api');
+      const response = await api.default.post('/nda/agree', {
+        hasAgreedToNDA: true,
+      });
+
       // ユーザー情報を更新
       const updatedUser = {
         ...user,
@@ -69,16 +68,16 @@ const NDAConsentPage: React.FC = () => {
         ndaAgreedAt: new Date().toISOString(),
         ndaVersion: CURRENT_NDA_VERSION
       };
-      
+
       // localStorageとstateを更新
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
-      
+
       alert('NDA（秘密保持契約）への同意が完了しました。');
-      
+
       // 元のページまたはダッシュボードにリダイレクト
       router.push(returnUrl);
-      
+
     } catch (err: any) {
       console.error('Error agreeing to NDA:', err);
       alert('エラーが発生しました。もう一度お試しください。');

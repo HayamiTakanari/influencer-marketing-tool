@@ -8,6 +8,25 @@ import LoadingState from '../../../components/common/LoadingState';
 import EmptyState from '../../../components/common/EmptyState';
 import { getProjectById } from '../../../services/api';
 
+interface Application {
+  id: string;
+  influencer: {
+    id: string;
+    displayName: string;
+    user: {
+      email: string;
+    };
+    socialAccounts: Array<{
+      platform: string;
+      followerCount: number;
+      isVerified: boolean;
+    }>;
+  };
+  isAccepted: boolean;
+  appliedAt: string;
+  proposedPrice: number;
+}
+
 interface ProjectDetails {
   id: string;
   title: string;
@@ -26,13 +45,63 @@ interface ProjectDetails {
   startDate: string;
   endDate: string;
   createdAt: string;
-  applications: any[];
+  applications: Application[];
+  matchedInfluencer?: {
+    id: string;
+    displayName: string;
+    user: {
+      email: string;
+    };
+    socialAccounts: Array<{
+      platform: string;
+      followerCount: number;
+      isVerified: boolean;
+    }>;
+  };
 }
+
+interface Submission {
+  id: string;
+  projectId: string;
+  submissionUrl: string;
+  submissionType: string;
+  submissionNotes?: string;
+  status: 'PENDING' | 'APPROVED' | 'REVISION_REQUESTED' | 'REJECTED';
+  approvalNotes?: string;
+  submittedAt: string;
+  approvedAt?: string;
+  influencer?: {
+    displayName: string;
+    user?: {
+      email: string;
+    };
+  };
+}
+
+interface Message {
+  id: string;
+  projectId: string;
+  senderId: string;
+  senderName?: string;
+  content: string;
+  createdAt: string;
+}
+
 
 const ProjectDetailPage: React.FC = () => {
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [completing, setCompleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'submissions' | 'chat'>('overview');
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [submissionsLoading, setSubmissionsLoading] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const router = useRouter();
   const { id } = router.query;
 
@@ -66,6 +135,142 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
+  const fetchSubmissions = async (projectId: string) => {
+    try {
+      setSubmissionsLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`http://localhost:5002/api/submissions/project/${projectId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSubmissions(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Error fetching submissions:', err);
+    } finally {
+      setSubmissionsLoading(false);
+    }
+  };
+
+  const handleApproveSubmission = async (submissionId: string) => {
+    try {
+      setActionLoading(submissionId);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`http://localhost:5002/api/submissions/${submissionId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          approvalNotes: feedbackText || ''
+        })
+      });
+
+      if (response.ok) {
+        setShowFeedbackForm(null);
+        setFeedbackText('');
+        if (id && typeof id === 'string') {
+          fetchSubmissions(id);
+        }
+      } else {
+        setError('提出物の承認に失敗しました');
+      }
+    } catch (err) {
+      console.error('Error approving submission:', err);
+      setError('承認処理中にエラーが発生しました');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRequestRevision = async (submissionId: string) => {
+    if (!feedbackText.trim()) {
+      setError('修正要求の説明は必須です');
+      return;
+    }
+
+    try {
+      setActionLoading(submissionId);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`http://localhost:5002/api/submissions/${submissionId}/revision`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          approvalNotes: feedbackText
+        })
+      });
+
+      if (response.ok) {
+        setShowFeedbackForm(null);
+        setFeedbackText('');
+        if (id && typeof id === 'string') {
+          fetchSubmissions(id);
+        }
+      } else {
+        setError('修正要求の送信に失敗しました');
+      }
+    } catch (err) {
+      console.error('Error requesting revision:', err);
+      setError('修正要求処理中にエラーが発生しました');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRejectSubmission = async (submissionId: string) => {
+    if (!feedbackText.trim()) {
+      setError('却下理由は必須です');
+      return;
+    }
+
+    try {
+      setActionLoading(submissionId);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`http://localhost:5002/api/submissions/${submissionId}/reject`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          approvalNotes: feedbackText
+        })
+      });
+
+      if (response.ok) {
+        setShowFeedbackForm(null);
+        setFeedbackText('');
+        if (id && typeof id === 'string') {
+          fetchSubmissions(id);
+        }
+      } else {
+        setError('提出物の却下に失敗しました');
+      }
+    } catch (err) {
+      console.error('Error rejecting submission:', err);
+      setError('却下処理中にエラーが発生しました');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, string> = {
       PENDING: 'bg-yellow-100 text-yellow-800',
@@ -75,6 +280,26 @@ const ProjectDetailPage: React.FC = () => {
       CANCELLED: 'bg-red-100 text-red-800'
     };
     return statusMap[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getSubmissionStatusBadgeColor = (status: string) => {
+    const colors: Record<string, string> = {
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      APPROVED: 'bg-green-100 text-green-800',
+      REVISION_REQUESTED: 'bg-blue-100 text-blue-800',
+      REJECTED: 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getSubmissionStatusText = (status: string) => {
+    const texts: Record<string, string> = {
+      PENDING: '審査中',
+      APPROVED: '承認済み',
+      REVISION_REQUESTED: '修正要求',
+      REJECTED: '却下'
+    };
+    return texts[status] || status;
   };
 
   if (loading) {
@@ -170,6 +395,374 @@ const ProjectDetailPage: React.FC = () => {
           </div>
         </Card>
 
+        {/* タブナビゲーション */}
+        <Card>
+          <div className="flex gap-4 border-b border-gray-200">
+            <button
+              onClick={() => {
+                setActiveTab('overview');
+              }}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'overview'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              基本情報
+            </button>
+            {project.status === 'IN_PROGRESS' && project.matchedInfluencer && (
+              <>
+                <button
+                  onClick={() => {
+                    setActiveTab('submissions');
+                    if (submissions.length === 0) {
+                      fetchSubmissions(project.id);
+                    }
+                  }}
+                  className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                    activeTab === 'submissions'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  提出物（{submissions.length}）
+                </button>
+                <button
+                  onClick={() => setActiveTab('chat')}
+                  className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                    activeTab === 'chat'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  チャット
+                </button>
+              </>
+            )}
+          </div>
+        </Card>
+
+        {/* タブコンテンツ */}
+        {activeTab === 'overview' && (
+          <>
+            {/* 応募者情報 */}
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">応募者</h2>
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                  {project.applications?.length || 0}件
+                </span>
+              </div>
+
+          {(project.applications && project.applications.length > 0) || project.matchedInfluencer ? (
+            <div className="space-y-4">
+              {/* 成約済みインフルエンサー */}
+              {project.matchedInfluencer && (
+                <div key={project.matchedInfluencer.id} className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{project.matchedInfluencer.displayName}</h3>
+                      <p className="text-sm text-gray-600">{project.matchedInfluencer.user.email}</p>
+                    </div>
+                    <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-700">
+                      成約済み
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs">フォロワー数</p>
+                      <p className="font-semibold text-gray-900">
+                        {project.matchedInfluencer.socialAccounts.reduce((sum, acc) => sum + acc.followerCount, 0)?.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <p className="text-gray-500 text-xs mb-2">プラットフォーム</p>
+                    <div className="flex flex-wrap gap-2">
+                      {project.matchedInfluencer.socialAccounts.map(acc => (
+                        <span
+                          key={acc.platform}
+                          className={`inline-block text-xs px-2 py-1 rounded ${
+                            acc.isVerified
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {acc.platform}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Link href={`/project-chat/${project.id}`}>
+                    <button className="text-green-600 hover:text-green-700 text-sm font-medium">
+                      チャットを開く →
+                    </button>
+                  </Link>
+                </div>
+              )}
+
+              {/* その他の応募者 */}
+              {project.applications && project.applications.length > 0 && (
+                <>
+                  <div className="border-t-2 pt-4 mt-4">
+                    <h3 className="font-semibold text-gray-900 mb-3">その他の応募者</h3>
+                  </div>
+                  {project.applications.map(app => {
+                    const totalFollowers = app.influencer.socialAccounts.reduce(
+                      (sum, acc) => sum + acc.followerCount,
+                      0
+                    );
+
+                    return (
+                      <div key={app.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{app.influencer.displayName}</h3>
+                            <p className="text-sm text-gray-600">{app.influencer.user.email}</p>
+                          </div>
+                          <span className={`px-2 py-1 text-xs font-medium rounded ${
+                            app.isAccepted
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {app.isAccepted ? '承認済み' : '待機中'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3 text-sm">
+                          <div>
+                            <p className="text-gray-500 text-xs">フォロワー数</p>
+                            <p className="font-semibold text-gray-900">{totalFollowers?.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs">提案価格</p>
+                            <p className="font-semibold text-gray-900">
+                              {app.proposedPrice ? `¥${app.proposedPrice.toLocaleString()}` : '提案なし'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs">応募日</p>
+                            <p className="font-semibold text-gray-900">
+                              {new Date(app.appliedAt).toLocaleDateString('ja-JP')}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mb-3">
+                          <p className="text-gray-500 text-xs mb-2">プラットフォーム</p>
+                          <div className="flex flex-wrap gap-2">
+                            {app.influencer.socialAccounts.map(acc => (
+                              <span
+                                key={acc.platform}
+                                className={`inline-block text-xs px-2 py-1 rounded ${
+                                  acc.isVerified
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}
+                              >
+                                {acc.platform}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <Link href={`/company/applications`}>
+                          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                            詳細を見る →
+                          </button>
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+            ) : (
+              <p className="text-center py-8 text-gray-500">応募者がまだいません</p>
+            )}
+            </Card>
+          </>
+        )}
+
+        {/* 提出物タブ */}
+        {activeTab === 'submissions' && (
+          <Card>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">提出物レビュー</h2>
+            {submissionsLoading ? (
+              <LoadingState />
+            ) : submissions.length > 0 ? (
+              <div className="space-y-4">
+                {submissions.map(submission => (
+                  <div key={submission.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="text-md font-semibold text-gray-900 mb-1">
+                          {submission.influencer?.displayName || 'インフルエンサー'}
+                        </h4>
+                        <p className="text-sm text-gray-600">{submission.influencer?.user?.email}</p>
+                        <p className="text-sm text-gray-600">提出日時: {new Date(submission.submittedAt).toLocaleString('ja-JP')}</p>
+                        <p className="text-sm text-gray-600">タイプ: {submission.submissionType}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getSubmissionStatusBadgeColor(submission.status)}`}>
+                        {getSubmissionStatusText(submission.status)}
+                      </span>
+                    </div>
+
+                    {submission.submissionNotes && (
+                      <div className="mb-3 p-3 bg-gray-50 rounded text-sm text-gray-700">
+                        <strong>説明:</strong><br />{submission.submissionNotes}
+                      </div>
+                    )}
+
+                    <div className="mb-4">
+                      <a
+                        href={submission.submissionUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                      >
+                        提出物を表示 →
+                      </a>
+                    </div>
+
+                    {submission.status === 'PENDING' && (
+                      <div className="border-t border-gray-200 pt-4">
+                        {showFeedbackForm === submission.id ? (
+                          <div className="space-y-3">
+                            <textarea
+                              value={feedbackText}
+                              onChange={(e) => setFeedbackText(e.target.value)}
+                              placeholder="フィードバックまたは修正理由を入力してください"
+                              rows={4}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleApproveSubmission(submission.id)}
+                                disabled={actionLoading === submission.id}
+                                className="px-3 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 disabled:opacity-50 text-sm"
+                              >
+                                {actionLoading === submission.id ? '処理中...' : '承認'}
+                              </button>
+                              <button
+                                onClick={() => handleRequestRevision(submission.id)}
+                                disabled={actionLoading === submission.id || !feedbackText.trim()}
+                                className="px-3 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 text-sm"
+                              >
+                                {actionLoading === submission.id ? '処理中...' : '修正要求'}
+                              </button>
+                              <button
+                                onClick={() => handleRejectSubmission(submission.id)}
+                                disabled={actionLoading === submission.id || !feedbackText.trim()}
+                                className="px-3 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 disabled:opacity-50 text-sm"
+                              >
+                                {actionLoading === submission.id ? '処理中...' : '却下'}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowFeedbackForm(null);
+                                  setFeedbackText('');
+                                }}
+                                className="px-3 py-2 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400 text-sm"
+                              >
+                                キャンセル
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setShowFeedbackForm(submission.id)}
+                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors text-sm"
+                          >
+                            レビュー
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {submission.approvalNotes && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+                        <strong className="text-blue-900 text-sm">フィードバック:</strong>
+                        <p className="text-sm text-blue-800 mt-1">{submission.approvalNotes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center py-8 text-gray-500">提出物がありません</p>
+            )}
+          </Card>
+        )}
+
+        {/* チャットタブ */}
+        {activeTab === 'chat' && (
+          <Card>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">プロジェクトチャット</h2>
+            <p className="text-gray-600 text-sm mb-4">
+              マッチしたインフルエンサー（{project.matchedInfluencer?.displayName}）と進捗状況を確認できます。
+            </p>
+            <div className="border rounded-lg bg-gray-50 p-4 min-h-96 flex flex-col">
+              <div className="flex-1 overflow-y-auto mb-4 space-y-3">
+                {messages.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">メッセージはまだありません</p>
+                ) : (
+                  messages.map(msg => (
+                    <div key={msg.id} className="text-sm">
+                      <p className="font-semibold text-gray-900">{msg.senderName}</p>
+                      <p className="text-gray-600 text-xs mb-1">{new Date(msg.createdAt).toLocaleString('ja-JP')}</p>
+                      <p className="text-gray-800 bg-white p-2 rounded">{msg.content}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="メッセージを入力..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <button
+                  onClick={async () => {
+                    if (!messageText.trim()) return;
+                    setSendingMessage(true);
+                    try {
+                      const token = localStorage.getItem('token');
+                      const response = await fetch(`http://localhost:5002/api/messages`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          projectId: project.id,
+                          content: messageText
+                        })
+                      });
+                      if (response.ok) {
+                        setMessageText('');
+                      }
+                    } catch (err) {
+                      console.error('Error sending message:', err);
+                    } finally {
+                      setSendingMessage(false);
+                    }
+                  }}
+                  disabled={sendingMessage || !messageText.trim()}
+                  className="px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 disabled:opacity-50"
+                >
+                  {sendingMessage ? '送信中...' : '送信'}
+                </button>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* アクション */}
         <div className="flex gap-3">
           <Link href="/company/projects/list">
@@ -179,6 +772,40 @@ const ProjectDetailPage: React.FC = () => {
             <Link href={`/company/projects/${project.id}/ai-matching`}>
               <Button variant="primary">AI マッチング</Button>
             </Link>
+          )}
+          {project.status === 'IN_PROGRESS' && (
+            <button
+              onClick={async () => {
+                if (confirm('このプロジェクトを完了状態にしますか？')) {
+                  try {
+                    setCompleting(true);
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`http://localhost:5002/api/projects/${project.id}/status`, {
+                      method: 'PUT',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({ status: 'COMPLETED' })
+                    });
+                    if (response.ok) {
+                      alert('プロジェクトが完了状態に更新されました');
+                      router.push('/company/projects/list');
+                    } else {
+                      setError('プロジェクトの完了に失敗しました');
+                    }
+                  } catch (err) {
+                    setError('プロジェクトの完了処理中にエラーが発生しました');
+                  } finally {
+                    setCompleting(false);
+                  }
+                }
+              }}
+              disabled={completing}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+            >
+              {completing ? '処理中...' : 'プロジェクト完了'}
+            </button>
           )}
         </div>
       </div>

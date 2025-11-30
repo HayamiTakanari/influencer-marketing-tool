@@ -15,6 +15,8 @@ import {
   updateProject,
   deleteProject,
   updateProjectStatus,
+  getCompanyProjects,
+  getMatchedProjects,
 } from '../controllers/project.controller';
 import {
   getProjectSchedule,
@@ -32,6 +34,9 @@ router.get('/available', getAvailableProjects);
 
 // Apply to a project (for influencers) - SNS連携必須
 router.post('/apply', verifySNSConnections, applyToProject);
+
+// Apply to a specific project (for influencers) - SNS連携必須
+router.post('/:projectId/apply', verifySNSConnections, applyToProject);
 
 // Get my applications (for influencers)
 router.get('/my-applications', getMyApplications);
@@ -54,6 +59,12 @@ router.post('/', createProject);
 
 // Get my projects (for clients)
 router.get('/my-projects', getMyProjects);
+
+// Get company projects with matched influencers (for project chats)
+router.get('/company', getCompanyProjects);
+
+// Get matched projects for influencer (for project chats)
+router.get('/matched', getMatchedProjects);
 
 // Get project by ID
 router.get('/:projectId', getProjectById);

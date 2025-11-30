@@ -45,19 +45,26 @@ export const getNDAConsentUrl = (): string => {
 
 /**
  * NDA必須チェック用の共通処理
+ * インフルエンサーのみNDA同意が必須。企業（CLIENT）はプロジェクトに自動的にアクセス可能
  */
 export const checkAndRedirectForNDA = (user: any, router: any): boolean => {
+  // 企業の場合はNDA同意不要
+  if (user && user.role === 'CLIENT') {
+    return true;
+  }
+
+  // インフルエンサーの場合はNDA同意をチェック
   const validation = validateNDAAgrement(user);
-  
+
   if (!validation.hasAgreed) {
     // アラートで案内
     alert(`${validation.message}\n\nプロジェクトへのアクセスには、NDA（秘密保持契約）への同意が必要です。\n同意画面に移動します。`);
-    
+
     // NDA同意ページにリダイレクト
     router.push(getNDAConsentUrl());
     return false;
   }
-  
+
   return true;
 };
 

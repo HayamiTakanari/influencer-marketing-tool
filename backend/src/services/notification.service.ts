@@ -96,6 +96,20 @@ export class NotificationService {
     });
   }
 
+  static async createNDAApprovedNotification(clientUserId: string, projectTitle: string, influencerName: string, projectId: string) {
+    return this.createNotification({
+      userId: clientUserId,
+      type: 'PROJECT_STATUS_CHANGED',
+      title: 'NDAが承認されました',
+      message: `${influencerName}さんが「${projectTitle}」のNDA（秘密保持契約）を承認しました。チャットでプロジェクトを進めることができます。`,
+      data: {
+        projectId,
+        projectTitle,
+        influencerName,
+      },
+    });
+  }
+
   static async createMessageReceivedNotification(receiverUserId: string, senderName: string, projectTitle: string, projectId: string) {
     return this.createNotification({
       userId: receiverUserId,

@@ -41,6 +41,9 @@ import tiktokRoutes from './routes/tiktok.routes';
 import instagramRoutes from './routes/instagram.routes';
 import youtubeRoutes from './routes/youtube.routes';
 import twitterRoutes from './routes/twitter.routes';
+import ndaRoutes from './routes/nda.routes';
+import submissionRoutes from './routes/submission.routes';
+import chapter1Routes from './routes/chapter1-registration.routes';
 
 dotenv.config();
 
@@ -167,6 +170,9 @@ app.use('/api/tiktok', tiktokRoutes);
 app.use('/api/instagram', instagramRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/twitter', twitterRoutes);
+app.use('/api/nda', ndaRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/chapter1', chapter1Routes);
 
 app.use('/uploads', express.static('uploads'));
 
