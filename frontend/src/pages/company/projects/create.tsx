@@ -150,12 +150,10 @@ const CreateProjectPage: React.FC = () => {
 
   // カスタムフィールドの管理
   const [customFieldCount, setCustomFieldCount] = useState(0);
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
   const [showDraftRestore, setShowDraftRestore] = useState(false);
   const [drafts, setDrafts] = useState<Array<{ id: string; timestamp: string; data: any }>>([]);
 
-  // 自動保存機能
-  const AUTOSAVE_INTERVAL = 5000; // 5秒ごとに自動保存
+  // ドラフト保存機能
   const DRAFT_KEY_PREFIX = 'project_draft_';
   const DRAFTS_INDEX_KEY = 'project_drafts_index';
 
@@ -190,40 +188,54 @@ const CreateProjectPage: React.FC = () => {
     }
   }, []);
 
-  // 自動保存処理
-  useEffect(() => {
-    const timer = setInterval(() => {
-      try {
-        const draftId = `${Date.now()}`;
-        const draftData = {
-          timestamp: new Date().toLocaleString('ja-JP'),
-          data: formData
-        };
+  // ページを離れるときのみ下書きを保存
+  const saveDraft = () => {
+    try {
+      const draftId = `${Date.now()}`;
+      const draftData = {
+        timestamp: new Date().toLocaleString('ja-JP'),
+        data: formData
+      };
 
-        // 新しいドラフトを保存
-        localStorage.setItem(`${DRAFT_KEY_PREFIX}${draftId}`, JSON.stringify(draftData));
+      // 新しいドラフトを保存
+      localStorage.setItem(`${DRAFT_KEY_PREFIX}${draftId}`, JSON.stringify(draftData));
 
-        // ドラフトインデックスを更新
-        const draftsIndex = localStorage.getItem(DRAFTS_INDEX_KEY);
-        let draftIds = draftsIndex ? JSON.parse(draftsIndex) : [];
+      // ドラフトインデックスを更新
+      const draftsIndex = localStorage.getItem(DRAFTS_INDEX_KEY);
+      let draftIds = draftsIndex ? JSON.parse(draftsIndex) : [];
 
-        // 最大10個までのドラフトを保持
-        if (draftIds.length >= 10) {
-          const oldestId = draftIds.shift();
-          localStorage.removeItem(`${DRAFT_KEY_PREFIX}${oldestId}`);
-        }
-
-        draftIds.push(draftId);
-        localStorage.setItem(DRAFTS_INDEX_KEY, JSON.stringify(draftIds));
-
-        setLastSavedTime(new Date().toLocaleTimeString('ja-JP'));
-      } catch (error) {
-        console.error('Autosave failed:', error);
+      // 最大10個までのドラフトを保持
+      if (draftIds.length >= 10) {
+        const oldestId = draftIds.shift();
+        localStorage.removeItem(`${DRAFT_KEY_PREFIX}${oldestId}`);
       }
-    }, AUTOSAVE_INTERVAL);
 
-    return () => clearInterval(timer);
-  }, [formData]);
+      draftIds.push(draftId);
+      localStorage.setItem(DRAFTS_INDEX_KEY, JSON.stringify(draftIds));
+    } catch (error) {
+      console.error('Draft save failed:', error);
+    }
+  };
+
+  // ページを離れるときのみドラフトを保存
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveDraft();
+    };
+
+    const handleRouteChange = () => {
+      saveDraft();
+    };
+
+    // ページ離脱時にドラフトを保存
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    router.events?.on('routeChangeStart', handleRouteChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      router.events?.off('routeChangeStart', handleRouteChange);
+    };
+  }, [formData, router]);
 
   // ドラフト復元処理
   const restoreDraft = (draftId: string) => {
@@ -666,13 +678,6 @@ const CreateProjectPage: React.FC = () => {
 
       {/* プロジェクト作成フォーム */}
       <Card padding="lg">
-        {/* 自動保存表示 */}
-        {lastSavedTime && (
-          <div className="flex items-center justify-between mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <span className="text-sm text-green-700">自動保存: {lastSavedTime}に保存しました</span>
-            <span className="text-xs text-green-600">5秒ごとに自動保存中</span>
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="space-y-4">
             {/* 基本情報 */}
             <div>
