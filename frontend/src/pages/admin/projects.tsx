@@ -5,6 +5,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
+import { supabase } from '../../lib/supabase';
 
 interface Project {
   id: string;
@@ -40,64 +41,68 @@ const AdminProjects: React.FC = () => {
       return;
     }
 
-    fetchProjects(token);
+    fetchProjects();
   }, [router]);
 
-  const fetchProjects = async (token: string) => {
+  const fetchProjects = async () => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const response = await fetch(`${apiBaseUrl}/admin/projects`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Fetch all projects from Supabase
+      const { data: projectsData } = await supabase
+        .from('Project')
+        .select('id, title, budget, status, clientId, matchedInfluencerId, startDate, endDate, createdAt')
+        .order('createdAt', { ascending: false });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch projects');
-      }
+      // Map projects with client and influencer details
+      const enrichedProjects = await Promise.all(
+        (projectsData || []).map(async (project) => {
+          let company = 'Unknown';
+          let influencer = 'Not assigned';
 
-      const data = await response.json();
-      const projectsData = data.success ? (data.data || []) : (data.projects || []);
-      setProjects(Array.isArray(projectsData) ? projectsData : []);
+          if (project.clientId) {
+            const { data: clientData } = await supabase
+              .from('Client')
+              .select('companyName')
+              .eq('id', project.clientId)
+              .single();
+            company = clientData?.companyName || 'Unknown';
+          }
+
+          if (project.matchedInfluencerId) {
+            const { data: influencerData } = await supabase
+              .from('Influencer')
+              .select('displayName')
+              .eq('id', project.matchedInfluencerId)
+              .single();
+            influencer = influencerData?.displayName || 'Not assigned';
+          }
+
+          // Map status to lowercase for filtering
+          const statusMap: Record<string, 'planning' | 'active' | 'completed' | 'cancelled'> = {
+            'PENDING': 'planning',
+            'MATCHED': 'active',
+            'IN_PROGRESS': 'active',
+            'COMPLETED': 'completed',
+            'CANCELLED': 'cancelled',
+          };
+
+          return {
+            id: project.id,
+            title: project.title,
+            company,
+            influencer,
+            budget: project.budget || 0,
+            status: statusMap[project.status] || 'planning',
+            progress: project.status === 'COMPLETED' ? 100 : project.status === 'IN_PROGRESS' ? 60 : 10,
+            startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '未定',
+            endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '未定',
+          };
+        })
+      );
+
+      setProjects(enrichedProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
-      // Use mock data on error
-      setProjects([
-        {
-          id: '1',
-          title: 'SNS広告キャンペーン',
-          company: 'Tech Company A',
-          influencer: '@influencer_1',
-          budget: 500000,
-          status: 'active',
-          progress: 60,
-          startDate: '2024-01-01',
-          endDate: '2024-03-31',
-        },
-        {
-          id: '2',
-          title: '商品プロモーション',
-          company: 'Fashion Brand B',
-          influencer: '@influencer_2',
-          budget: 300000,
-          status: 'completed',
-          progress: 100,
-          startDate: '2023-11-01',
-          endDate: '2024-01-31',
-        },
-        {
-          id: '3',
-          title: 'ブランド認知向上キャンペーン',
-          company: 'Electronics Corp C',
-          influencer: '@influencer_3',
-          budget: 750000,
-          status: 'planning',
-          progress: 10,
-          startDate: '2024-02-15',
-          endDate: '2024-05-15',
-        },
-      ]);
+      setProjects([]);
     } finally {
       setLoading(false);
     }

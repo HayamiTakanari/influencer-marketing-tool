@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import StatsCard from '../../components/common/StatsCard';
+import { supabase } from '../../lib/supabase';
 
 interface DashboardStats {
   totalUsers: number;
@@ -51,78 +52,90 @@ const AdminDashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      setError('');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/dashboard`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Fetch total users
+      const { count: totalUsers } = await supabase
+        .from('User')
+        .select('*', { count: 'exact', head: true });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // Fetch total companies
+      const { count: totalCompanies } = await supabase
+        .from('Company')
+        .select('*', { count: 'exact', head: true });
 
-      const result = await response.json();
+      // Fetch total influencers
+      const { count: totalInfluencers } = await supabase
+        .from('Influencer')
+        .select('*', { count: 'exact', head: true });
 
-      if (result.success && result.data) {
-        const data = result.data;
-        setStats({
-          totalUsers: data.totalUsers || 0,
-          totalCompanies: data.totalClients || 0,
-          totalInfluencers: data.totalInfluencers || 0,
-          activeProjects: (data.totalProjects - data.completedProjects) || 0,
-          completedProjects: data.completedProjects || 0,
-          totalRevenue: data.totalRevenue || 0,
-        });
+      // Fetch projects by status
+      const { data: projects } = await supabase
+        .from('Project')
+        .select('id, title, budget, status, clientId, matchedInfluencerId, createdAt')
+        .order('createdAt', { ascending: false })
+        .limit(10);
 
-        // Transform API response to match component interface
-        setRecentProjects(
-          data.recentProjects?.map((project: any) => ({
+      // Count active and completed projects
+      const activeProjects = projects?.filter(p => p.status !== 'COMPLETED' && p.status !== 'CANCELLED').length || 0;
+      const completedProjects = projects?.filter(p => p.status === 'COMPLETED').length || 0;
+
+      // Calculate total revenue from transactions
+      const { data: transactions } = await supabase
+        .from('Transaction')
+        .select('amount');
+
+      const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0;
+
+      // Fetch influencer names for recent projects
+      const projectsWithDetails = await Promise.all(
+        (projects || []).slice(0, 5).map(async (project) => {
+          let company = 'Unknown';
+          let influencer = 'Not assigned';
+
+          if (project.clientId) {
+            const { data: clientData } = await supabase
+              .from('Client')
+              .select('companyName')
+              .eq('id', project.clientId)
+              .single();
+            company = clientData?.companyName || 'Unknown';
+          }
+
+          if (project.matchedInfluencerId) {
+            const { data: influencerData } = await supabase
+              .from('Influencer')
+              .select('displayName')
+              .eq('id', project.matchedInfluencerId)
+              .single();
+            influencer = influencerData?.displayName || 'Not assigned';
+          }
+
+          return {
             id: project.id,
             title: project.title,
-            company: project.client || 'Unknown',
-            influencer: project.influencer || 'Not assigned',
+            company,
+            influencer,
             status: project.status?.toLowerCase() || 'pending',
             budget: project.budget || 0,
-          })) || []
-        );
-      } else {
-        setError(result.error?.message || 'ダッシュボード データの取得に失敗しました。');
-      }
+          };
+        })
+      );
 
+      setStats({
+        totalUsers: totalUsers || 0,
+        totalCompanies: totalCompanies || 0,
+        totalInfluencers: totalInfluencers || 0,
+        activeProjects,
+        completedProjects,
+        totalRevenue,
+      });
+
+      setRecentProjects(projectsWithDetails);
       setLoading(false);
     } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
-      // Use mock data on error
-      setStats({
-        totalUsers: 45,
-        totalCompanies: 8,
-        totalInfluencers: 234,
-        activeProjects: 12,
-        completedProjects: 28,
-        totalRevenue: 2500000,
-      });
-      setRecentProjects([
-        {
-          id: '1',
-          title: 'SNS広告キャンペーン',
-          company: 'Tech Company A',
-          influencer: '@influencer_1',
-          status: 'in_progress',
-          budget: 500000,
-        },
-        {
-          id: '2',
-          title: '商品プロモーション',
-          company: 'Fashion Brand B',
-          influencer: '@influencer_2',
-          status: 'completed',
-          budget: 300000,
-        },
-      ]);
+      setError('ダッシュボード データの取得に失敗しました。');
       setLoading(false);
     }
   };
@@ -200,20 +213,20 @@ const AdminDashboard: React.FC = () => {
                     </div>
                     <span
                       className={`ml-2 px-2 py-1 text-xs font-medium rounded whitespace-nowrap ${
-                        project.status === 'active' || project.status === 'IN_PROGRESS'
+                        project.status === 'active' || project.status === 'in_progress'
                           ? 'bg-blue-100 text-blue-800'
-                          : project.status === 'completed' || project.status === 'COMPLETED'
+                          : project.status === 'completed'
                           ? 'bg-green-100 text-green-800'
-                          : project.status === 'pending' || project.status === 'PENDING'
+                          : project.status === 'pending'
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {project.status === 'active' || project.status === 'IN_PROGRESS'
+                      {project.status === 'active' || project.status === 'in_progress'
                         ? '進行中'
-                        : project.status === 'completed' || project.status === 'COMPLETED'
+                        : project.status === 'completed'
                         ? '完了'
-                        : project.status === 'pending' || project.status === 'PENDING'
+                        : project.status === 'pending'
                         ? '募集中'
                         : project.status}
                     </span>
