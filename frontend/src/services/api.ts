@@ -737,138 +737,16 @@ export const createProject = async (data: any) => {
 
 export const getMyProjects = async () => {
   console.log('getMyProjects called');
-  
-  // モックデータを定義
-  const mockProjects = {
-    projects: [
-      {
-        id: '1',
-        title: '新商品コスメのPRキャンペーン',
-        description: '新発売のファンデーションを使用した投稿をお願いします。カバー力や仕上がりの美しさを実際に使用して紹介してください。',
-        category: '美容・化粧品',
-        budget: 300000,
-        status: 'IN_PROGRESS',
-        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-        targetPrefecture: '東京都',
-        targetCity: '渋谷区、新宿区',
-        targetGender: 'FEMALE',
-        targetAgeMin: 20,
-        targetAgeMax: 35,
-        targetFollowerMin: 10000,
-        targetFollowerMax: 100000,
-        startDate: '2024-02-01',
-        endDate: '2024-02-28',
-        createdAt: '2024-01-15',
-        applicationsCount: 12,
-        clientId: 'current-user',
-        matchedInfluencerId: 'inf4',
-        applications: []
-      },
-      {
-        id: '2',
-        title: 'ライフスタイル商品のレビュー',
-        description: '日常使いできる便利グッズの紹介をお願いします。実際の使用シーンを含めた自然な投稿をお願いします。',
-        category: 'ライフスタイル',
-        budget: 150000,
-        status: 'IN_PROGRESS',
-        targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
-        targetPrefecture: '全国',
-        targetCity: '指定なし',
-        targetGender: 'ALL',
-        targetAgeMin: 25,
-        targetAgeMax: 45,
-        targetFollowerMin: 5000,
-        targetFollowerMax: 50000,
-        startDate: '2024-01-20',
-        endDate: '2024-02-20',
-        createdAt: '2024-01-10',
-        applicationsCount: 8,
-        clientId: 'current-user',
-        matchedInfluencerId: 'inf1',
-        applications: []
-      },
-      {
-        id: '3',
-        title: 'フィットネス関連商品のPR',
-        description: 'トレーニングウェアを着用した投稿をお願いします。実際のワークアウトシーンでの着用感をレビューしてください。',
-        category: 'スポーツ・フィットネス',
-        budget: 200000,
-        status: 'PENDING',
-        targetPlatforms: ['INSTAGRAM', 'YOUTUBE'],
-        targetPrefecture: '関東',
-        targetCity: '東京都、神奈川県、埼玉県',
-        targetGender: 'ALL',
-        targetAgeMin: 18,
-        targetAgeMax: 30,
-        targetFollowerMin: 15000,
-        targetFollowerMax: 80000,
-        startDate: '2024-02-15',
-        endDate: '2024-03-15',
-        createdAt: '2024-01-20',
-        applicationsCount: 5,
-        clientId: 'current-user',
-        applications: []
-      },
-      {
-        id: '4',
-        title: 'グルメ商品の体験レビュー',
-        description: '新発売のプレミアムお取り寄せグルメの魅力を紹介してください。調理過程や実食シーンを含めたコンテンツ作成をお願いします。',
-        category: 'グルメ・食品',
-        budget: 180000,
-        status: 'MATCHED',
-        targetPlatforms: ['INSTAGRAM', 'TIKTOK'],
-        targetPrefecture: '大阪府',
-        targetCity: '大阪市、堺市',
-        targetGender: 'FEMALE',
-        targetAgeMin: 25,
-        targetAgeMax: 40,
-        targetFollowerMin: 8000,
-        targetFollowerMax: 60000,
-        startDate: '2024-01-25',
-        endDate: '2024-02-25',
-        createdAt: '2024-01-12',
-        applicationsCount: 15,
-        clientId: 'current-user',
-        matchedInfluencerId: 'inf2',
-        applications: []
-      },
-      {
-        id: '5',
-        title: 'テック製品のレビューキャンペーン',
-        description: '最新のワイヤレスイヤホンの使用感をレビューしてください。音質、装着感、バッテリー持続時間などの詳細な評価をお願いします。',
-        category: 'テクノロジー',
-        budget: 250000,
-        status: 'COMPLETED',
-        targetPlatforms: ['YOUTUBE', 'INSTAGRAM'],
-        targetPrefecture: '愛知県',
-        targetCity: '名古屋市',
-        targetGender: 'MALE',
-        targetAgeMin: 20,
-        targetAgeMax: 35,
-        targetFollowerMin: 20000,
-        targetFollowerMax: 100000,
-        startDate: '2024-01-01',
-        endDate: '2024-01-31',
-        createdAt: '2024-12-15',
-        applicationsCount: 22,
-        clientId: 'current-user',
-        matchedInfluencerId: 'inf3',
-        applications: []
-      }
-    ]
-  };
 
-  // Vercel環境の場合のみモックを使用
-
-  // 実際のAPIを試行し、失敗した場合はモックデータを返す
   try {
     console.log('Attempting to fetch projects from API...');
     const response = await api.get('/projects/my-projects');
     console.log('API response received:', response.data);
     return response.data;
   } catch (error) {
-    console.warn('API request failed, falling back to mock data:', error);
-    return mockProjects;
+    console.error('API request failed:', error);
+    // API が使用できない場合は空配列を返す
+    return { projects: [] };
   }
 };
 
