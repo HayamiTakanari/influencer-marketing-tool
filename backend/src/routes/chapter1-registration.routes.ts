@@ -12,11 +12,11 @@ import {
   approveDocument,
   rejectDocument,
 } from '../controllers/document-verification.controller';
-import { validateRequest } from '../middleware/validation';
 import { authenticate } from '../middleware/auth';
-import { rateLimit } from '../middleware/adaptive-rate-limiter';
+import AdaptiveRateLimiter from '../middleware/adaptive-rate-limiter';
 
 const router = Router();
+const rateLimiter = new AdaptiveRateLimiter();
 
 // Multer設定：ファイルアップロード
 const upload = multer({
@@ -52,8 +52,7 @@ const upload = multer({
 // }
 router.post(
   '/register',
-  rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }), // 15分に5回まで
-  validateRequest('body'),
+  rateLimiter.middleware(),
   registerWithEmailVerification
 );
 
@@ -66,8 +65,7 @@ router.get('/verify-email', verifyEmail);
 // Body: { email: string }
 router.post(
   '/resend-verification',
-  rateLimit({ windowMs: 60 * 60 * 1000, max: 3 }), // 1時間に3回まで
-  validateRequest('body'),
+  rateLimiter.middleware(),
   resendVerificationEmail
 );
 
@@ -84,7 +82,7 @@ router.post(
 router.post(
   '/documents/upload',
   authenticate,
-  rateLimit({ windowMs: 60 * 60 * 1000, max: 10 }), // 1時間に10回まで
+  rateLimiter.middleware(),
   upload.single('file'),
   uploadDocument
 );
@@ -113,14 +111,14 @@ router.post('/documents/:documentId/approve', authenticate, approveDocument);
 // POST /api/chapter1/documents/:documentId/reject
 // 本人確認書類を却下・再提出要求（管理者のみ）
 // Body: { rejectionReason: string }
-router.post('/documents/:documentId/reject', authenticate, validateRequest('body'), rejectDocument);
+router.post('/documents/:documentId/reject', authenticate, rejectDocument);
 
 /**
  * エラーハンドラー
  */
 router.use((err: any, req: Request, res: Response, next: any) => {
   if (err instanceof multer.MulterError) {
-    if (err.code === 'FILE_TOO_LARGE') {
+    if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File size exceeds maximum limit of 10MB' });
     }
     return res.status(400).json({ error: 'File upload error' });

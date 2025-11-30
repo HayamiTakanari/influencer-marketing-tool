@@ -99,6 +99,30 @@ enum Gender {
   NOT_SPECIFIED
 }
 
+enum WorkingStatus {
+  AVAILABLE // 積極的に受付中
+  BUSY // 選んで受付中
+  UNAVAILABLE // 現在多忙
+  BREAK // 長期休暇中
+}
+
+enum CompanyMemberRole {
+  ADMIN // 管理者権限
+  PROJECT_MANAGER // プロジェクト担当権限
+  ACCOUNTING // 経理担当権限
+  VIEWER // 閲覧権限
+}
+
+enum OnboardingStep {
+  DASHBOARD
+  INFLUENCER_SEARCH
+  PROJECT_CREATION
+  SCOUTING
+  MATCHING_FLOW
+  BILLING
+  COMPLETED
+}
+
 model User {
   id              String     @id @default(cuid())
   email           String     @unique
@@ -124,6 +148,8 @@ model User {
   securityLogs        SecurityLog[]
   verificationRecords VerificationRecord[]
   emailTokens         EmailVerificationToken[]
+  companyMembers      CompanyMember[]
+  onboardingProgress  OnboardingProgress?
 }
 
 // 企業プロフィール（Chapter 1 - ユーザー登録・審査）
@@ -147,6 +173,8 @@ model Company {
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   bankAccounts          BankAccount[]
   verificationDocuments VerificationDocument[]
+  members               CompanyMember[]
+  auditLogs             AuditLog[]
 
   @@index([userId])
   @@index([isVerified])
@@ -214,6 +242,23 @@ model Influencer {
   lastUpdated  DateTime  @default(now())
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  // 稼働状況 (Chapter 1-8)
+  workingStatus           WorkingStatus @default(AVAILABLE)
+  workingStatusMessage    String? // 稼働状況メッセージ
+  workingStatusUpdatedAt  DateTime?
+
+  // 希望条件 (Chapter 1-8)
+  preferredMinPrice       Int? // 希望最低報酬
+  preferredMaxPrice       Int? // 希望最高報酬
+  preferredCategories     String[]
+  preferredPlatforms      Platform[]
+  preferredMinDays        Int? // 最短対応日数
+  preferredMessageUpdated DateTime?
+
+  // インボイス情報 (Chapter 1-10)
+  invoiceRegistrationNumber String? // 適格請求書発行事業者登録番号
+  invoiceRegisteredAt       DateTime?
 
   // Relations
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -864,4 +909,69 @@ model SecurityRule {
 
   @@index([ruleType, isActive])
   @@index([isActive, severity])
+}
+
+// Chapter 1-3: 企業の複数担当者管理
+model CompanyMember {
+  id        String              @id @default(cuid())
+  companyId String
+  userId    String
+  role      CompanyMemberRole
+  status    String              @default("ACTIVE") // ACTIVE, INACTIVE, PENDING
+  invitedAt DateTime            @default(now())
+  acceptedAt DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([companyId, status])
+  @@index([userId])
+}
+
+// Chapter 1-3: 企業メンバーの操作履歴
+model AuditLog {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String   // 操作を行ったユーザーID
+  action    String   // CREATE, UPDATE, DELETE, INVITE, REMOVE_MEMBER
+  entityType String  // Project, Member, Document, etc.
+  entityId  String?  // 対象エンティティのID
+  details   Json?    // 変更内容の詳細
+  ipAddress String?  // オペレーションのIP
+  createdAt DateTime @default(now())
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
+
+// Chapter 1-12: オンボーディング進捗管理
+model OnboardingProgress {
+  id     String   @id @default(cuid())
+  userId String   @unique
+  role   UserRole
+
+  // 完了ステップ
+  completedSteps OnboardingStep[]
+
+  // スキップ状態
+  skipped Boolean @default(false)
+  skippedAt DateTime?
+
+  // 進捗管理
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([role, completedAt])
 }

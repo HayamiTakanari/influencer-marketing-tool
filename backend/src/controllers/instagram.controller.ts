@@ -8,6 +8,7 @@ const instagramService = new InstagramService();
 interface AuthRequest extends Request {
   user?: {
     id: string;
+    email: string;
     role: string;
   };
 }

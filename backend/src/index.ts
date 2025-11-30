@@ -43,7 +43,8 @@ import youtubeRoutes from './routes/youtube.routes';
 import twitterRoutes from './routes/twitter.routes';
 import ndaRoutes from './routes/nda.routes';
 import submissionRoutes from './routes/submission.routes';
-import chapter1Routes from './routes/chapter1-registration.routes';
+// import chapter1Routes from './routes/chapter1-registration.routes';
+import tikTokAuthRoutes from './routes/tiktok-auth.routes';
 
 dotenv.config();
 
@@ -172,7 +173,8 @@ app.use('/api/youtube', youtubeRoutes);
 app.use('/api/twitter', twitterRoutes);
 app.use('/api/nda', ndaRoutes);
 app.use('/api/submissions', submissionRoutes);
-app.use('/api/chapter1', chapter1Routes);
+// app.use('/api/chapter1', chapter1Routes);
+app.use('/api/sns', tikTokAuthRoutes);
 
 app.use('/uploads', express.static('uploads'));
 
