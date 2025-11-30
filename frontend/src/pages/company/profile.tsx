@@ -169,10 +169,9 @@ const CompanyProfilePage: React.FC = () => {
     <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理">
       <div className="w-full space-y-4">
         {/* Header with Edit/Save/Cancel Buttons */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">{formData.companyName}</h2>
-            <p className="text-gray-600 mt-1">{formData.industry}</p>
+            <h2 className="text-2xl font-bold text-gray-900">{formData.companyName}</h2>
           </div>
           <div className="flex gap-2">
             {isEditing ? (
@@ -203,6 +202,7 @@ const CompanyProfilePage: React.FC = () => {
 
         {/* Basic Information */}
         <Card padding="md">
+          <h4 className="font-semibold text-gray-900 mb-4">企業情報</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">会社名</label>
@@ -302,7 +302,7 @@ const CompanyProfilePage: React.FC = () => {
 
         {/* SNS Accounts */}
         <Card padding="md">
-          <h4 className="font-semibold text-gray-900 mb-3">SNS・その他アカウント</h4>
+          <h4 className="font-semibold text-gray-900 mb-4">SNSアカウント</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Instagram */}
             <div className="border border-gray-200 rounded-lg p-4">
