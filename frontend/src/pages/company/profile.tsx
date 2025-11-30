@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
-import { FaInstagram, FaTiktok, FaYoutube, FaLine } from 'react-icons/fa';
+import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa';
 import { SiX } from 'react-icons/si';
 
 const CompanyProfilePage: React.FC = () => {
@@ -359,26 +359,6 @@ const CompanyProfilePage: React.FC = () => {
                   name="twitterUserId"
                   placeholder="@username"
                   value={formData.twitterUserId}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-                />
-              </div>
-            </div>
-
-            {/* LINE */}
-            <div className="md:col-span-2 border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <FaLine className="text-green-600" size={24} />
-                <h5 className="font-semibold text-gray-900">LINE</h5>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ユーザーID</label>
-                <input
-                  type="text"
-                  name="lineUserId"
-                  placeholder="ID or username"
-                  value={formData.lineUserId}
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
