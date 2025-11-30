@@ -166,9 +166,12 @@ model Company {
   companyName        String
   legalNumber        String? // 法人番号
   representativeName String?
+  contactName        String? // 担当者名
   industry           String?
   address            String?
   phoneNumber        String?
+  website            String? // Webサイト
+  description        String? // 会社概要
   logoUrl            String?
   isVerified         Boolean    @default(false)
   verifiedAt         DateTime?
