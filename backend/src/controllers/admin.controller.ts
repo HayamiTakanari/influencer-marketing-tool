@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
+import { sendSuccess, sendInternalError } from '../utils/api-response';
 
 const prisma = new PrismaClient();
 
@@ -36,7 +37,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.json({
+    const dashboardData = {
       totalUsers,
       totalClients,
       totalInfluencers,
@@ -53,10 +54,12 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         influencer: p.matchedInfluencer?.user.email || null,
         createdAt: p.createdAt,
       })),
-    });
+    };
+
+    sendSuccess(res, dashboardData, 'Dashboard statistics retrieved successfully', 200, req.requestId);
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
-    res.status(500).json({ error: 'Failed to fetch dashboard statistics' });
+    sendInternalError(res, 'Failed to fetch dashboard statistics', undefined, req.requestId);
   }
 };
 
@@ -257,17 +260,28 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
 
     const users = await prisma.user.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        isVerified: true,
-        createdAt: true,
+      include: {
+        client: {
+          select: { companyName: true },
+        },
+        influencer: {
+          select: { displayName: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    res.json({ users });
+    const formattedUsers = users.map(u => ({
+      id: u.id,
+      name: u.role === 'CLIENT' ? u.client?.companyName : u.role === 'INFLUENCER' ? u.influencer?.displayName : u.email,
+      email: u.email,
+      role: u.role,
+      status: u.isVerified ? 'active' : 'inactive',
+      createdAt: u.createdAt.toISOString().split('T')[0],
+      lastLogin: u.lastLogin ? u.lastLogin.toISOString().split('T')[0] : 'N/A',
+    }));
+
+    res.json({ users: formattedUsers });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Failed to fetch users' });

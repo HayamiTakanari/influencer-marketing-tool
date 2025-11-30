@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import AdminLayout from '../../components/layout/AdminLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
@@ -38,57 +38,33 @@ const AdminInfluencers: React.FC = () => {
       return;
     }
 
-    // Simulate fetching influencers
-    setTimeout(() => {
-      setInfluencers([
-        {
-          id: '1',
-          displayName: 'インフルエンサーA',
-          categories: ['美容', 'コスメ'],
-          prefecture: '東京都',
-          bio: '美容系インフルエンサー',
-          followers: 150000,
-          engagementRate: 8.5,
-          status: 'active',
-          createdAt: '2024-01-10',
-        },
-        {
-          id: '2',
-          displayName: 'インフルエンサーB',
-          categories: ['ファッション'],
-          prefecture: '大阪府',
-          bio: 'ファッションブロガー',
-          followers: 200000,
-          engagementRate: 7.2,
-          status: 'active',
-          createdAt: '2024-01-20',
-        },
-        {
-          id: '3',
-          displayName: 'インフルエンサーC',
-          categories: ['グルメ', '旅行'],
-          prefecture: '京都府',
-          bio: 'グルメ系インフルエンサー',
-          followers: 120000,
-          engagementRate: 9.1,
-          status: 'active',
-          createdAt: '2024-02-05',
-        },
-        {
-          id: '4',
-          displayName: 'インフルエンサーD',
-          categories: ['ライフスタイル'],
-          prefecture: '神奈川県',
-          bio: 'ライフスタイル提案者',
-          followers: 180000,
-          engagementRate: 6.8,
-          status: 'pending',
-          createdAt: '2024-03-01',
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    fetchInfluencers(token);
   }, [router]);
+
+  const fetchInfluencers = async (token: string) => {
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiBaseUrl}/admin/influencers`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch influencers');
+      }
+
+      const data = await response.json();
+      const influencersData = data.success ? (data.data || []) : (data.influencers || []);
+      setInfluencers(Array.isArray(influencersData) ? influencersData : []);
+    } catch (error) {
+      console.error('Error fetching influencers:', error);
+      setInfluencers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredInfluencers = influencers.filter((influencer) =>
     influencer.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -123,14 +99,14 @@ const AdminInfluencers: React.FC = () => {
 
   if (loading) {
     return (
-      <AdminLayout title="インフルエンサー管理" subtitle="全インフルエンサーの管理と確認">
+      <DashboardLayout title="インフルエンサー管理" subtitle="全インフルエンサーの管理と確認">
         <LoadingState />
-      </AdminLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <AdminLayout title="インフルエンサー管理" subtitle={`全インフルエンサー (${filteredInfluencers.length})`}>
+    <DashboardLayout title="インフルエンサー管理" subtitle={`全インフルエンサー (${filteredInfluencers.length})`}>
       <div className="space-y-4">
         {/* Search Bar */}
         <div className="flex space-x-2">
@@ -172,9 +148,9 @@ const AdminInfluencers: React.FC = () => {
                     <td className="px-4 py-3 text-gray-600">{influencer.categories.join(', ')}</td>
                     <td className="px-4 py-3 text-gray-600">{influencer.prefecture}</td>
                     <td className="px-4 py-3 text-right font-medium text-gray-900">
-                      {(influencer.followers / 1000).toFixed(0)}K
+                      {(influencer.followers ? influencer.followers / 1000 : 0).toFixed(0)}K
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-600">{influencer.engagementRate.toFixed(1)}%</td>
+                    <td className="px-4 py-3 text-right text-gray-600">{(influencer.engagementRate || 0).toFixed(1)}%</td>
                     <td className="px-4 py-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(influencer.status)}`}>
                         {getStatusLabel(influencer.status)}
@@ -193,7 +169,7 @@ const AdminInfluencers: React.FC = () => {
           </div>
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 };
 

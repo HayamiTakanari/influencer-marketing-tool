@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import AdminLayout from '../../components/layout/AdminLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
@@ -38,46 +38,33 @@ const AdminCompanies: React.FC = () => {
       return;
     }
 
-    // Simulate fetching companies
-    setTimeout(() => {
-      setCompanies([
-        {
-          id: '1',
-          companyName: '株式会社サンプル',
-          industry: '美容・化粧品',
-          contactName: '田中太郎',
-          contactPhone: '03-1234-5678',
-          address: '東京都渋谷区',
-          website: 'https://example.com',
-          status: 'active',
-          createdAt: '2024-01-15',
-        },
-        {
-          id: '2',
-          companyName: 'ファッション企業B',
-          industry: 'ファッション',
-          contactName: '鈴木花子',
-          contactPhone: '06-1234-5678',
-          address: '大阪府大阪市',
-          website: 'https://fashion-b.com',
-          status: 'active',
-          createdAt: '2024-02-20',
-        },
-        {
-          id: '3',
-          companyName: '食品会社C',
-          industry: '食品',
-          contactName: '佐藤次郎',
-          contactPhone: '045-1234-5678',
-          address: '神奈川県横浜市',
-          website: 'https://food-c.com',
-          status: 'pending',
-          createdAt: '2024-03-10',
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    fetchCompanies(token);
   }, [router]);
+
+  const fetchCompanies = async (token: string) => {
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiBaseUrl}/admin/companies`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch companies');
+      }
+
+      const data = await response.json();
+      const companiesData = data.success ? (data.data || []) : (data.companies || []);
+      setCompanies(Array.isArray(companiesData) ? companiesData : []);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      setCompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCompanies = companies.filter((company) =>
     company.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -112,14 +99,14 @@ const AdminCompanies: React.FC = () => {
 
   if (loading) {
     return (
-      <AdminLayout title="企業管理" subtitle="全企業の管理と確認">
+      <DashboardLayout title="企業管理" subtitle="全企業の管理と確認">
         <LoadingState />
-      </AdminLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <AdminLayout title="企業管理" subtitle={`全企業 (${filteredCompanies.length})`}>
+    <DashboardLayout title="企業管理" subtitle={`全企業 (${filteredCompanies.length})`}>
       <div className="space-y-4">
         {/* Search Bar */}
         <div className="flex space-x-2">
@@ -178,7 +165,7 @@ const AdminCompanies: React.FC = () => {
           </div>
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 };
 

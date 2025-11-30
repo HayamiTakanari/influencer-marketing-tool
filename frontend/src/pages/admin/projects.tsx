@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import AdminLayout from '../../components/layout/AdminLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
@@ -40,57 +40,33 @@ const AdminProjects: React.FC = () => {
       return;
     }
 
-    // Simulate fetching projects
-    setTimeout(() => {
-      setProjects([
-        {
-          id: '1',
-          title: '美容商品キャンペーン',
-          company: '株式会社サンプル',
-          influencer: 'インフルエンサーA',
-          budget: 500000,
-          status: 'active',
-          progress: 65,
-          startDate: '2024-03-01',
-          endDate: '2024-05-31',
-        },
-        {
-          id: '2',
-          title: 'ファッションPR',
-          company: 'ファッション企業B',
-          influencer: 'インフルエンサーB',
-          budget: 750000,
-          status: 'completed',
-          progress: 100,
-          startDate: '2024-01-15',
-          endDate: '2024-03-15',
-        },
-        {
-          id: '3',
-          title: '食品紹介キャンペーン',
-          company: '食品会社C',
-          influencer: 'インフルエンサーC',
-          budget: 600000,
-          status: 'active',
-          progress: 45,
-          startDate: '2024-03-10',
-          endDate: '2024-06-10',
-        },
-        {
-          id: '4',
-          title: 'ライフスタイル提案',
-          company: '企業D',
-          influencer: 'インフルエンサーD',
-          budget: 400000,
-          status: 'planning',
-          progress: 10,
-          startDate: '2024-04-01',
-          endDate: '2024-06-30',
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    fetchProjects(token);
   }, [router]);
+
+  const fetchProjects = async (token: string) => {
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiBaseUrl}/admin/projects`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
+      }
+
+      const data = await response.json();
+      const projectsData = data.success ? (data.data || []) : (data.projects || []);
+      setProjects(Array.isArray(projectsData) ? projectsData : []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
@@ -143,14 +119,14 @@ const AdminProjects: React.FC = () => {
 
   if (loading) {
     return (
-      <AdminLayout title="プロジェクト管理" subtitle="全プロジェクトの管理と進捗確認">
+      <DashboardLayout title="プロジェクト管理" subtitle="全プロジェクトの管理と進捗確認">
         <LoadingState />
-      </AdminLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <AdminLayout title="プロジェクト管理" subtitle={`全プロジェクト (${filteredProjects.length})`}>
+    <DashboardLayout title="プロジェクト管理" subtitle={`全プロジェクト (${filteredProjects.length})`}>
       <div className="space-y-4">
         {/* Search and Filter */}
         <div className="flex space-x-2">
@@ -231,7 +207,7 @@ const AdminProjects: React.FC = () => {
           </div>
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 };
 

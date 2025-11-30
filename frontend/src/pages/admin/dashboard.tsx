@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import AdminLayout from '../../components/layout/AdminLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import StatsCard from '../../components/common/StatsCard';
@@ -51,46 +51,49 @@ const AdminDashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Use mock data for now
-      setTimeout(() => {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/dashboard`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const data = result.data;
         setStats({
-          totalUsers: 156,
-          totalCompanies: 32,
-          totalInfluencers: 124,
-          activeProjects: 18,
-          completedProjects: 45,
-          totalRevenue: 28500000,
+          totalUsers: data.totalUsers || 0,
+          totalCompanies: data.totalClients || 0,
+          totalInfluencers: data.totalInfluencers || 0,
+          activeProjects: (data.totalProjects - data.completedProjects) || 0,
+          completedProjects: data.completedProjects || 0,
+          totalRevenue: data.totalRevenue || 0,
         });
 
-        setRecentProjects([
-          {
-            id: '1',
-            title: '美容商品キャンペーン',
-            company: '株式会社サンプル',
-            influencer: 'インフルエンサーA',
-            status: 'active',
-            budget: 500000,
-          },
-          {
-            id: '2',
-            title: 'ファッションPR',
-            company: 'ファッション企業B',
-            influencer: 'インフルエンサーB',
-            status: 'completed',
-            budget: 750000,
-          },
-          {
-            id: '3',
-            title: '食品紹介キャンペーン',
-            company: '食品会社C',
-            influencer: 'インフルエンサーC',
-            status: 'active',
-            budget: 600000,
-          },
-        ]);
+        // Transform API response to match component interface
+        setRecentProjects(
+          data.recentProjects?.map((project: any) => ({
+            id: project.id,
+            title: project.title,
+            company: project.client || 'Unknown',
+            influencer: project.influencer || 'Not assigned',
+            status: project.status?.toLowerCase() || 'pending',
+            budget: project.budget || 0,
+          })) || []
+        );
+      } else {
+        setError(result.error?.message || 'ダッシュボード データの取得に失敗しました。');
+      }
 
-        setLoading(false);
-      }, 500);
+      setLoading(false);
     } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
       setError('ダッシュボード データの取得に失敗しました。');
@@ -108,14 +111,14 @@ const AdminDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <AdminLayout title="管理ダッシュボード" subtitle="システム概要">
+      <DashboardLayout title="管理ダッシュボード" subtitle="システム概要">
         <LoadingState />
-      </AdminLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <AdminLayout title="管理ダッシュボード" subtitle="システム概要と統計情報">
+    <DashboardLayout title="管理ダッシュボード" subtitle="システム概要と統計情報">
       <div className="space-y-6">
         {error && (
           <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">
@@ -153,52 +156,53 @@ const AdminDashboard: React.FC = () => {
 
         {/* Recent Projects */}
         <Card>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">最近のプロジェクト</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">最近のプロジェクト</h3>
+          </div>
           {recentProjects.length === 0 ? (
             <div className="text-center py-8 text-gray-600">
               プロジェクトがまだ登録されていません
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">プロジェクト</th>
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">企業</th>
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">インフルエンサー</th>
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">ステータス</th>
-                    <th className="text-right px-4 py-2 font-semibold text-gray-700">予算</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentProjects.map((project) => (
-                    <tr key={project.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{project.title}</td>
-                      <td className="px-4 py-3 text-gray-600">{project.company}</td>
-                      <td className="px-4 py-3 text-gray-600">{project.influencer}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            project.status === 'active'
-                              ? 'bg-blue-100 text-blue-800'
-                              : project.status === 'completed'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {project.status === 'active' ? '進行中' : project.status === 'completed' ? '完了' : project.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900">{formatPrice(project.budget)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-3">
+              {recentProjects.map((project) => (
+                <div key={project.id} className="p-3 border border-gray-200 rounded-lg hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 text-sm line-clamp-1">{project.title}</h4>
+                      <p className="text-xs text-gray-600 mt-1">{project.company}</p>
+                    </div>
+                    <span
+                      className={`ml-2 px-2 py-1 text-xs font-medium rounded whitespace-nowrap ${
+                        project.status === 'active' || project.status === 'IN_PROGRESS'
+                          ? 'bg-blue-100 text-blue-800'
+                          : project.status === 'completed' || project.status === 'COMPLETED'
+                          ? 'bg-green-100 text-green-800'
+                          : project.status === 'pending' || project.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {project.status === 'active' || project.status === 'IN_PROGRESS'
+                        ? '進行中'
+                        : project.status === 'completed' || project.status === 'COMPLETED'
+                        ? '完了'
+                        : project.status === 'pending' || project.status === 'PENDING'
+                        ? '募集中'
+                        : project.status}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>インフルエンサー: {project.influencer}</span>
+                    <span>予算: {formatPrice(project.budget)}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 };
 

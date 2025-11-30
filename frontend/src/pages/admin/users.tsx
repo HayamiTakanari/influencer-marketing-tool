@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import AdminLayout from '../../components/layout/AdminLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
@@ -38,72 +38,38 @@ const AdminUsers: React.FC = () => {
       return;
     }
 
-    // Simulate fetching users
-    setTimeout(() => {
-      setUsers([
-        {
-          id: '1',
-          name: '管理者A',
-          email: 'admin@example.com',
-          role: 'ADMIN',
-          status: 'active',
-          createdAt: '2023-01-01',
-          lastLogin: '2024-11-10',
-        },
-        {
-          id: '2',
-          name: '株式会社サンプル',
-          email: 'company@sample.com',
-          role: 'COMPANY',
-          status: 'active',
-          createdAt: '2024-01-15',
-          lastLogin: '2024-11-09',
-        },
-        {
-          id: '3',
-          name: 'インフルエンサーA',
-          email: 'influencer-a@example.com',
-          role: 'INFLUENCER',
-          status: 'active',
-          createdAt: '2024-01-10',
-          lastLogin: '2024-11-08',
-        },
-        {
-          id: '4',
-          name: 'インフルエンサーB',
-          email: 'influencer-b@example.com',
-          role: 'INFLUENCER',
-          status: 'active',
-          createdAt: '2024-02-20',
-          lastLogin: '2024-11-10',
-        },
-        {
-          id: '5',
-          name: 'モデレーターA',
-          email: 'moderator@example.com',
-          role: 'MODERATOR',
-          status: 'active',
-          createdAt: '2024-03-01',
-          lastLogin: '2024-11-07',
-        },
-        {
-          id: '6',
-          name: 'ファッション企業B',
-          email: 'fashion-b@example.com',
-          role: 'COMPANY',
-          status: 'suspended',
-          createdAt: '2024-02-15',
-          lastLogin: '2024-10-20',
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    fetchUsers(token);
   }, [router]);
+
+  const fetchUsers = async (token: string) => {
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiBaseUrl}/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      const usersData = data.success ? (data.data || []) : (data.users || []);
+      setUsers(Array.isArray(usersData) ? usersData : []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      (user.name ? user.name.toLowerCase().includes(searchQuery.toLowerCase()) : false) ||
+      (user.email ? user.email.toLowerCase().includes(searchQuery.toLowerCase()) : false);
 
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
@@ -169,14 +135,14 @@ const AdminUsers: React.FC = () => {
 
   if (loading) {
     return (
-      <AdminLayout title="ユーザー管理" subtitle="全ユーザーの管理と権限設定">
+      <DashboardLayout title="ユーザー管理" subtitle="全ユーザーの管理と権限設定">
         <LoadingState />
-      </AdminLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <AdminLayout title="ユーザー管理" subtitle={`全ユーザー (${filteredUsers.length})`}>
+    <DashboardLayout title="ユーザー管理" subtitle={`全ユーザー (${filteredUsers.length})`}>
       <div className="space-y-4">
         {/* Search and Filters */}
         <div className="flex space-x-2">
@@ -228,8 +194,8 @@ const AdminUsers: React.FC = () => {
               <tbody>
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{user.name}</td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{user.email}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{user.name || 'N/A'}</td>
+                    <td className="px-4 py-3 text-gray-600 text-xs">{user.email || 'N/A'}</td>
                     <td className="px-4 py-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                         {getRoleLabel(user.role)}
@@ -257,7 +223,7 @@ const AdminUsers: React.FC = () => {
           </div>
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 };
 

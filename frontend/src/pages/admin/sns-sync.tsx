@@ -63,44 +63,14 @@ const AdminSNSSyncPage: React.FC = () => {
           return;
         }
       } catch (apiError) {
-        console.warn('API not available, using mock data:', apiError);
+        console.warn('API not available:', apiError);
       }
-      
-      // Fallback to mock data if API is not available
-      const mockStatus: SyncStatus = {
-        totalAccounts: 15,
-        accounts: [
-          {
-            id: 'acc1',
-            platform: 'INSTAGRAM',
-            username: 'beauty_influencer',
-            lastSynced: '2024-01-20T10:30:00Z',
-            followerCount: 45000,
-            engagementRate: 3.2,
-            isVerified: true
-          },
-          {
-            id: 'acc2',
-            platform: 'YOUTUBE',
-            username: 'lifestyle_channel',
-            lastSynced: null,
-            followerCount: 12000,
-            engagementRate: 4.1,
-            isVerified: false
-          },
-          {
-            id: 'acc3',
-            platform: 'TWITTER',
-            username: 'tech_reviewer',
-            lastSynced: '2024-01-19T15:20:00Z',
-            followerCount: 28000,
-            engagementRate: 2.8,
-            isVerified: true
-          }
-        ]
-      };
 
-      setSyncStatus(mockStatus);
+      // No fallback mock data - API is required
+      setSyncStatus({
+        totalAccounts: 0,
+        accounts: []
+      });
     } catch (error) {
       console.error('Error fetching sync status:', error);
       setError('同期状況の取得に失敗しました');
@@ -176,27 +146,11 @@ const AdminSNSSyncPage: React.FC = () => {
           return;
         }
       } catch (apiError) {
-        console.warn('API not available, showing mock sync:', apiError);
-        setSyncLogs(prev => [...prev, 'API接続エラー: モック同期を実行中...']);
+        console.warn('API not available:', apiError);
+        setSyncLogs(prev => [...prev, 'API接続エラー: 同期処理に失敗しました']);
       }
-      
-      // Fallback mock sync if API not available
-      setSyncLogs(prev => [...prev, 'バックグラウンドで同期処理を開始しました（モック）']);
-      setSyncLogs(prev => [...prev, 'この処理は完了まで数分かかる場合があります']);
-      
-      setTimeout(() => {
-        setSyncLogs(prev => [...prev, 'インフルエンサー 1/10 の同期完了']);
-      }, 2000);
-      
-      setTimeout(() => {
-        setSyncLogs(prev => [...prev, 'インフルエンサー 5/10 の同期完了']);
-      }, 5000);
-      
-      setTimeout(() => {
-        setSyncLogs(prev => [...prev, '全てのインフルエンサーの同期が完了しました（モック）']);
-        fetchSyncStatus();
-        setSyncing(false);
-      }, 8000);
+
+      setSyncing(false);
 
     } catch (err: any) {
       console.error('Error syncing all influencers:', err);

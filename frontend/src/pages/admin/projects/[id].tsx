@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import AdminLayout from '../../../components/layout/AdminLayout';
+import DashboardLayout from '../../../components/layout/DashboardLayout';
 import LoadingState from '../../../components/common/LoadingState';
 import Card from '../../../components/shared/Card';
 import Button from '../../../components/shared/Button';
@@ -47,6 +47,31 @@ const AdminProjectDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<ProjectDetail | null>(null);
 
+  const fetchProjectDetail = async (projectId: string, token: string) => {
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiBaseUrl}/admin/projects/${projectId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch project details');
+      }
+
+      const data = await response.json();
+      const projectData = data.success ? data.data : data;
+      setProject(projectData || null);
+    } catch (error) {
+      console.error('Error fetching project details:', error);
+      setProject(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -64,91 +89,7 @@ const AdminProjectDetail: React.FC = () => {
 
     if (!id) return;
 
-    // Simulate fetching project details
-    setTimeout(() => {
-      setProject({
-        id: id as string,
-        title: '美容商品キャンペーン',
-        description: '人気美容商品のSNS広告キャンペーン。インフルエンサーによるレビューと紹介動画を制作。',
-        company: {
-          id: '1',
-          name: '株式会社サンプル',
-          industry: '美容・化粧品',
-          contact: '田中太郎 (03-1234-5678)',
-        },
-        influencer: {
-          id: '1',
-          name: 'インフルエンサーA',
-          category: '美容・コスメ',
-          followers: 150000,
-        },
-        budget: 500000,
-        spent: 325000,
-        status: '進行中',
-        progress: 65,
-        startDate: '2024-03-01',
-        endDate: '2024-05-31',
-        deliverables: [
-          {
-            id: '1',
-            title: 'Instagramフィード投稿（3枚）',
-            status: '完了',
-            dueDate: '2024-03-20',
-          },
-          {
-            id: '2',
-            title: '動画レビュー（15秒）',
-            status: '進行中',
-            dueDate: '2024-04-10',
-          },
-          {
-            id: '3',
-            title: 'ストーリーズ投稿（5日間）',
-            status: '予定',
-            dueDate: '2024-05-01',
-          },
-        ],
-        timeline: [
-          {
-            id: '1',
-            title: 'プロジェクト開始',
-            date: '2024-03-01',
-            status: '完了',
-          },
-          {
-            id: '2',
-            title: '資料提供',
-            date: '2024-03-10',
-            status: '完了',
-          },
-          {
-            id: '3',
-            title: 'コンテンツ制作',
-            date: '2024-03-20',
-            status: '進行中',
-          },
-          {
-            id: '4',
-            title: 'コンテンツ承認',
-            date: '2024-04-15',
-            status: '予定',
-          },
-          {
-            id: '5',
-            title: 'コンテンツ配信',
-            date: '2024-05-01',
-            status: '予定',
-          },
-          {
-            id: '6',
-            title: 'プロジェクト終了',
-            date: '2024-05-31',
-            status: '予定',
-          },
-        ],
-      });
-      setLoading(false);
-    }, 500);
+    fetchProjectDetail(id as string, token);
   }, [id, router]);
 
   const formatPrice = (price: number) => {
@@ -174,14 +115,14 @@ const AdminProjectDetail: React.FC = () => {
 
   if (loading || !project) {
     return (
-      <AdminLayout title="プロジェクト詳細" subtitle="進捗確認と情報管理">
+      <DashboardLayout title="プロジェクト詳細" subtitle="進捗確認と情報管理">
         <LoadingState />
-      </AdminLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <AdminLayout title={project.title} subtitle="プロジェクト詳細と進捗確認">
+    <DashboardLayout title={project.title} subtitle="プロジェクト詳細と進捗確認">
       <div className="space-y-6">
         {/* Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -246,7 +187,7 @@ const AdminProjectDetail: React.FC = () => {
               </div>
               <div>
                 <p className="text-xs text-gray-600 uppercase mb-1">フォロワー数</p>
-                <p className="font-medium text-gray-900">{(project.influencer.followers / 1000).toFixed(0)}K</p>
+                <p className="font-medium text-gray-900">{(project.influencer.followers ? project.influencer.followers / 1000 : 0).toFixed(0)}K</p>
               </div>
             </div>
           </Card>
@@ -299,7 +240,7 @@ const AdminProjectDetail: React.FC = () => {
           <Button variant="secondary">進捗更新</Button>
         </div>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 };
 

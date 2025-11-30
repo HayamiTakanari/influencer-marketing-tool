@@ -11,16 +11,16 @@ const CompanyProfilePage: React.FC = () => {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    companyName: '株式会社サンプル',
-    industry: '美容・化粧品',
-    contactName: '田中太郎',
-    contactPhone: '03-1234-5678',
-    address: '東京都渋谷区青山1-1-1',
-    website: 'https://example.com',
-    description: 'サンプル企業の概要です。美容・化粧品を中心とした事業を展開しています。',
-    budget: 1000000,
-    targetAudience: '20-30代女性',
-    location: '東京都',
+    companyName: '',
+    industry: '',
+    contactName: '',
+    contactPhone: '',
+    address: '',
+    website: '',
+    description: '',
+    budget: 0,
+    targetAudience: '',
+    location: '',
     bankName: '',
     branchName: '',
     accountType: '',
@@ -39,8 +39,50 @@ const CompanyProfilePage: React.FC = () => {
 
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
-    setLoading(false);
+
+    // Fetch company profile data from API
+    fetchCompanyProfile(token);
   }, [router]);
+
+  const fetchCompanyProfile = async (token: string) => {
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiBaseUrl}/profile/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const profileData = result.data;
+          setFormData({
+            companyName: profileData.displayName || profileData.companyName || '',
+            industry: profileData.industry || '',
+            contactName: profileData.contactName || '',
+            contactPhone: profileData.phoneNumber || '',
+            address: profileData.address || '',
+            website: profileData.website || '',
+            description: profileData.bio || profileData.description || '',
+            budget: profileData.budget || 0,
+            targetAudience: profileData.targetAudience || '',
+            location: profileData.location || profileData.prefecture || '',
+            bankName: profileData.bankName || '',
+            branchName: profileData.branchName || '',
+            accountType: profileData.accountType || '',
+            accountNumber: profileData.accountNumber || '',
+            accountName: profileData.accountName || '',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching company profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
