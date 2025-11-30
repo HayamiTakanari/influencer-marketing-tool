@@ -44,10 +44,8 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = React.memo(({
                 {item.label}
               </span>
             ) : item.href ? (
-              <Link href={item.href}>
-                <a className="text-blue-600 hover:text-blue-700 hover:underline truncate transition-colors">
-                  {item.label}
-                </a>
+              <Link href={item.href} className="text-blue-600 hover:text-blue-700 hover:underline truncate transition-colors">
+                {item.label}
               </Link>
             ) : (
               <span className="text-gray-600 truncate">
