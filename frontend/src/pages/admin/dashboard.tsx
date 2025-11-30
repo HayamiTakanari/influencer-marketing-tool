@@ -56,22 +56,22 @@ const AdminDashboard: React.FC = () => {
 
       // Fetch total users
       const { count: totalUsers, error: usersError } = await supabase
-        .from('user')
+        .from('User')
         .select('*', { count: 'exact', head: true });
 
       // Fetch total companies
       const { count: totalCompanies, error: companiesError } = await supabase
-        .from('company')
+        .from('Company')
         .select('*', { count: 'exact', head: true });
 
       // Fetch total influencers
       const { count: totalInfluencers, error: influencersError } = await supabase
-        .from('influencer')
+        .from('Influencer')
         .select('*', { count: 'exact', head: true });
 
       // Fetch projects by status
       const { data: projects, error: projectsError } = await supabase
-        .from('project')
+        .from('Project')
         .select('id, title, budget, status, clientId, matchedInfluencerId, createdAt')
         .order('createdAt', { ascending: false })
         .limit(10);
@@ -82,7 +82,7 @@ const AdminDashboard: React.FC = () => {
 
       // Calculate total revenue from transactions
       const { data: transactions, error: transactionsError } = await supabase
-        .from('transaction')
+        .from('Transaction')
         .select('amount');
 
       const totalRevenue = transactions?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0;
@@ -95,7 +95,7 @@ const AdminDashboard: React.FC = () => {
 
           if (project.clientId) {
             const { data: clientData } = await supabase
-              .from('client')
+              .from('Client')
               .select('companyName')
               .eq('id', project.clientId)
               .single();
@@ -104,7 +104,7 @@ const AdminDashboard: React.FC = () => {
 
           if (project.matchedInfluencerId) {
             const { data: influencerData } = await supabase
-              .from('influencer')
+              .from('Influencer')
               .select('displayName')
               .eq('id', project.matchedInfluencerId)
               .single();
