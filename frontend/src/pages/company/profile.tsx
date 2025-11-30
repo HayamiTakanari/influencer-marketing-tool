@@ -172,18 +172,37 @@ const CompanyProfilePage: React.FC = () => {
   return (
     <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理">
       <div className="max-w-2xl space-y-4">
-        {/* Header with Edit Button */}
+        {/* Header with Edit/Save/Cancel Buttons */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">{formData.companyName}</h2>
             <p className="text-gray-600 mt-1">{formData.industry}</p>
           </div>
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
-          >
-            {isEditing ? 'キャンセル' : '編集'}
-          </button>
+          <div className="flex gap-2">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
+                >
+                  保存
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 text-sm font-medium whitespace-nowrap"
+                >
+                  キャンセル
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
+              >
+                編集
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Basic Information */}
@@ -504,17 +523,6 @@ const CompanyProfilePage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Save Button */}
-        {isEditing && (
-          <div className="flex justify-end">
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium"
-            >
-              保存
-            </button>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );
