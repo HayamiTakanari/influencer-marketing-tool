@@ -26,7 +26,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = React.memo(({
 
   return (
     <nav
-      className={`flex items-center gap-2 text-sm md:text-base ${className}`}
+      className={`flex items-center gap-2 text-xs ${className}`}
       aria-label="ブレッドクラムナビゲーション"
     >
       {defaultItems.map((item, index) => {

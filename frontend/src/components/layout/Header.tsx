@@ -24,9 +24,9 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, userEmail, breadcrumbs
         </div>
       </div>
       {(subtitle || breadcrumbs) && (
-        <div className="h-10 flex items-center border-t border-gray-100">
+        <div className="h-8 flex items-center border-t border-gray-100">
           {breadcrumbs ? (
-            <BreadcrumbNav items={breadcrumbs} showHome={false} className="text-xs" />
+            <BreadcrumbNav items={breadcrumbs} showHome={false} />
           ) : (
             subtitle && <p className="text-xs text-gray-500">{subtitle}</p>
           )}

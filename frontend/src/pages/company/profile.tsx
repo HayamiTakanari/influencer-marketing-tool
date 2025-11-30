@@ -159,6 +159,7 @@ const CompanyProfilePage: React.FC = () => {
   };
 
   const breadcrumbs: BreadcrumbItem[] = [
+    { label: 'ホーム', href: '/dashboard' },
     { label: '企業プロフィール' }
   ];
 
