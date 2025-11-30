@@ -13,13 +13,13 @@ const updateCompanyProfileSchema = z.object({
   website: z.string().url().optional(),
   description: z.string().max(2000).optional(),
   instagramUrl: z.string().url().optional().nullable(),
-  instagramUserId: z.string().min(1).max(100).optional().nullable(),
+  instagramUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
   tiktokUrl: z.string().url().optional().nullable(),
-  tiktokUserId: z.string().min(1).max(100).optional().nullable(),
+  tiktokUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
   youtubeUrl: z.string().url().optional().nullable(),
-  youtubeUserId: z.string().min(1).max(100).optional().nullable(),
+  youtubeUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
   twitterUrl: z.string().url().optional().nullable(),
-  twitterUserId: z.string().min(1).max(100).optional().nullable(),
+  twitterUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
   bankName: z.string().max(100).optional(),
   branchName: z.string().max(100).optional(),
   accountType: z.string().max(50).optional(),
@@ -92,9 +92,20 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
+    console.log('=== updateCompanyProfile Debug Log ===');
+    console.log('Request body:', req.body);
+
     const data = updateCompanyProfileSchema.parse(req.body);
+    console.log('Parsed and transformed data:', data);
 
     // 企業プロフィールの更新（ない場合は作成）
+    console.log('Upserting company profile with SNS data:', {
+      instagramUserId: data.instagramUserId,
+      tiktokUserId: data.tiktokUserId,
+      youtubeUserId: data.youtubeUserId,
+      twitterUserId: data.twitterUserId,
+    });
+
     const company = await prisma.company.upsert({
       where: { userId },
       update: {
@@ -136,6 +147,13 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
       include: {
         bankAccounts: true,
       },
+    });
+
+    console.log('Company upserted successfully. SNS data saved:', {
+      instagramUserId: company.instagramUserId,
+      tiktokUserId: company.tiktokUserId,
+      youtubeUserId: company.youtubeUserId,
+      twitterUserId: company.twitterUserId,
     });
 
     // 銀行口座情報がある場合は更新または作成
