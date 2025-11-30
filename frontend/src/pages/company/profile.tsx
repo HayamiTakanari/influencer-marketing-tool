@@ -18,6 +18,11 @@ const CompanyProfilePage: React.FC = () => {
     address: '',
     website: '',
     description: '',
+    instagramUrl: '',
+    tiktokUrl: '',
+    youtubeUrl: '',
+    twitterUrl: '',
+    lineUrl: '',
     bankName: '',
     branchName: '',
     accountType: '',
@@ -64,6 +69,11 @@ const CompanyProfilePage: React.FC = () => {
             address: profileData.address || '',
             website: profileData.website || '',
             description: profileData.description || '',
+            instagramUrl: profileData.instagramUrl || '',
+            tiktokUrl: profileData.tiktokUrl || '',
+            youtubeUrl: profileData.youtubeUrl || '',
+            twitterUrl: profileData.twitterUrl || '',
+            lineUrl: profileData.lineUrl || '',
             bankName: bankAccount?.bankName || '',
             branchName: bankAccount?.branchName || '',
             accountType: bankAccount?.accountType || '',
@@ -107,6 +117,11 @@ const CompanyProfilePage: React.FC = () => {
           address: formData.address,
           website: formData.website,
           description: formData.description,
+          instagramUrl: formData.instagramUrl || '',
+          tiktokUrl: formData.tiktokUrl || '',
+          youtubeUrl: formData.youtubeUrl || '',
+          twitterUrl: formData.twitterUrl || '',
+          lineUrl: formData.lineUrl || '',
           bankName: formData.bankName,
           branchName: formData.branchName,
           accountType: formData.accountType,
@@ -216,14 +231,30 @@ const CompanyProfilePage: React.FC = () => {
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Webサイト</label>
-              <input
-                type="url"
-                name="website"
-                value={formData.website}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-              />
+              {isEditing ? (
+                <input
+                  type="url"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                />
+              ) : (
+                <div>
+                  {formData.website ? (
+                    <a
+                      href={formData.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 hover:underline break-all text-sm"
+                    >
+                      {formData.website}
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 text-sm">未設定</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">概要</label>
@@ -235,6 +266,123 @@ const CompanyProfilePage: React.FC = () => {
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
               />
+            </div>
+          </div>
+        </Card>
+
+        {/* SNS Accounts */}
+        <Card>
+          <h4 className="font-semibold text-gray-900 mb-3">SNS・その他アカウント</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Instagram</label>
+              <input
+                type="url"
+                name="instagramUrl"
+                placeholder="https://instagram.com/..."
+                value={formData.instagramUrl}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+              />
+              {!isEditing && formData.instagramUrl && (
+                <a
+                  href={formData.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
+                >
+                  リンクを開く
+                </a>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">TikTok</label>
+              <input
+                type="url"
+                name="tiktokUrl"
+                placeholder="https://tiktok.com/..."
+                value={formData.tiktokUrl}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+              />
+              {!isEditing && formData.tiktokUrl && (
+                <a
+                  href={formData.tiktokUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
+                >
+                  リンクを開く
+                </a>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">YouTube</label>
+              <input
+                type="url"
+                name="youtubeUrl"
+                placeholder="https://youtube.com/..."
+                value={formData.youtubeUrl}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+              />
+              {!isEditing && formData.youtubeUrl && (
+                <a
+                  href={formData.youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
+                >
+                  リンクを開く
+                </a>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Twitter / X</label>
+              <input
+                type="url"
+                name="twitterUrl"
+                placeholder="https://twitter.com/..."
+                value={formData.twitterUrl}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+              />
+              {!isEditing && formData.twitterUrl && (
+                <a
+                  href={formData.twitterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
+                >
+                  リンクを開く
+                </a>
+              )}
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">LINE</label>
+              <input
+                type="url"
+                name="lineUrl"
+                placeholder="https://line.me/..."
+                value={formData.lineUrl}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
+              />
+              {!isEditing && formData.lineUrl && (
+                <a
+                  href={formData.lineUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-1 block"
+                >
+                  リンクを開く
+                </a>
+              )}
             </div>
           </div>
         </Card>
