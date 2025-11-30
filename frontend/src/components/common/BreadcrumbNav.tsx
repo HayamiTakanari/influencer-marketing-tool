@@ -26,7 +26,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = React.memo(({
 
   return (
     <nav
-      className={`flex items-center gap-2 text-xs ${className}`}
+      className={`flex items-center gap-0 text-xs ${className}`}
       aria-label="ブレッドクラムナビゲーション"
     >
       {defaultItems.map((item, index) => {
@@ -34,9 +34,9 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = React.memo(({
         const isFirst = index === 0;
 
         return (
-          <div key={`${item.label}-${index}`} className="flex items-center gap-2">
+          <div key={`${item.label}-${index}`} className="flex items-center gap-0">
             {!isFirst && (
-              <span className="text-gray-400 mx-1">/</span>
+              <span className="text-gray-400 px-1">/</span>
             )}
 
             {isLast ? (

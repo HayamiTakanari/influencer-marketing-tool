@@ -11,27 +11,24 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ title, subtitle, userEmail, breadcrumbs }) => {
   return (
-    <header className="bg-white border-b border-gray-200 px-6 sticky top-0 z-30">
-      <div className="h-12 flex items-center justify-between">
-        <div className="flex-1">
-          {title && <h2 className="text-base font-semibold text-gray-900">{title}</h2>}
+    <header className="bg-white border-b border-gray-200 px-6 py-2 sticky top-0 z-30">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {title && <h2 className="text-sm font-semibold text-gray-900 whitespace-nowrap">{title}</h2>}
+          {breadcrumbs && (
+            <div className="text-gray-400">/</div>
+          )}
+          {breadcrumbs && (
+            <BreadcrumbNav items={breadcrumbs} showHome={false} />
+          )}
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 flex-shrink-0">
           <NotificationBell />
           {userEmail && (
             <span className="text-sm text-gray-600">{userEmail}</span>
           )}
         </div>
       </div>
-      {(subtitle || breadcrumbs) && (
-        <div className="h-8 flex items-center border-t border-gray-100">
-          {breadcrumbs ? (
-            <BreadcrumbNav items={breadcrumbs} showHome={false} />
-          ) : (
-            subtitle && <p className="text-xs text-gray-500">{subtitle}</p>
-          )}
-        </div>
-      )}
     </header>
   );
 };
