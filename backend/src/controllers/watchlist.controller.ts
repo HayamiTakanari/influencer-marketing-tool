@@ -171,7 +171,6 @@ export const getWatchlist = async (req: Request, res: Response) => {
             status: true,
             startDate: true,
             endDate: true,
-            isPublic: true,
           },
         },
       },

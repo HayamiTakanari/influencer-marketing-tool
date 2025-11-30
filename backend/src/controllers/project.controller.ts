@@ -65,7 +65,6 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
 
     const where: any = {
       status: 'PENDING',
-      isPublic: true, // インフルエンサーは公開プロジェクトのみ表示
       AND: [
         {
           OR: [
@@ -1320,7 +1319,6 @@ export const copyProject = async (req: Request, res: Response) => {
         category: originalProject.category,
         budget: originalProject.budget,
         status: 'PENDING',
-        isPublic: originalProject.isPublic,
         targetPlatforms: originalProject.targetPlatforms,
         targetPrefecture: originalProject.targetPrefecture,
         targetCity: originalProject.targetCity || undefined,
@@ -1392,7 +1390,7 @@ export const unpublishProject = async (req: Request, res: Response) => {
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
       data: {
-        isPublic: false,
+        status: 'CANCELLED',
       },
       include: {
         client: {

@@ -369,7 +369,6 @@ model Project {
   targetFollowerMin Int?
   targetFollowerMax Int?
   status            ProjectStatus @default(PENDING)
-  isPublic          Boolean       @default(true) // Chapter 2-3: 公開・非公開設定
   startDate         DateTime?
   endDate           DateTime?
   createdAt         DateTime      @default(now())
