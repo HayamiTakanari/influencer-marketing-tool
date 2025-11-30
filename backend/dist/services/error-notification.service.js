@@ -1,0 +1,452 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.errorNotificationService = void 0;
+const nodemailer_1 = __importDefault(require("nodemailer"));
+const sentry_1 = require("../config/sentry");
+class ErrorNotificationService {
+    constructor() {
+        this.config = {
+            channels: [
+                {
+                    name: 'email',
+                    enabled: Boolean(process.env.SMTP_HOST),
+                    config: {
+                        smtpHost: process.env.SMTP_HOST,
+                        smtpPort: Number(process.env.SMTP_PORT) || 587,
+                        smtpUser: process.env.SMTP_USER,
+                        smtpPass: process.env.SMTP_PASS,
+                        from: process.env.ERROR_NOTIFICATION_FROM || process.env.SMTP_USER,
+                        recipients: (process.env.ERROR_NOTIFICATION_RECIPIENTS || '').split(',').filter(Boolean),
+                    }
+                },
+                {
+                    name: 'slack',
+                    enabled: Boolean(process.env.SLACK_ERROR_WEBHOOK_URL),
+                    config: {
+                        webhookUrl: process.env.SLACK_ERROR_WEBHOOK_URL,
+                        channel: process.env.SLACK_ERROR_CHANNEL || '#errors',
+                        username: 'Error Bot',
+                    }
+                },
+                {
+                    name: 'webhook',
+                    enabled: Boolean(process.env.ERROR_WEBHOOK_URL),
+                    config: {
+                        url: process.env.ERROR_WEBHOOK_URL,
+                        secret: process.env.ERROR_WEBHOOK_SECRET,
+                    }
+                }
+            ],
+            thresholds: {
+                immediate: ['CRITICAL', 'HIGH'],
+                batched: ['MEDIUM'],
+                suppressed: ['LOW'],
+            },
+            rateLimit: {
+                maxNotificationsPerHour: 10,
+                maxNotificationsPerDay: 50,
+                cooldownPeriod: 300, // 5分
+            },
+            filters: {
+                excludeEndpoints: ['/health', '/favicon.ico'],
+                excludeUserAgents: ['Googlebot', 'bingbot', 'Slackbot'],
+                includeOnlyEnvironments: ['production', 'staging'],
+            }
+        };
+        this.notificationCounts = new Map();
+        this.recentErrors = new Map();
+    }
+    /**
+     * エラー通知の送信
+     */
+    async sendErrorNotification(incident) {
+        try {
+            // フィルタリングチェック
+            if (!this.shouldNotify(incident)) {
+                return;
+            }
+            // レート制限チェック
+            if (!this.checkRateLimit(incident)) {
+                console.warn(`Rate limit exceeded for error notifications: ${incident.type}`);
+                return;
+            }
+            // 重複通知の防止
+            if (!this.checkCooldown(incident)) {
+                console.warn(`Cooldown period active for error: ${incident.type}`);
+                return;
+            }
+            // 即座に通知すべきかバッチ処理にするかを判定
+            const shouldSendImmediate = this.config.thresholds.immediate.includes(incident.severity);
+            if (shouldSendImmediate) {
+                await this.sendImmediateNotification(incident);
+            }
+            else if (this.config.thresholds.batched.includes(incident.severity)) {
+                await this.addToBatchQueue(incident);
+            }
+            // 通知カウントの更新
+            this.updateNotificationCounts(incident);
+            this.updateLastNotificationTime(incident);
+        }
+        catch (error) {
+            console.error('Failed to send error notification:', error);
+            (0, sentry_1.captureError)(error, {
+                tags: { category: 'notification', issue: 'send_failure' },
+                level: 'warning'
+            });
+        }
+    }
+    /**
+     * 即座に通知を送信
+     */
+    async sendImmediateNotification(incident) {
+        const promises = this.config.channels
+            .filter(channel => channel.enabled)
+            .map(channel => this.sendToChannel(channel, incident));
+        await Promise.allSettled(promises);
+    }
+    /**
+     * 指定されたチャンネルに通知を送信
+     */
+    async sendToChannel(channel, incident) {
+        try {
+            switch (channel.name) {
+                case 'email':
+                    await this.sendEmailNotification(incident, channel.config);
+                    break;
+                case 'slack':
+                    await this.sendSlackNotification(incident, channel.config);
+                    break;
+                case 'webhook':
+                    await this.sendWebhookNotification(incident, channel.config);
+                    break;
+                default:
+                    console.warn(`Unknown notification channel: ${channel.name}`);
+            }
+        }
+        catch (error) {
+            console.error(`Failed to send notification to ${channel.name}:`, error);
+        }
+    }
+    /**
+     * メール通知の送信
+     */
+    async sendEmailNotification(incident, config) {
+        if (!config.recipients?.length)
+            return;
+        const transporter = nodemailer_1.default.createTransport({
+            host: config.smtpHost,
+            port: config.smtpPort,
+            secure: config.smtpPort === 465,
+            auth: {
+                user: config.smtpUser,
+                pass: config.smtpPass,
+            },
+        });
+        const subject = `🚨 ${incident.severity} Error - ${incident.type} (${incident.environment})`;
+        const htmlBody = this.createEmailBody(incident);
+        await transporter.sendMail({
+            from: config.from,
+            to: config.recipients.join(','),
+            subject,
+            html: htmlBody,
+        });
+        console.log(`Error notification email sent for incident: ${incident.id}`);
+    }
+    /**
+     * Slack通知の送信
+     */
+    async sendSlackNotification(incident, config) {
+        const fetch = (await Promise.resolve().then(() => __importStar(require('node-fetch')))).default;
+        const payload = {
+            channel: config.channel,
+            username: config.username,
+            icon_emoji: this.getSeverityEmoji(incident.severity),
+            attachments: [
+                {
+                    color: this.getSeverityColor(incident.severity),
+                    title: `${incident.severity} Error: ${incident.type}`,
+                    fields: [
+                        {
+                            title: 'Environment',
+                            value: incident.environment,
+                            short: true,
+                        },
+                        {
+                            title: 'Endpoint',
+                            value: `${incident.method} ${incident.endpoint}`,
+                            short: true,
+                        },
+                        {
+                            title: 'User ID',
+                            value: incident.userId || 'Anonymous',
+                            short: true,
+                        },
+                        {
+                            title: 'IP Address',
+                            value: incident.ipAddress,
+                            short: true,
+                        },
+                        {
+                            title: 'Message',
+                            value: incident.message,
+                            short: false,
+                        },
+                        {
+                            title: 'Timestamp',
+                            value: incident.timestamp.toISOString(),
+                            short: true,
+                        },
+                    ],
+                    footer: 'Error Monitoring System',
+                    ts: Math.floor(incident.timestamp.getTime() / 1000),
+                }
+            ]
+        };
+        if (incident.sentryId) {
+            payload.attachments[0].fields.push({
+                title: 'Sentry ID',
+                value: incident.sentryId,
+                short: true,
+            });
+        }
+        await fetch(config.webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        console.log(`Error notification sent to Slack for incident: ${incident.id}`);
+    }
+    /**
+     * Webhook通知の送信
+     */
+    async sendWebhookNotification(incident, config) {
+        const fetch = (await Promise.resolve().then(() => __importStar(require('node-fetch')))).default;
+        const crypto = await Promise.resolve().then(() => __importStar(require('crypto')));
+        const payload = JSON.stringify(incident);
+        const headers = { 'Content-Type': 'application/json' };
+        if (config.secret) {
+            const signature = crypto
+                .createHmac('sha256', config.secret)
+                .update(payload)
+                .digest('hex');
+            headers['X-Signature'] = `sha256=${signature}`;
+        }
+        await fetch(config.url, {
+            method: 'POST',
+            headers,
+            body: payload,
+        });
+        console.log(`Error notification sent to webhook for incident: ${incident.id}`);
+    }
+    /**
+     * バッチキューへの追加
+     */
+    async addToBatchQueue(incident) {
+        // 実装例：Redis、データベース、またはin-memoryキュー
+        console.log(`Added to batch queue: ${incident.id}`);
+        // TODO: 実際のキュー実装
+    }
+    /**
+     * 通知すべきかどうかの判定
+     */
+    shouldNotify(incident) {
+        const { filters } = this.config;
+        // 環境フィルタ
+        if (filters.includeOnlyEnvironments?.length) {
+            if (!filters.includeOnlyEnvironments.includes(incident.environment)) {
+                return false;
+            }
+        }
+        // エンドポイントフィルタ
+        if (filters.excludeEndpoints?.some(endpoint => incident.endpoint.includes(endpoint))) {
+            return false;
+        }
+        // UserAgentフィルタ
+        if (incident.userAgent && filters.excludeUserAgents?.some(ua => incident.userAgent.includes(ua))) {
+            return false;
+        }
+        // IPアドレスフィルタ
+        if (filters.excludeIPs?.includes(incident.ipAddress)) {
+            return false;
+        }
+        // 抑制対象のセベリティレベル
+        if (this.config.thresholds.suppressed.includes(incident.severity)) {
+            return false;
+        }
+        return true;
+    }
+    /**
+     * レート制限のチェック
+     */
+    checkRateLimit(incident) {
+        const key = `${incident.environment}-${incident.type}`;
+        const now = new Date();
+        if (!this.notificationCounts.has(key)) {
+            this.notificationCounts.set(key, {
+                hourly: 0,
+                daily: 0,
+                lastReset: now,
+            });
+            return true;
+        }
+        const counts = this.notificationCounts.get(key);
+        const hoursSinceReset = (now.getTime() - counts.lastReset.getTime()) / (1000 * 60 * 60);
+        // 1時間ごとにリセット
+        if (hoursSinceReset >= 1) {
+            counts.hourly = 0;
+            counts.lastReset = now;
+        }
+        // 24時間ごとにリセット
+        if (hoursSinceReset >= 24) {
+            counts.daily = 0;
+        }
+        return counts.hourly < this.config.rateLimit.maxNotificationsPerHour &&
+            counts.daily < this.config.rateLimit.maxNotificationsPerDay;
+    }
+    /**
+     * クールダウン期間のチェック
+     */
+    checkCooldown(incident) {
+        const key = `${incident.type}-${incident.endpoint}`;
+        const lastNotification = this.recentErrors.get(key);
+        if (!lastNotification)
+            return true;
+        const timeSinceLastNotification = (Date.now() - lastNotification.getTime()) / 1000;
+        return timeSinceLastNotification >= this.config.rateLimit.cooldownPeriod;
+    }
+    /**
+     * 通知カウントの更新
+     */
+    updateNotificationCounts(incident) {
+        const key = `${incident.environment}-${incident.type}`;
+        const counts = this.notificationCounts.get(key);
+        if (counts) {
+            counts.hourly++;
+            counts.daily++;
+        }
+    }
+    /**
+     * 最後の通知時刻の更新
+     */
+    updateLastNotificationTime(incident) {
+        const key = `${incident.type}-${incident.endpoint}`;
+        this.recentErrors.set(key, new Date());
+    }
+    /**
+     * メール本文の作成
+     */
+    createEmailBody(incident) {
+        return `
+      <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <h2 style="color: ${this.getSeverityColor(incident.severity)}; margin-top: 0;">
+              🚨 ${incident.severity} Error Alert
+            </h2>
+            
+            <div style="background: white; padding: 15px; border-radius: 4px; margin: 15px 0;">
+              <h3>Error Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="font-weight: bold; padding: 5px;">Type:</td><td style="padding: 5px;">${incident.type}</td></tr>
+                <tr><td style="font-weight: bold; padding: 5px;">Message:</td><td style="padding: 5px;">${incident.message}</td></tr>
+                <tr><td style="font-weight: bold; padding: 5px;">Environment:</td><td style="padding: 5px;">${incident.environment}</td></tr>
+                <tr><td style="font-weight: bold; padding: 5px;">Endpoint:</td><td style="padding: 5px;">${incident.method} ${incident.endpoint}</td></tr>
+                <tr><td style="font-weight: bold; padding: 5px;">User ID:</td><td style="padding: 5px;">${incident.userId || 'Anonymous'}</td></tr>
+                <tr><td style="font-weight: bold; padding: 5px;">IP Address:</td><td style="padding: 5px;">${incident.ipAddress}</td></tr>
+                <tr><td style="font-weight: bold; padding: 5px;">Timestamp:</td><td style="padding: 5px;">${incident.timestamp.toISOString()}</td></tr>
+                ${incident.sentryId ? `<tr><td style="font-weight: bold; padding: 5px;">Sentry ID:</td><td style="padding: 5px;">${incident.sentryId}</td></tr>` : ''}
+              </table>
+            </div>
+
+            ${incident.stack ? `
+            <div style="background: white; padding: 15px; border-radius: 4px; margin: 15px 0;">
+              <h3>Stack Trace</h3>
+              <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">${incident.stack}</pre>
+            </div>
+            ` : ''}
+
+            <div style="background: white; padding: 15px; border-radius: 4px; margin: 15px 0;">
+              <h3>Context</h3>
+              <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">${JSON.stringify(incident.context, null, 2)}</pre>
+            </div>
+
+            <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
+              This is an automated error notification from the Influencer Marketing Tool monitoring system.
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    /**
+     * セベリティに応じた色を取得
+     */
+    getSeverityColor(severity) {
+        const colors = {
+            'LOW': '#28a745',
+            'MEDIUM': '#ffc107',
+            'HIGH': '#fd7e14',
+            'CRITICAL': '#dc3545'
+        };
+        return colors[severity] || '#6c757d';
+    }
+    /**
+     * セベリティに応じた絵文字を取得
+     */
+    getSeverityEmoji(severity) {
+        const emojis = {
+            'LOW': ':information_source:',
+            'MEDIUM': ':warning:',
+            'HIGH': ':exclamation:',
+            'CRITICAL': ':rotating_light:'
+        };
+        return emojis[severity] || ':question:';
+    }
+    /**
+     * バッチ処理（定期実行用）
+     */
+    async processBatchNotifications() {
+        // TODO: バッチキューからアイテムを取得して一括送信
+        console.log('Processing batch notifications...');
+    }
+}
+// シングルトンインスタンス
+exports.errorNotificationService = new ErrorNotificationService();
+exports.default = ErrorNotificationService;
+//# sourceMappingURL=error-notification.service.js.map

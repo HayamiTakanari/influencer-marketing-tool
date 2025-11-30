@@ -87,6 +87,22 @@ export declare class NotificationService {
         type: import(".prisma/client").$Enums.NotificationType;
         readAt: Date | null;
     }>;
+    static createNDAApprovedNotification(clientUserId: string, projectTitle: string, influencerName: string, projectId: string): Promise<{
+        user: {
+            email: string;
+            role: import(".prisma/client").$Enums.UserRole;
+        };
+    } & {
+        message: string;
+        id: string;
+        createdAt: Date;
+        title: string;
+        userId: string;
+        data: import("@prisma/client/runtime/library").JsonValue | null;
+        isRead: boolean;
+        type: import(".prisma/client").$Enums.NotificationType;
+        readAt: Date | null;
+    }>;
     static createMessageReceivedNotification(receiverUserId: string, senderName: string, projectTitle: string, projectId: string): Promise<{
         user: {
             email: string;

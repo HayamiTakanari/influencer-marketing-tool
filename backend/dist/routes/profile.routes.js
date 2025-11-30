@@ -1,0 +1,23 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const profile_controller_1 = require("../controllers/profile.controller");
+const router = (0, express_1.Router)();
+// All routes require authentication
+router.use(auth_1.authenticate);
+// Allow any authenticated user to update their profiles
+// Removed role-based restriction - all authenticated users can access profile endpoints
+router.get('/me', profile_controller_1.getMyProfile);
+router.put('/me', profile_controller_1.updateProfile);
+router.post('/me/complete-registration', profile_controller_1.completeRegistration);
+router.get('/me/completion', profile_controller_1.getProfileCompletion);
+router.post('/social-accounts', profile_controller_1.addSocialAccount);
+router.put('/social-accounts/:id', profile_controller_1.updateSocialAccount);
+router.delete('/social-accounts/:id', profile_controller_1.deleteSocialAccount);
+router.post('/portfolio', profile_controller_1.addPortfolio);
+router.put('/portfolio/:id', profile_controller_1.updatePortfolio);
+router.delete('/portfolio/:id', profile_controller_1.deletePortfolio);
+router.post('/portfolio/:portfolioId/image', profile_controller_1.uploadPortfolioImage);
+exports.default = router;
+//# sourceMappingURL=profile.routes.js.map

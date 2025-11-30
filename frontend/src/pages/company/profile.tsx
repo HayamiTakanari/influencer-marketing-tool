@@ -18,9 +18,6 @@ const CompanyProfilePage: React.FC = () => {
     address: '',
     website: '',
     description: '',
-    budget: 0,
-    targetAudience: '',
-    location: '',
     bankName: '',
     branchName: '',
     accountType: '',
@@ -67,9 +64,6 @@ const CompanyProfilePage: React.FC = () => {
             address: profileData.address || '',
             website: profileData.website || '',
             description: profileData.description || '',
-            budget: profileData.budget || 0,
-            targetAudience: profileData.targetAudience || '',
-            location: profileData.location || '',
             bankName: bankAccount?.bankName || '',
             branchName: bankAccount?.branchName || '',
             accountType: bankAccount?.accountType || '',
@@ -113,9 +107,6 @@ const CompanyProfilePage: React.FC = () => {
           address: formData.address,
           website: formData.website,
           description: formData.description,
-          budget: formData.budget,
-          targetAudience: formData.targetAudience,
-          location: formData.location,
           bankName: formData.bankName,
           branchName: formData.branchName,
           accountType: formData.accountType,
@@ -242,46 +233,6 @@ const CompanyProfilePage: React.FC = () => {
                 onChange={handleInputChange}
                 disabled={!isEditing}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Campaign Information */}
-        <Card>
-          <h4 className="font-semibold text-gray-900 mb-3">キャンペーン情報</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">予算</label>
-              <input
-                type="number"
-                name="budget"
-                value={formData.budget}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">ターゲット</label>
-              <input
-                type="text"
-                name="targetAudience"
-                value={formData.targetAudience}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">地域</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                disabled={!isEditing}
                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-50"
               />
             </div>

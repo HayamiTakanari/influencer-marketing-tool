@@ -63,7 +63,12 @@ export declare class SNSSyncService {
         influencerId: string;
         followerCount: number;
         engagementRate: number | null;
+        isConnected: boolean;
         lastSynced: Date;
+        accessToken: string | null;
+        refreshToken: string | null;
+        tokenExpiresAt: Date | null;
+        platformUserId: string | null;
     }>;
     syncAllInfluencerAccounts(influencerId: string): Promise<{
         total: number;
@@ -80,7 +85,12 @@ export declare class SNSSyncService {
             influencerId: string;
             followerCount: number;
             engagementRate: number | null;
+            isConnected: boolean;
             lastSynced: Date;
+            accessToken: string | null;
+            refreshToken: string | null;
+            tokenExpiresAt: Date | null;
+            platformUserId: string | null;
         }>[];
     }>;
     scheduleSyncForAllInfluencers(): Promise<void>;

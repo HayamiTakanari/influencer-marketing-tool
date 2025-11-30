@@ -12,9 +12,6 @@ const updateCompanyProfileSchema = z.object({
   address: z.string().max(500).optional(),
   website: z.string().url().optional(),
   description: z.string().max(2000).optional(),
-  budget: z.number().min(0).optional(),
-  targetAudience: z.string().max(500).optional(),
-  location: z.string().max(100).optional(),
   bankName: z.string().max(100).optional(),
   branchName: z.string().max(100).optional(),
   accountType: z.string().max(50).optional(),
@@ -84,6 +81,8 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
         industry: data.industry,
         address: data.address,
         phoneNumber: data.contactPhone,
+        website: data.website,
+        description: data.description,
         updatedAt: new Date(),
       },
       create: {
@@ -92,6 +91,8 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
         industry: data.industry,
         address: data.address,
         phoneNumber: data.contactPhone,
+        website: data.website,
+        description: data.description,
       },
       include: {
         bankAccounts: true,

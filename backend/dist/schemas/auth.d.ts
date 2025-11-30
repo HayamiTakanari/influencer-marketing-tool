@@ -3,6 +3,7 @@ export declare const registerSchema: z.ZodObject<{
     email: z.ZodString;
     password: z.ZodString;
     role: z.ZodEnum<{
+        COMPANY: "COMPANY";
         CLIENT: "CLIENT";
         INFLUENCER: "INFLUENCER";
         ADMIN: "ADMIN";
@@ -19,6 +20,7 @@ export declare const userQuerySchema: z.ZodObject<{
     page: z.ZodOptional<z.ZodString>;
     limit: z.ZodOptional<z.ZodString>;
     role: z.ZodOptional<z.ZodEnum<{
+        COMPANY: "COMPANY";
         CLIENT: "CLIENT";
         INFLUENCER: "INFLUENCER";
         ADMIN: "ADMIN";
