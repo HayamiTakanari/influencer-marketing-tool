@@ -76,8 +76,11 @@ const AdminDashboard: React.FC = () => {
 
       const result = await response.json();
 
+      console.log('Admin dashboard API response:', result);
+
       if (result.success && result.data) {
         const data = result.data;
+        console.log('Dashboard recentProjects:', data.recentProjects);
         setStats({
           totalUsers: data.totalUsers || 0,
           totalCompanies: data.totalClients || 0,

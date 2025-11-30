@@ -70,7 +70,11 @@ const AdminProjects: React.FC = () => {
 
       const result = await response.json();
 
+      console.log('Admin projects API response:', result);
+      console.log('Data length:', result.data ? result.data.length : 'No data');
+
       if (result.success && result.data) {
+        console.log('Processing projects, count:', result.data.length);
         const transformedProjects = result.data.map((project: any) => {
           // Map database status to frontend status
           const statusMap: Record<string, 'planning' | 'active' | 'completed' | 'cancelled'> = {
