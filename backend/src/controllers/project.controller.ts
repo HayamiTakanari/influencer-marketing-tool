@@ -628,7 +628,40 @@ const createProjectSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid end date'),
 });
 
-const updateProjectSchema = createProjectSchema.partial();
+// Additional fields for detailed project information
+const detailedProjectFields = z.object({
+  deliverables: z.string().optional(),
+  requirements: z.string().optional(),
+  additionalInfo: z.string().optional(),
+  advertiserName: z.string().optional(),
+  brandName: z.string().optional(),
+  productName: z.string().optional(),
+  productUrl: z.string().optional(),
+  productPrice: z.number().optional(),
+  productFeatures: z.string().optional(),
+  campaignObjective: z.string().optional(),
+  campaignTarget: z.string().optional(),
+  postingPeriodStart: z.string().optional(),
+  postingPeriodEnd: z.string().optional(),
+  postingMedia: z.array(z.string()).optional(),
+  messageToConvey: z.array(z.string()).optional(),
+  shootingAngle: z.string().optional(),
+  packagePhotography: z.string().optional(),
+  productOrientationSpecified: z.string().optional(),
+  musicUsage: z.string().optional(),
+  brandContentSettings: z.string().optional(),
+  advertiserAccount: z.string().optional(),
+  desiredHashtags: z.array(z.string()).optional(),
+  ngItems: z.string().optional(),
+  legalRequirements: z.string().optional(),
+  notes: z.string().optional(),
+  secondaryUsage: z.string().optional(),
+  secondaryUsageScope: z.string().optional(),
+  secondaryUsagePeriod: z.string().optional(),
+  insightDisclosure: z.string().optional(),
+});
+
+const updateProjectSchema = createProjectSchema.partial().merge(detailedProjectFields);
 
 export const createProject = async (req: Request, res: Response) => {
   try {
@@ -946,14 +979,14 @@ export const updateProject = async (req: Request, res: Response) => {
     let startDate, endDate;
     if (data.startDate) {
       startDate = new Date(data.startDate);
-      if (startDate < new Date()) {
-        return res.status(400).json({ error: 'Start date cannot be in the past' });
-      }
     }
     if (data.endDate) {
       endDate = new Date(data.endDate);
     }
-    if (startDate && endDate && startDate >= endDate) {
+    // Only validate end date is after start date if both are provided
+    const dateToCheck = startDate || existingProject.startDate;
+    const endDateToCheck = endDate || existingProject.endDate;
+    if (dateToCheck && endDateToCheck && dateToCheck >= endDateToCheck) {
       return res.status(400).json({ error: 'End date must be after start date' });
     }
 
@@ -980,6 +1013,37 @@ export const updateProject = async (req: Request, res: Response) => {
     if (data.targetFollowerMax !== undefined) updateData.targetFollowerMax = data.targetFollowerMax;
     if (startDate !== undefined) updateData.startDate = startDate;
     if (endDate !== undefined) updateData.endDate = endDate;
+
+    // Add detailed project information fields
+    if (data.deliverables !== undefined) updateData.deliverables = data.deliverables;
+    if (data.requirements !== undefined) updateData.requirements = data.requirements;
+    if (data.additionalInfo !== undefined) updateData.additionalInfo = data.additionalInfo;
+    if (data.advertiserName !== undefined) updateData.advertiserName = data.advertiserName;
+    if (data.brandName !== undefined) updateData.brandName = data.brandName;
+    if (data.productName !== undefined) updateData.productName = data.productName;
+    if (data.productUrl !== undefined) updateData.productUrl = data.productUrl;
+    if (data.productPrice !== undefined) updateData.productPrice = data.productPrice;
+    if (data.productFeatures !== undefined) updateData.productFeatures = data.productFeatures;
+    if (data.campaignObjective !== undefined) updateData.campaignObjective = data.campaignObjective;
+    if (data.campaignTarget !== undefined) updateData.campaignTarget = data.campaignTarget;
+    if (data.postingPeriodStart !== undefined) updateData.postingPeriodStart = data.postingPeriodStart ? new Date(data.postingPeriodStart) : null;
+    if (data.postingPeriodEnd !== undefined) updateData.postingPeriodEnd = data.postingPeriodEnd ? new Date(data.postingPeriodEnd) : null;
+    if (data.postingMedia !== undefined) updateData.postingMedia = data.postingMedia;
+    if (data.messageToConvey !== undefined) updateData.messageToConvey = data.messageToConvey;
+    if (data.shootingAngle !== undefined) updateData.shootingAngle = data.shootingAngle;
+    if (data.packagePhotography !== undefined) updateData.packagePhotography = data.packagePhotography;
+    if (data.productOrientationSpecified !== undefined) updateData.productOrientationSpecified = data.productOrientationSpecified;
+    if (data.musicUsage !== undefined) updateData.musicUsage = data.musicUsage;
+    if (data.brandContentSettings !== undefined) updateData.brandContentSettings = data.brandContentSettings;
+    if (data.advertiserAccount !== undefined) updateData.advertiserAccount = data.advertiserAccount;
+    if (data.desiredHashtags !== undefined) updateData.desiredHashtags = data.desiredHashtags;
+    if (data.ngItems !== undefined) updateData.ngItems = data.ngItems;
+    if (data.legalRequirements !== undefined) updateData.legalRequirements = data.legalRequirements;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+    if (data.secondaryUsage !== undefined) updateData.secondaryUsage = data.secondaryUsage;
+    if (data.secondaryUsageScope !== undefined) updateData.secondaryUsageScope = data.secondaryUsageScope;
+    if (data.secondaryUsagePeriod !== undefined) updateData.secondaryUsagePeriod = data.secondaryUsagePeriod;
+    if (data.insightDisclosure !== undefined) updateData.insightDisclosure = data.insightDisclosure;
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },

@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const createReview = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
-    const { projectId, revieweeId, rating, comment, isPublic } = req.body;
+    const { projectId, revieweeId, rating, comment } = req.body;
 
     if (!projectId || !revieweeId || !rating) {
       return res.status(400).json({ error: '必須項目が不足しています' });
@@ -46,7 +46,6 @@ export const createReview = async (req: Request, res: Response) => {
         revieweeId,
         rating,
         comment: comment || null,
-        isPublic: isPublic !== false,
         influencerId: influencer?.id || null,
         clientId: client?.id || null,
       },
@@ -89,7 +88,6 @@ export const getUserReviews = async (req: Request, res: Response) => {
     const reviews = await prisma.review.findMany({
       where: {
         revieweeId: userId,
-        isPublic: true,
       },
       include: {
         reviewer: { select: { email: true } },
@@ -205,7 +203,6 @@ export const getAverageRating = async (req: Request, res: Response) => {
     const reviews = await prisma.review.findMany({
       where: {
         revieweeId: userId,
-        isPublic: true,
       },
     });
 

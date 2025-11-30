@@ -35,7 +35,6 @@ export const getInfluencerMetrics = async (req: Request, res: Response) => {
     const reviews = await prisma.review.findMany({
       where: {
         revieweeId: userId,
-        isPublic: true,
       },
       select: { rating: true },
     });
@@ -134,7 +133,6 @@ export const getProjectMetrics = async (req: Request, res: Response) => {
         const reviews = await prisma.review.findMany({
           where: {
             revieweeId: influencer.user.id,
-            isPublic: true,
           },
           select: { rating: true },
         });

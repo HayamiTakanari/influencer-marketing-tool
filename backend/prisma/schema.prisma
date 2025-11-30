@@ -375,25 +375,40 @@ model Project {
   updatedAt         DateTime      @updatedAt
 
   // 追加情報（企業が登録する詳細）
-  advertiserName     String?
-  brandName          String?
-  productName        String?
-  productUrl         String?
-  productPrice       Int?
-  productFeatures    String?
-  campaignObjective  String?
-  campaignTarget     String?
-  postingPeriodStart DateTime?
-  postingPeriodEnd   DateTime?
-  postingMedia       String[]  @default([])
-  messageToConvey    String?
-  shootingAngle      String?
-  packagePhotography String?
-  referenceUrl       String?
-  prohibitedMatters  String?
-  hashtagInstruction String?
-  mentionInstruction String?
-  remarks            String?
+  deliverables           String?
+  requirements           String?
+  additionalInfo         String?
+  advertiserName         String?
+  brandName              String?
+  productName            String?
+  productUrl             String?
+  productPrice           Int?
+  productFeatures        String?
+  campaignObjective      String?
+  campaignTarget         String?
+  postingPeriodStart     DateTime?
+  postingPeriodEnd       DateTime?
+  postingMedia           String[]  @default([])
+  messageToConvey        String[]  @default([])
+  shootingAngle          String?
+  packagePhotography     String?
+  productOrientationSpecified String?
+  musicUsage             String?
+  brandContentSettings   String?
+  advertiserAccount      String?
+  desiredHashtags        String[]  @default([])
+  ngItems                String?
+  legalRequirements      String?
+  notes                  String?
+  secondaryUsage         String?
+  secondaryUsageScope    String?
+  secondaryUsagePeriod   String?
+  insightDisclosure      String?
+  referenceUrl           String?
+  prohibitedMatters      String?
+  hashtagInstruction     String?
+  mentionInstruction     String?
+  remarks                String?
 
   // Relations
   client              Client           @relation(fields: [clientId], references: [id])
@@ -434,7 +449,7 @@ model Application {
 model Message {
   id         String   @id @default(cuid())
   projectId  String
-  chatId     String? // Chapter 4: チャット関連
+  // chatId     String? // Chapter 4: チャット関連 - Commented out due to database sync issues
   senderId   String
   receiverId String
   content    String
@@ -443,7 +458,7 @@ model Message {
 
   // Relations
   project  Project @relation(fields: [projectId], references: [id])
-  chat     Chat?   @relation("ChatMessages", fields: [chatId], references: [id], onDelete: SetNull)
+  // chat     Chat?   @relation("ChatMessages", fields: [chatId], references: [id], onDelete: SetNull)  // Commented out due to database sync issues
   sender   User    @relation("sender", fields: [senderId], references: [id])
   receiver User    @relation("receiver", fields: [receiverId], references: [id])
 }
@@ -539,7 +554,7 @@ model Review {
   clientId     String? // If reviewing client
   rating       Int // 1-5 stars
   comment      String?
-  isPublic     Boolean  @default(true)
+  // isPublic     Boolean  @default(true) // Commented out due to database sync issues
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -1060,7 +1075,7 @@ model Chat {
 
   // Relations
   project   Project   @relation("ProjectChats", fields: [projectId], references: [id], onDelete: Cascade)
-  messages  Message[] @relation("ChatMessages")
+  // messages  Message[] @relation("ChatMessages") // Commented out due to database sync issues
 
   @@unique([projectId, participantId])
   @@index([projectId])

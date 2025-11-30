@@ -42,7 +42,9 @@ const ProjectPreviewPage: React.FC = () => {
     const fetchProject = async () => {
       try {
         const response = await api.get(`/projects/${id}`);
-        setProject(response.data);
+        // Handle both { project: {...} } and direct {...} response formats
+        const projectData = response.data.project || response.data;
+        setProject(projectData);
       } catch (error) {
         handleError(error, 'プロジェクト情報の取得に失敗しました');
         router.push('/company/projects/list');
@@ -131,7 +133,7 @@ const ProjectPreviewPage: React.FC = () => {
                 <div>
                   <label className="text-sm text-gray-600">予算</label>
                   <p className="text-gray-900 font-medium text-lg">
-                    ¥{project.budget.toLocaleString('ja-JP')}
+                    ¥{project.budget ? project.budget.toLocaleString('ja-JP') : '-'}
                   </p>
                 </div>
                 <div>
