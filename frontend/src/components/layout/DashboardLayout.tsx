@@ -19,12 +19,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title, subt
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    
+
     if (!userData || !token) {
       router.push('/login');
       return;
     }
-    
+
     setUser(JSON.parse(userData));
   }, [router]);
 
@@ -32,6 +32,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title, subt
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     router.push('/login');
+  };
+
+  // Auto-generate breadcrumbs from title if not provided
+  const getDefaultBreadcrumbs = (): BreadcrumbItem[] => {
+    if (breadcrumbs) return breadcrumbs;
+    if (!title) return [];
+    return [{ label: title }];
   };
 
   if (!user) {
@@ -58,7 +65,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, title, subt
       {/* メインコンテンツ */}
       <main className={`transition-all duration-200 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {/* トップバー */}
-        <Header title={title} subtitle={subtitle} breadcrumbs={breadcrumbs} />
+        <Header title={title} subtitle={subtitle} breadcrumbs={getDefaultBreadcrumbs()} />
 
         {/* コンテンツエリア */}
         <div className="p-4">
