@@ -171,7 +171,7 @@ const CompanyProfilePage: React.FC = () => {
 
   return (
     <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理">
-      <div className="max-w-2xl space-y-4">
+      <div className="w-full space-y-4">
         {/* Header with Edit/Save/Cancel Buttons */}
         <div className="flex items-center justify-between">
           <div>
