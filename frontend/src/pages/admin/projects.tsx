@@ -5,7 +5,6 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
-import { supabase } from '../../lib/supabase';
 
 interface Project {
   id: string;
@@ -46,60 +45,42 @@ const AdminProjects: React.FC = () => {
 
   const fetchProjects = async () => {
     try {
-      // Fetch all projects from Supabase
-      const { data: projectsData } = await supabase
-        .from('Project')
-        .select('id, title, budget, status, clientId, matchedInfluencerId, startDate, endDate, createdAt')
-        .order('createdAt', { ascending: false });
+      setLoading(true);
+      const token = localStorage.getItem('token');
 
-      // Map projects with client and influencer details
-      const enrichedProjects = await Promise.all(
-        (projectsData || []).map(async (project) => {
-          let company = 'Unknown';
-          let influencer = 'Not assigned';
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/projects`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-          if (project.clientId) {
-            const { data: clientData } = await supabase
-              .from('Client')
-              .select('companyName')
-              .eq('id', project.clientId)
-              .single();
-            company = clientData?.companyName || 'Unknown';
-          }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-          if (project.matchedInfluencerId) {
-            const { data: influencerData } = await supabase
-              .from('Influencer')
-              .select('displayName')
-              .eq('id', project.matchedInfluencerId)
-              .single();
-            influencer = influencerData?.displayName || 'Not assigned';
-          }
+      const result = await response.json();
 
-          // Map status to lowercase for filtering
-          const statusMap: Record<string, 'planning' | 'active' | 'completed' | 'cancelled'> = {
-            'PENDING': 'planning',
-            'MATCHED': 'active',
-            'IN_PROGRESS': 'active',
-            'COMPLETED': 'completed',
-            'CANCELLED': 'cancelled',
-          };
-
-          return {
-            id: project.id,
-            title: project.title,
-            company,
-            influencer,
-            budget: project.budget || 0,
-            status: statusMap[project.status] || 'planning',
-            progress: project.status === 'COMPLETED' ? 100 : project.status === 'IN_PROGRESS' ? 60 : 10,
-            startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '未定',
-            endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '未定',
-          };
-        })
-      );
-
-      setProjects(enrichedProjects);
+      if (result.success && result.data) {
+        const transformedProjects = result.data.map((project: any) => ({
+          id: project.id,
+          title: project.title,
+          company: project.client || project.clientName || 'Unknown',
+          influencer: project.influencer || project.influencerName || 'Not assigned',
+          budget: project.budget || 0,
+          status: (project.status || 'planning').toLowerCase() as 'planning' | 'active' | 'completed' | 'cancelled',
+          progress:
+            project.status === 'COMPLETED' || project.status === 'completed' ? 100 :
+            project.status === 'IN_PROGRESS' || project.status === 'active' ? 60 :
+            10,
+          startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '未定',
+          endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '未定',
+        }));
+        setProjects(transformedProjects);
+      } else {
+        setProjects([]);
+      }
     } catch (error) {
       console.error('Error fetching projects:', error);
       setProjects([]);
