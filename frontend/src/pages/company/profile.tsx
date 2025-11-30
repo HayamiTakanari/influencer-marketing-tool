@@ -3,7 +3,8 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import LoadingState from '../../components/common/LoadingState';
 import Card from '../../components/shared/Card';
-import { FaInstagram, FaTiktok, FaYoutube, FaXTwitter, FaLine } from 'react-icons/fa';
+import { FaInstagram, FaTiktok, FaYoutube, FaLine } from 'react-icons/fa';
+import { SiX } from 'react-icons/si';
 
 const CompanyProfilePage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -348,7 +349,7 @@ const CompanyProfilePage: React.FC = () => {
             {/* X (formerly Twitter) */}
             <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
-                <FaXTwitter className="text-gray-900" size={24} />
+                <SiX className="text-gray-900" size={24} />
                 <h5 className="font-semibold text-gray-900">X</h5>
               </div>
               <div>
