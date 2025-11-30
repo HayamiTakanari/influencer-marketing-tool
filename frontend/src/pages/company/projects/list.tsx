@@ -112,12 +112,14 @@ const ProjectListPage: React.FC = () => {
             }
           })()
         ]);
-        setProjects(projectsData || []);
+        // Handle both array and object responses
+        const projectsArray = Array.isArray(projectsData) ? projectsData : (projectsData?.projects || []);
+        setProjects(projectsArray);
         setApplications(applicationsData || []);
 
         // Extract unique categories and platforms from projects
-        const uniqueCategories = [...new Set((projectsData || []).map(p => p.category))];
-        const uniquePlatforms = [...new Set((projectsData || []).flatMap(p => p.targetPlatforms))];
+        const uniqueCategories = [...new Set(projectsArray.map(p => p.category))];
+        const uniquePlatforms = [...new Set(projectsArray.flatMap(p => p.targetPlatforms))];
         setCategories(uniqueCategories);
         setPlatforms(uniquePlatforms);
       } catch (error) {
