@@ -178,13 +178,11 @@ model Company {
   tiktokUrl          String?
   youtubeUrl         String?
   twitterUrl         String?
-  lineUrl            String?
   // SNS Accounts - User IDs
   instagramUserId    String?
   tiktokUserId       String?
   youtubeUserId      String?
   twitterUserId      String?
-  lineUserId         String?
   isVerified         Boolean    @default(false)
   verifiedAt         DateTime?
   status             UserStatus @default(PROVISIONAL)

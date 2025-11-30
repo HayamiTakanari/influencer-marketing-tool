@@ -28,8 +28,6 @@ const CompanyProfilePage: React.FC = () => {
     youtubeUserId: '',
     twitterUrl: '',
     twitterUserId: '',
-    lineUrl: '',
-    lineUserId: '',
     bankName: '',
     branchName: '',
     accountType: '',

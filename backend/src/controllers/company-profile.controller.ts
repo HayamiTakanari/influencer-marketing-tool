@@ -20,8 +20,6 @@ const updateCompanyProfileSchema = z.object({
   youtubeUserId: z.string().max(100).optional().or(z.literal('')),
   twitterUrl: z.string().url().optional().or(z.literal('')),
   twitterUserId: z.string().max(100).optional().or(z.literal('')),
-  lineUrl: z.string().url().optional().or(z.literal('')),
-  lineUserId: z.string().max(100).optional().or(z.literal('')),
   bankName: z.string().max(100).optional(),
   branchName: z.string().max(100).optional(),
   accountType: z.string().max(50).optional(),
@@ -102,8 +100,6 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
         youtubeUserId: data.youtubeUserId || null,
         twitterUrl: data.twitterUrl || null,
         twitterUserId: data.twitterUserId || null,
-        lineUrl: data.lineUrl || null,
-        lineUserId: data.lineUserId || null,
         updatedAt: new Date(),
       },
       create: {
@@ -123,8 +119,6 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
         youtubeUserId: data.youtubeUserId || null,
         twitterUrl: data.twitterUrl || null,
         twitterUserId: data.twitterUserId || null,
-        lineUrl: data.lineUrl || null,
-        lineUserId: data.lineUserId || null,
       },
       include: {
         bankAccounts: true,
