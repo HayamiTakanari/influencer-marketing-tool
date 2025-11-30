@@ -71,12 +71,18 @@ const OpportunitiesPage: React.FC = () => {
       try {
         // Get available projects for influencer
         const response = await api.get('/projects/available');
-        setProjects(response.data.projects || []);
+        console.log('Projects API response:', response.data);
+        const projectsList = response.data.projects || [];
+        console.log('Projects to display:', projectsList);
+        setProjects(projectsList);
 
         // Get unique categories
-        const uniqueCategories = [...new Set(response.data.projects.map((p: any) => p.category))];
-        setCategories(uniqueCategories as string[]);
+        if (projectsList.length > 0) {
+          const uniqueCategories = [...new Set(projectsList.map((p: any) => p.category))];
+          setCategories(uniqueCategories as string[]);
+        }
       } catch (error) {
+        console.error('Failed to fetch projects:', error);
         handleError(error, '案件一覧の取得に失敗しました');
       } finally {
         setLoading(false);

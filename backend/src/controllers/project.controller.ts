@@ -59,8 +59,8 @@ export const getAvailableProjects = async (req: Request, res: Response) => {
         ]
       };
     } else {
-      // 連携していない場合はプラットフォーム指定なしの案件のみ
-      platformFilter = { targetPlatforms: { isEmpty: true } };
+      // 連携していない場合はすべての案件を表示（プラットフォーム制限なし）
+      platformFilter = {}; // No platform filter for influencers without connected accounts
     }
 
     const where: any = {

@@ -214,21 +214,30 @@ const InfluencerDashboardPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Link href="/influencer/opportunities">
               <div className="p-4 border-2 border-emerald-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-colors cursor-pointer">
-                <div className="text-3xl mb-2">🔍</div>
+                <svg className="w-6 h-6 text-emerald-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
                 <h4 className="font-semibold text-gray-900 text-sm">プロジェクトを探す</h4>
                 <p className="text-xs text-gray-600 mt-1">新しい案件を見つけましょう</p>
               </div>
             </Link>
             <Link href="/influencer/profile">
               <div className="p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer">
-                <div className="text-3xl mb-2">👤</div>
+                <svg className="w-6 h-6 text-blue-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
                 <h4 className="font-semibold text-gray-900 text-sm">プロフィール更新</h4>
                 <p className="text-xs text-gray-600 mt-1">情報を最新に保ちましょう</p>
               </div>
             </Link>
             <Link href="/influencer/analytics">
               <div className="p-4 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer">
-                <div className="text-3xl mb-2">📊</div>
+                <svg className="w-6 h-6 text-purple-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <line x1="12" y1="2" x2="12" y2="22"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
                 <h4 className="font-semibold text-gray-900 text-sm">分析を見る</h4>
                 <p className="text-xs text-gray-600 mt-1">パフォーマンスを確認</p>
               </div>
