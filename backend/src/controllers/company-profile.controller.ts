@@ -115,7 +115,7 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
     if (data.companyName !== undefined) updateData.companyName = data.companyName;
     if (data.industry !== undefined) updateData.industry = data.industry;
     if (data.contactName !== undefined) updateData.contactName = data.contactName;
-    if (data.contactPhone !== undefined) updateData.contactPhone = data.contactPhone;
+    if (data.contactPhone !== undefined) updateData.phoneNumber = data.contactPhone;
     if (data.address !== undefined) updateData.address = data.address;
     if (data.website !== undefined) updateData.website = data.website;
     if (data.description !== undefined) updateData.description = data.description;
