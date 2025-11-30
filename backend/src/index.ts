@@ -46,6 +46,17 @@ import ndaRoutes from './routes/nda.routes';
 import submissionRoutes from './routes/submission.routes';
 import chapter1Routes from './routes/chapter1-registration.routes';
 import tikTokAuthRoutes from './routes/tiktok-auth.routes';
+import watchlistRoutes from './routes/watchlist.routes';
+import favoritesRoutes from './routes/favorites.routes';
+import reviewRoutes from './routes/review.routes';
+import contractRoutes from './routes/contract.routes';
+import invoiceRoutes from './routes/invoice.routes';
+import scoutRoutes from './routes/scout.routes';
+import performanceRoutes from './routes/performance.routes';
+import securityMonitoringRoutes from './routes/security-monitoring.routes';
+import reportRoutes from './routes/report.routes';
+import adminManagementRoutes from './routes/admin-management.routes';
+import legalComplianceRoutes from './routes/legal-compliance.routes';
 
 dotenv.config();
 
@@ -179,6 +190,17 @@ app.use('/api/nda', ndaRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/chapter1', chapter1Routes);
 app.use('/api/sns', tikTokAuthRoutes);
+app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/favorites', favoritesRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/contracts', contractRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/scouts', scoutRoutes);
+app.use('/api/performance', performanceRoutes);
+app.use('/api/security', securityMonitoringRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/admin-management', adminManagementRoutes);
+app.use('/api/legal', legalComplianceRoutes);
 
 app.use('/uploads', express.static('uploads'));
 

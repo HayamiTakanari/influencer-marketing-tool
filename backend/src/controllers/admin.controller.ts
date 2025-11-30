@@ -278,7 +278,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
       role: u.role,
       status: u.isVerified ? 'active' : 'inactive',
       createdAt: u.createdAt.toISOString().split('T')[0],
-      lastLogin: u.lastLogin ? u.lastLogin.toISOString().split('T')[0] : 'N/A',
+      lastLogin: u.lastLoginAt ? u.lastLoginAt.toISOString().split('T')[0] : 'N/A',
     }));
 
     res.json({ users: formattedUsers });

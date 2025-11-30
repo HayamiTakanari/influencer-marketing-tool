@@ -18,6 +18,8 @@ import {
   getCompanyProjects,
   getMatchedProjects,
   copyProject,
+  unpublishProject,
+  endProject,
 } from '../controllers/project.controller';
 import {
   getProjectSchedule,
@@ -86,5 +88,11 @@ router.delete('/:projectId', deleteProject);
 
 // Copy project (for clients)
 router.post('/:projectId/copy', copyProject);
+
+// Unpublish project (for clients) - Chapter 2-8
+router.put('/:projectId/unpublish', unpublishProject);
+
+// End project (for clients) - Chapter 2-8
+router.put('/:projectId/end', endProject);
 
 export default router;

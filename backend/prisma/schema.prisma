@@ -150,6 +150,13 @@ model User {
   emailTokens         EmailVerificationToken[]
   companyMembers      CompanyMember[]
   onboardingProgress  OnboardingProgress?
+  subscriptions       UserSubscription[]       @relation("UserSubscriptions")
+  notificationSettings NotificationSettings?  @relation("NotificationSettings")
+  systemLogs          SystemLog[]              @relation("SystemLogs")
+  supportTickets      SupportTicket[]          @relation("SupportTickets")
+  dataExports         DataExport[]             @relation("DataExports")
+  legalAcknowledgments UserLegalAcknowledgment[] @relation("UserLegalAcknowledgments")
+  documentConsents    DocumentConsent[]        @relation("DocumentConsents")
 }
 
 // 企業プロフィール（Chapter 1 - ユーザー登録・審査）
@@ -222,6 +229,9 @@ model Client {
   submissions   Submission[]
   reviews       Review[]
   bulkInquiries BulkInquiry[]
+  favorites     Favorite[]    @relation("ClientFavorites")
+  invoices      Invoice[]     @relation("ClientInvoices")
+  scouts        Scout[]       @relation("ClientScouts")
 }
 
 model Influencer {
@@ -273,6 +283,10 @@ model Influencer {
   inquiryResponses      InquiryResponse[]
   bankAccounts          BankAccount[]
   verificationDocuments VerificationDocument[]
+  watchlists            Watchlist[]            @relation("InfluencerWatchlist")
+  favorites             Favorite[]             @relation("InfluencerFavorites")
+  invoices              Invoice[]              @relation("InfluencerInvoices")
+  scouts                Scout[]                @relation("InfluencerScouts")
 }
 
 model SocialAccount {
@@ -342,6 +356,7 @@ model Project {
   targetFollowerMin Int?
   targetFollowerMax Int?
   status            ProjectStatus @default(PENDING)
+  isPublic          Boolean       @default(true) // Chapter 2-3: 公開・非公開設定
   startDate         DateTime?
   endDate           DateTime?
   createdAt         DateTime      @default(now())
@@ -378,6 +393,12 @@ model Project {
   submissions         Submission[]
   reviews             Review[]
   schedule            ProjectSchedule?
+  watchlists          Watchlist[]      @relation("ProjectWatchlist")
+  chats               Chat[]           @relation("ProjectChats")
+  contracts           Contract[]       @relation("ProjectContracts")
+  invoices            Invoice[]        @relation("ProjectInvoices")
+  cancellations       Cancellation[]   @relation("ProjectCancellations")
+  scouts              Scout[]          @relation("ProjectScouts")
 }
 
 model Application {
@@ -401,6 +422,7 @@ model Application {
 model Message {
   id         String   @id @default(cuid())
   projectId  String
+  chatId     String? // Chapter 4: チャット関連
   senderId   String
   receiverId String
   content    String
@@ -409,6 +431,7 @@ model Message {
 
   // Relations
   project  Project @relation(fields: [projectId], references: [id])
+  chat     Chat?   @relation("ChatMessages", fields: [chatId], references: [id], onDelete: SetNull)
   sender   User    @relation("sender", fields: [senderId], references: [id])
   receiver User    @relation("receiver", fields: [receiverId], references: [id])
 }
@@ -974,4 +997,350 @@ model OnboardingProgress {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([role, completedAt])
+}
+
+// Chapter 2-7: ウォッチリスト機能（インフルエンサーがプロジェクトを保存）
+model Watchlist {
+  id           String   @id @default(cuid())
+  influencerId String
+  projectId    String
+  savedAt      DateTime @default(now())
+  notes        String? // インフルエンサーのメモ
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  influencer Influencer @relation("InfluencerWatchlist", fields: [influencerId], references: [id], onDelete: Cascade)
+  project    Project    @relation("ProjectWatchlist", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([influencerId, projectId])
+  @@index([influencerId, savedAt])
+  @@index([projectId])
+}
+
+// Chapter 2-7: お気に入り機能（企業がインフルエンサーを保存）
+model Favorite {
+  id           String   @id @default(cuid())
+  clientId     String
+  influencerId String
+  savedAt      DateTime @default(now())
+  notes        String? // 企業のメモ
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  client     Client     @relation("ClientFavorites", fields: [clientId], references: [id], onDelete: Cascade)
+  influencer Influencer @relation("InfluencerFavorites", fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, influencerId])
+  @@index([clientId, savedAt])
+  @@index([influencerId])
+}
+
+// Chapter 4: チャット（メッセージスレッド）
+model Chat {
+  id            String    @id @default(cuid())
+  projectId     String
+  participantId String
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  project   Project   @relation("ProjectChats", fields: [projectId], references: [id], onDelete: Cascade)
+  messages  Message[] @relation("ChatMessages")
+
+  @@unique([projectId, participantId])
+  @@index([projectId])
+  @@index([participantId])
+}
+
+// Chapter 5: 契約書管理
+model Contract {
+  id            String    @id @default(cuid())
+  projectId     String
+  templateName  String? // 契約書テンプレート名
+  status        String    @default("PENDING") // PENDING, SIGNED, REJECTED, EXPIRED
+  documentUrl   String? // S3 URL
+  signingUrl    String? // DocuSign等の署名URL
+  signedAt      DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  project Project @relation("ProjectContracts", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId])
+  @@index([status, createdAt])
+}
+
+// Chapter 3: スカウト機能
+model Scout {
+  id             String    @id @default(cuid())
+  projectId      String
+  influencerId   String
+  clientId       String
+  message        String? // スカウトメッセージ
+  status         String    @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  respondedAt    DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  project    Project    @relation("ProjectScouts", fields: [projectId], references: [id], onDelete: Cascade)
+  influencer Influencer @relation("InfluencerScouts", fields: [influencerId], references: [id], onDelete: Cascade)
+  client     Client     @relation("ClientScouts", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, influencerId])
+  @@index([status, createdAt])
+  @@index([influencerId, status])
+}
+
+// Chapter 7: 請求書管理
+model Invoice {
+  id             String    @id @default(cuid())
+  projectId      String
+  clientId       String
+  influencerId   String
+  amount         Int // 請求金額（円）
+  tax            Int? // 消費税
+  totalAmount    Int // 合計金額
+  dueDate        DateTime
+  status         String    @default("PENDING") // PENDING, SENT, PAID, OVERDUE, CANCELLED
+  invoiceNumber  String    @unique // INV-20240101-001など
+  documentUrl    String? // S3 URL
+  paidAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  project    Project    @relation("ProjectInvoices", fields: [projectId], references: [id], onDelete: Cascade)
+  client     Client     @relation("ClientInvoices", fields: [clientId], references: [id], onDelete: Cascade)
+  influencer Influencer @relation("InfluencerInvoices", fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId])
+  @@index([clientId, status])
+  @@index([influencerId, status])
+  @@index([dueDate])
+}
+
+// Chapter 10: キャンセル・返金管理
+model Cancellation {
+  id             String   @id @default(cuid())
+  projectId      String   @unique
+  reason         String // キャンセル理由
+  cancelledBy    String // COMPANY or INFLUENCER
+  status         String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  refundAmount   Int? // 返金額
+  approvalNotes  String?
+  cancelledAt    DateTime @default(now())
+  approvedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  project Project @relation("ProjectCancellations", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([status, cancelledAt])
+}
+
+// Chapter 11: 料金プラン
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String   @unique // STARTER, PROFESSIONAL, ENTERPRISE等
+  description String?
+  price       Int // 月額料金（円）
+  billingCycle String  @default("monthly") // monthly, yearly
+
+  // 特徴・制限
+  maxProjects     Int // 作成可能プロジェクト数
+  maxTeamMembers  Int // チームメンバー上限
+  features        String[] // 機能リスト
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  subscriptions UserSubscription[]
+
+  @@index([isActive])
+}
+
+// Chapter 11: ユーザーサブスクリプション
+model UserSubscription {
+  id             String    @id @default(cuid())
+  userId         String
+  planId         String
+  status         String    @default("ACTIVE") // ACTIVE, CANCELLED, EXPIRED
+  startDate      DateTime  @default(now())
+  endDate        DateTime?
+  nextBillingAt  DateTime?
+  autoRenew      Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user User             @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId, status])
+  @@index([status, endDate])
+}
+
+// Chapter 12: 通知システム（拡張）
+model NotificationSettings {
+  id     String  @id @default(cuid())
+  userId String  @unique
+
+  // 通知設定
+  emailNotifications      Boolean @default(true)
+  pushNotifications       Boolean @default(true)
+  inAppNotifications      Boolean @default(true)
+
+  // 通知タイプ別設定
+  applicationNotify       Boolean @default(true)
+  messageNotify           Boolean @default(true)
+  paymentNotify           Boolean @default(true)
+  projectStatusNotify     Boolean @default(true)
+  scoutNotify             Boolean @default(true)
+
+  // 通知頻度
+  notificationFrequency   String  @default("INSTANT") // INSTANT, DAILY, WEEKLY
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation("NotificationSettings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Chapter 13: 操作ログ（システム運用）
+model SystemLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String // CREATE_PROJECT, ACCEPT_APPLICATION等
+  entityType String  // Project, Application, etc
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User? @relation("SystemLogs", fields: [userId], references: [id])
+
+  @@index([action, createdAt])
+  @@index([userId, createdAt])
+  @@index([entityType, createdAt])
+}
+
+// Chapter 15: サポートチケット
+model SupportTicket {
+  id          String   @id @default(cuid())
+  userId      String
+  subject     String
+  description String
+  category    String // BUG, FEATURE_REQUEST, BILLING, OTHER
+  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority    String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  attachment  String? // S3 URL
+
+  assignedTo  String? // 対応者のユーザーID
+  resolvedAt  DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User? @relation("SupportTickets", fields: [userId], references: [id])
+
+  @@index([status, priority, createdAt])
+  @@index([userId, status])
+}
+
+// Chapter 17: データエクスポート・管理
+model DataExport {
+  id           String   @id @default(cuid())
+  userId       String
+  dataType     String // PROJECTS, APPLICATIONS, PAYMENTS, REVIEWS, ALL
+  format       String   @default("CSV") // CSV, JSON, PDF
+  status       String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  fileUrl      String?
+  expiresAt    DateTime?
+
+  requestedAt  DateTime @default(now())
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation("DataExports", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, completedAt])
+}
+
+// Chapter 18: 法的文書
+model LegalDocument {
+  id           String   @id @default(cuid())
+  documentType String // TERMS_OF_SERVICE, PRIVACY_POLICY, COOKIE_POLICY, etc
+  title        String
+  content      String // HTML content
+  version      Int     @default(1)
+
+  effectiveDate DateTime
+  isActive      Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  userAcknowledgments UserLegalAcknowledgment[] @relation("UserAcknowledgments")
+  consents            DocumentConsent[]         @relation("ConsentsReceived")
+
+  @@unique([documentType, version])
+  @@index([documentType, isActive])
+}
+
+// Chapter 14: ユーザー同意管理
+model DocumentConsent {
+  id           String   @id @default(cuid())
+  userId       String
+  documentId   String
+  consentedAt  DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  // Relations
+  user     User          @relation("DocumentConsents", fields: [userId], references: [id], onDelete: Cascade)
+  document LegalDocument @relation("ConsentsReceived", fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId])
+  @@index([userId])
+  @@index([documentId])
+}
+
+// Chapter 18: ユーザーの法的文書確認
+model UserLegalAcknowledgment {
+  id          String   @id @default(cuid())
+  userId      String
+  documentId  String
+
+  acknowledgedAt DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user     User            @relation("UserLegalAcknowledgments", fields: [userId], references: [id], onDelete: Cascade)
+  document LegalDocument   @relation("UserAcknowledgments", fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId])
+  @@index([userId])
+  @@index([documentId])
 }

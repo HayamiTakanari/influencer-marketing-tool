@@ -72,15 +72,14 @@ export const createPortfolio = async (
 export const updatePortfolio = async (
   req: AuthRequest,
   res: Response
-): Promise<void> => {
+) => {
   try {
     const userId = req.user?.id;
     const { portfolioId } = req.params;
     const { title, description, imageUrl, link, platform } = req.body;
 
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { PrismaClient } = await import('@prisma/client');
@@ -91,8 +90,7 @@ export const updatePortfolio = async (
     });
 
     if (!influencer) {
-      res.status(404).json({ error: 'Influencer profile not found' });
-      return;
+      return res.status(404).json({ error: 'Influencer profile not found' });
     }
 
     const portfolio = await updatePortfolioItem(portfolioId, influencer.id, {
@@ -103,7 +101,7 @@ export const updatePortfolio = async (
       platform,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Portfolio item updated successfully',
       portfolio,
     });
@@ -112,7 +110,7 @@ export const updatePortfolio = async (
       return res.status(404).json({ error: 'Portfolio not found' });
     }
     console.error('Error updating portfolio:', error);
-    res.status(500).json({ error: 'Failed to update portfolio' });
+    return res.status(500).json({ error: 'Failed to update portfolio' });
   }
 };
 
@@ -122,14 +120,13 @@ export const updatePortfolio = async (
 export const deletePortfolio = async (
   req: AuthRequest,
   res: Response
-): Promise<void> => {
+) => {
   try {
     const userId = req.user?.id;
     const { portfolioId } = req.params;
 
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { PrismaClient } = await import('@prisma/client');
@@ -140,13 +137,12 @@ export const deletePortfolio = async (
     });
 
     if (!influencer) {
-      res.status(404).json({ error: 'Influencer profile not found' });
-      return;
+      return res.status(404).json({ error: 'Influencer profile not found' });
     }
 
     await deletePortfolioItem(portfolioId, influencer.id);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Portfolio item deleted successfully',
     });
   } catch (error: any) {
@@ -154,7 +150,7 @@ export const deletePortfolio = async (
       return res.status(404).json({ error: 'Portfolio not found' });
     }
     console.error('Error deleting portfolio:', error);
-    res.status(500).json({ error: 'Failed to delete portfolio' });
+    return res.status(500).json({ error: 'Failed to delete portfolio' });
   }
 };
 

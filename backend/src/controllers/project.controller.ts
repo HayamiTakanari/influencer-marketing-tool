@@ -1356,3 +1356,175 @@ export const copyProject = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to copy project' });
   }
 };
+
+// Chapter 2-8: Unpublish project (change from public to private)
+export const unpublishProject = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const { projectId } = req.params;
+
+    // Get client profile
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client profile not found' });
+    }
+
+    // Get existing project
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        client: true,
+      },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (existingProject.clientId !== client.id) {
+      return res.status(403).json({ error: 'You can only unpublish your own projects' });
+    }
+
+    // Update project to be private
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        isPublic: false,
+      },
+      include: {
+        client: {
+          select: {
+            companyName: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Create notification
+    const applications = await prisma.application.findMany({
+      where: { projectId },
+      include: { influencer: { select: { userId: true } } },
+    });
+
+    for (const app of applications) {
+      await prisma.notification.create({
+        data: {
+          userId: app.influencer.userId,
+          type: 'PROJECT_STATUS_CHANGED',
+          title: 'プロジェクトが非公開になりました',
+          message: `「${existingProject.title}」が非公開（招待制）に変更されました`,
+          data: {
+            projectId,
+          },
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Project unpublished successfully',
+      data: updatedProject,
+    });
+  } catch (error) {
+    console.error('Unpublish project error:', error);
+    res.status(500).json({ error: 'Failed to unpublish project' });
+  }
+};
+
+// Chapter 2-8: End project (mark as completed and close to new applications)
+export const endProject = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    const { projectId } = req.params;
+
+    // Get client profile
+    const client = await prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client profile not found' });
+    }
+
+    // Get existing project
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (existingProject.clientId !== client.id) {
+      return res.status(403).json({ error: 'You can only end your own projects' });
+    }
+
+    // Can only end if project is MATCHED or IN_PROGRESS
+    if (!['MATCHED', 'IN_PROGRESS'].includes(existingProject.status)) {
+      return res.status(400).json({
+        error: `Cannot end project with status ${existingProject.status}`,
+      });
+    }
+
+    // Update project status to COMPLETED
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        status: 'COMPLETED' as any,
+        endDate: new Date(),
+      },
+      include: {
+        client: {
+          select: {
+            companyName: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Notify matched influencer
+    if (existingProject.matchedInfluencerId) {
+      const influencer = await prisma.influencer.findUnique({
+        where: { id: existingProject.matchedInfluencerId },
+        select: { userId: true },
+      });
+
+      if (influencer) {
+        await prisma.notification.create({
+          data: {
+            userId: influencer.userId,
+            type: 'PROJECT_STATUS_CHANGED',
+            title: 'プロジェクトが完了しました',
+            message: `「${existingProject.title}」が完了状態に更新されました`,
+            data: {
+              projectId,
+              status: 'COMPLETED',
+            },
+          },
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Project ended successfully',
+      data: updatedProject,
+    });
+  } catch (error) {
+    console.error('End project error:', error);
+    res.status(500).json({ error: 'Failed to end project' });
+  }
+};
