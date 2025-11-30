@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/shared/Card';
+import { getFAQs } from '../services/api';
 
 interface FAQItem {
   id: string;
@@ -27,8 +28,27 @@ const FAQPage: React.FC = () => {
     { value: 'トラブルシューティング', label: 'トラブルシューティング', icon: '🔧' }
   ];
 
-  const mockFAQs: FAQItem[] = [
-    // 基本的な使い方
+  useEffect(() => {
+    const loadData = async () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+
+      try {
+        const faqData = await getFAQs();
+        setFaqs(faqData.map((faq: any) => ({ ...faq, isOpen: false })));
+      } catch (error) {
+        console.error('Error loading FAQs:', error);
+        setFaqs([]);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Fallback FAQs for when API is unavailable
+  const fallbackFAQs: FAQItem[] = [
     {
       id: '1',
       category: '基本的な使い方',
@@ -47,8 +67,6 @@ const FAQPage: React.FC = () => {
       question: 'どのような人が利用できますか？',
       answer: '18歳以上の個人・法人が利用可能です。企業側は法人登録、インフルエンサー側は個人または法人での登録ができます。'
     },
-
-    // プロジェクト関連
     {
       id: '4',
       category: 'プロジェクト関連',
@@ -67,8 +85,6 @@ const FAQPage: React.FC = () => {
       question: 'プロジェクトをキャンセルできますか？',
       answer: 'プロジェクトの進行状況によってキャンセルポリシーが異なります。マッチング前であれば無料、作業開始後はキャンセル料が発生する場合があります。'
     },
-
-    // 支払い・請求
     {
       id: '7',
       category: '支払い・請求',
@@ -87,8 +103,6 @@ const FAQPage: React.FC = () => {
       question: '手数料はいくらですか？',
       answer: 'プロジェクト金額の10%（税別）を手数料として頂戴しております。支払いは成果報酬型のため、成約時のみ発生します。'
     },
-
-    // アカウント・設定
     {
       id: '10',
       category: 'アカウント・設定',
@@ -128,14 +142,6 @@ const FAQPage: React.FC = () => {
       answer: 'ファイルサイズが100MBを超えていないか確認してください。対応形式はMP4、MOV、AVIです。それでも解決しない場合はサポートまでお問い合わせください。'
     }
   ];
-
-  useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-    setFaqs(mockFAQs.map(faq => ({ ...faq, isOpen: false })));
-  }, []);
 
   const filteredFAQs = faqs.filter(faq => {
     const matchesCategory = selectedCategory === 'all' || faq.category === selectedCategory;

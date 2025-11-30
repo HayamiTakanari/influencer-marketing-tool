@@ -1701,4 +1701,15 @@ export const getProjects = async () => {
   return mockProjects;
 };
 
+// FAQ API
+export const getFAQs = async () => {
+  try {
+    const response = await api.get('/faqs');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching FAQs:', error);
+    throw error;
+  }
+};
+
 export default api;
