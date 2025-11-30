@@ -314,7 +314,7 @@ const CompanyProfilePage: React.FC = () => {
                       href={`https://instagram.com/${formData.instagramUserId.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-pink-600 hover:text-pink-800 hover:underline text-sm font-medium break-all"
+                      className="text-black hover:underline text-sm font-medium break-all"
                     >
                       @{formData.instagramUserId.replace('@', '')}
                     </a>
@@ -350,7 +350,7 @@ const CompanyProfilePage: React.FC = () => {
                       href={`https://www.tiktok.com/@${formData.tiktokUserId.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-900 hover:text-gray-700 hover:underline text-sm font-medium break-all"
+                      className="text-black hover:underline text-sm font-medium break-all"
                     >
                       @{formData.tiktokUserId.replace('@', '')}
                     </a>
@@ -386,7 +386,7 @@ const CompanyProfilePage: React.FC = () => {
                       href={`https://youtube.com/@${formData.youtubeUserId.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-red-600 hover:text-red-800 hover:underline text-sm font-medium break-all"
+                      className="text-black hover:underline text-sm font-medium break-all"
                     >
                       @{formData.youtubeUserId.replace('@', '')}
                     </a>
@@ -422,7 +422,7 @@ const CompanyProfilePage: React.FC = () => {
                       href={`https://x.com/${formData.twitterUserId.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-900 hover:text-gray-700 hover:underline text-sm font-medium break-all"
+                      className="text-black hover:underline text-sm font-medium break-all"
                     >
                       @{formData.twitterUserId.replace('@', '')}
                     </a>
