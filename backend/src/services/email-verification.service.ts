@@ -1,7 +1,6 @@
 import { PrismaClient, EmailVerificationToken, VerificationRecord } from '@prisma/client';
-import { generateSecureToken } from '../utils/jwt';
+import { randomUUID } from 'crypto';
 import nodemailer from 'nodemailer';
-import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -23,7 +22,7 @@ const transporter = nodemailer.createTransport({
 export const sendEmailVerification = async (userId: string, email: string): Promise<void> => {
   try {
     // 有効期限24時間のトークンを生成
-    const token = uuidv4();
+    const token = randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24時間後
 
     // トークンをデータベースに保存
