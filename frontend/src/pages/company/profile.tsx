@@ -168,41 +168,40 @@ const CompanyProfilePage: React.FC = () => {
   return (
     <DashboardLayout title="企業プロフィール" subtitle="会社情報を管理">
       <div className="w-full space-y-4">
-        {/* Header with Edit/Save/Cancel Buttons */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{formData.companyName}</h2>
-          </div>
-          <div className="flex gap-2">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
-                >
-                  保存
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 text-sm font-medium whitespace-nowrap"
-                >
-                  キャンセル
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
-              >
-                編集
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Basic Information */}
+        {/* Unified Card */}
         <Card padding="md">
-          <h4 className="font-semibold text-gray-900 mb-4">企業情報</h4>
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">企業情報</h3>
+            </div>
+            <div className="flex gap-2">
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={handleSave}
+                    className="px-3 py-1 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 whitespace-nowrap"
+                  >
+                    保存
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-3 py-1 bg-gray-300 text-gray-900 rounded text-sm font-medium hover:bg-gray-400 whitespace-nowrap"
+                  >
+                    キャンセル
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-3 py-1 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 whitespace-nowrap"
+                >
+                  編集
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Basic Information Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">会社名</label>
@@ -298,12 +297,13 @@ const CompanyProfilePage: React.FC = () => {
               />
             </div>
           </div>
-        </Card>
 
-        {/* SNS Accounts */}
-        <Card padding="md">
+          {/* Divider */}
+          <div className="my-6 border-t border-gray-200"></div>
+
+          {/* SNS Accounts Section */}
           <h4 className="font-semibold text-gray-900 mb-4">SNSアカウント</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Instagram */}
             <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -448,11 +448,12 @@ const CompanyProfilePage: React.FC = () => {
               )}
             </div>
           </div>
-        </Card>
 
-        {/* Bank Account Information */}
-        <Card padding="md">
-          <h4 className="font-semibold text-gray-900 mb-3">口座情報</h4>
+          {/* Divider */}
+          <div className="my-6 border-t border-gray-200"></div>
+
+          {/* Bank Account Information Section */}
+          <h4 className="font-semibold text-gray-900 mb-4">口座情報</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">銀行名</label>
