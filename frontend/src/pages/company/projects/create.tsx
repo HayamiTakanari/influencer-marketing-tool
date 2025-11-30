@@ -188,7 +188,7 @@ const CreateProjectPage: React.FC = () => {
     }
   }, []);
 
-  // ページを離れるときのみ下書きを保存
+  // 下書きを保存（ボタン押下時のみ）
   const saveDraft = () => {
     try {
       const draftId = `${Date.now()}`;
@@ -212,30 +212,29 @@ const CreateProjectPage: React.FC = () => {
 
       draftIds.push(draftId);
       localStorage.setItem(DRAFTS_INDEX_KEY, JSON.stringify(draftIds));
+
+      // ドラフト一覧を更新
+      const updatedDrafts = draftIds
+        .map((id: string) => {
+          const data = localStorage.getItem(`${DRAFT_KEY_PREFIX}${id}`);
+          if (data) {
+            try {
+              return { id, ...JSON.parse(data) };
+            } catch {
+              return null;
+            }
+          }
+          return null;
+        })
+        .filter((d: any) => d !== null);
+      setDrafts(updatedDrafts);
+
+      handleSuccess('下書きを保存しました');
     } catch (error) {
       console.error('Draft save failed:', error);
+      handleError(error, '下書きの保存に失敗しました');
     }
   };
-
-  // ページを離れるときのみドラフトを保存
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      saveDraft();
-    };
-
-    const handleRouteChange = () => {
-      saveDraft();
-    };
-
-    // ページ離脱時にドラフトを保存
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    router.events?.on('routeChangeStart', handleRouteChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      router.events?.off('routeChangeStart', handleRouteChange);
-    };
-  }, [formData, router]);
 
   // ドラフト復元処理
   const restoreDraft = (draftId: string) => {
@@ -1600,35 +1599,7 @@ const CreateProjectPage: React.FC = () => {
                 type="button"
                 variant="secondary"
                 size="xl"
-                onClick={() => {
-                  try {
-                    const draftId = `manual_${Date.now()}`;
-                    const draftData = {
-                      timestamp: new Date().toLocaleString('ja-JP'),
-                      data: formData
-                    };
-
-                    // 下書きを保存
-                    localStorage.setItem(`${DRAFT_KEY_PREFIX}${draftId}`, JSON.stringify(draftData));
-
-                    // ドラフトインデックスを更新
-                    const draftsIndex = localStorage.getItem(DRAFTS_INDEX_KEY);
-                    let draftIds = draftsIndex ? JSON.parse(draftsIndex) : [];
-
-                    // 最大10個までのドラフトを保持
-                    if (draftIds.length >= 10) {
-                      const oldestId = draftIds.shift();
-                      localStorage.removeItem(`${DRAFT_KEY_PREFIX}${oldestId}`);
-                    }
-
-                    draftIds.push(draftId);
-                    localStorage.setItem(DRAFTS_INDEX_KEY, JSON.stringify(draftIds));
-
-                    handleSuccess('下書きを保存しました');
-                  } catch (error) {
-                    handleError(error, '下書きの保存に失敗しました');
-                  }
-                }}
+                onClick={saveDraft}
               >
                 下書き保存
               </Button>
