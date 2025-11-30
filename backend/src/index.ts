@@ -17,6 +17,7 @@ import { protectFromCommandInjection, preventSystemCommands } from './middleware
 //   apiErrorHandler, 
 //   setupGlobalErrorHandlers 
 // } from './middleware/error-tracking';
+import { requestIdMiddleware } from './middleware/request-id';
 import authRoutes from './routes/auth.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import influencerRoutes from './routes/influencer.routes';
@@ -141,6 +142,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // レート制限
 app.use(generalRateLimit);
+
+// Request ID ミドルウェア（全リクエストに一意のID を付与）
+app.use(requestIdMiddleware);
 
 // Request tracking and user context middleware
 // app.use(requestTrackingMiddleware);
