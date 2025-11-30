@@ -13,31 +13,18 @@ const updateCompanyProfileSchema = z.object({
   website: z.string().url().optional(),
   description: z.string().max(2000).optional(),
   instagramUrl: z.string().url().optional().nullable(),
-  instagramUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
+  instagramUserId: z.string().max(100).optional().nullable(),
   tiktokUrl: z.string().url().optional().nullable(),
-  tiktokUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
+  tiktokUserId: z.string().max(100).optional().nullable(),
   youtubeUrl: z.string().url().optional().nullable(),
-  youtubeUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
+  youtubeUserId: z.string().max(100).optional().nullable(),
   twitterUrl: z.string().url().optional().nullable(),
-  twitterUserId: z.string().max(100).optional().nullable(), // Removed .min(1) to allow empty strings to be transformed
+  twitterUserId: z.string().max(100).optional().nullable(),
   bankName: z.string().max(100).optional(),
   branchName: z.string().max(100).optional(),
   accountType: z.string().max(50).optional(),
   accountNumber: z.string().max(20).optional(),
   accountName: z.string().max(100).optional(),
-}).transform((data) => {
-  // フロントエンドから空文字列が来た場合、nullに変換
-  return {
-    ...data,
-    instagramUrl: data.instagramUrl === '' ? null : data.instagramUrl,
-    instagramUserId: data.instagramUserId === '' ? null : data.instagramUserId,
-    tiktokUrl: data.tiktokUrl === '' ? null : data.tiktokUrl,
-    tiktokUserId: data.tiktokUserId === '' ? null : data.tiktokUserId,
-    youtubeUrl: data.youtubeUrl === '' ? null : data.youtubeUrl,
-    youtubeUserId: data.youtubeUserId === '' ? null : data.youtubeUserId,
-    twitterUrl: data.twitterUrl === '' ? null : data.twitterUrl,
-    twitterUserId: data.twitterUserId === '' ? null : data.twitterUserId,
-  };
 });
 
 interface AuthRequest extends Request {
@@ -96,9 +83,36 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
     console.log('Request body:', req.body);
 
     const data = updateCompanyProfileSchema.parse(req.body);
-    console.log('Parsed and transformed data:', data);
+    console.log('Parsed data:', data);
 
-    // 企業プロフィールの更新（ない場合は作成）
+    // Helper function to convert empty strings to null, keep undefined as undefined
+    const normalizeValue = (value: any) => {
+      if (value === '') return null;
+      return value;
+    };
+
+    // Build update object - only include fields that are explicitly provided
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    // Add fields if they are explicitly provided (not undefined)
+    if (data.companyName !== undefined) updateData.companyName = data.companyName;
+    if (data.industry !== undefined) updateData.industry = data.industry;
+    if (data.contactName !== undefined) updateData.contactName = data.contactName;
+    if (data.contactPhone !== undefined) updateData.contactPhone = data.contactPhone;
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.website !== undefined) updateData.website = data.website;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.instagramUrl !== undefined) updateData.instagramUrl = normalizeValue(data.instagramUrl);
+    if (data.instagramUserId !== undefined) updateData.instagramUserId = normalizeValue(data.instagramUserId);
+    if (data.tiktokUrl !== undefined) updateData.tiktokUrl = normalizeValue(data.tiktokUrl);
+    if (data.tiktokUserId !== undefined) updateData.tiktokUserId = normalizeValue(data.tiktokUserId);
+    if (data.youtubeUrl !== undefined) updateData.youtubeUrl = normalizeValue(data.youtubeUrl);
+    if (data.youtubeUserId !== undefined) updateData.youtubeUserId = normalizeValue(data.youtubeUserId);
+    if (data.twitterUrl !== undefined) updateData.twitterUrl = normalizeValue(data.twitterUrl);
+    if (data.twitterUserId !== undefined) updateData.twitterUserId = normalizeValue(data.twitterUserId);
+
     console.log('Upserting company profile with SNS data:', {
       instagramUserId: data.instagramUserId,
       tiktokUserId: data.tiktokUserId,
@@ -108,24 +122,7 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
 
     const company = await prisma.company.upsert({
       where: { userId },
-      update: {
-        companyName: data.companyName,
-        industry: data.industry,
-        address: data.address,
-        phoneNumber: data.contactPhone,
-        contactName: data.contactName,
-        website: data.website,
-        description: data.description,
-        instagramUrl: data.instagramUrl || null,
-        instagramUserId: data.instagramUserId || null,
-        tiktokUrl: data.tiktokUrl || null,
-        tiktokUserId: data.tiktokUserId || null,
-        youtubeUrl: data.youtubeUrl || null,
-        youtubeUserId: data.youtubeUserId || null,
-        twitterUrl: data.twitterUrl || null,
-        twitterUserId: data.twitterUserId || null,
-        updatedAt: new Date(),
-      },
+      update: updateData,
       create: {
         userId,
         companyName: data.companyName || 'New Company',
@@ -135,14 +132,14 @@ export const updateCompanyProfile = async (req: AuthRequest, res: Response) => {
         contactName: data.contactName,
         website: data.website,
         description: data.description,
-        instagramUrl: data.instagramUrl || null,
-        instagramUserId: data.instagramUserId || null,
-        tiktokUrl: data.tiktokUrl || null,
-        tiktokUserId: data.tiktokUserId || null,
-        youtubeUrl: data.youtubeUrl || null,
-        youtubeUserId: data.youtubeUserId || null,
-        twitterUrl: data.twitterUrl || null,
-        twitterUserId: data.twitterUserId || null,
+        instagramUrl: normalizeValue(data.instagramUrl),
+        instagramUserId: normalizeValue(data.instagramUserId),
+        tiktokUrl: normalizeValue(data.tiktokUrl),
+        tiktokUserId: normalizeValue(data.tiktokUserId),
+        youtubeUrl: normalizeValue(data.youtubeUrl),
+        youtubeUserId: normalizeValue(data.youtubeUserId),
+        twitterUrl: normalizeValue(data.twitterUrl),
+        twitterUserId: normalizeValue(data.twitterUserId),
       },
       include: {
         bankAccounts: true,
