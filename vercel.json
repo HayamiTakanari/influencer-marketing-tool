@@ -1,15 +1,6 @@
 {
-  "buildCommand": "npm install -g pnpm && cd apps/web && pnpm install && pnpm run build",
-  "installCommand": "npm install -g pnpm && pnpm install --recursive",
+  "buildCommand": "pnpm install && pnpm --filter @influencer-tool/web build",
+  "installCommand": "npm install -g pnpm@8 && pnpm install",
   "outputDirectory": "apps/web/.next",
-  "framework": "nextjs",
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "regions": ["sfo1"],
-  "functions": {
-    "apps/web/src/pages/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "framework": "nextjs"
 }
