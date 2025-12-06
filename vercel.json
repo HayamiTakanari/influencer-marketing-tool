@@ -1,6 +1,7 @@
 {
-  "buildCommand": "pnpm install && pnpm --filter @influencer-tool/web build",
-  "installCommand": "npm install -g pnpm@8 && pnpm install",
+  "buildCommand": "cd apps/web && npm run build",
+  "installCommand": "npm install -g pnpm@8 && pnpm install --recursive",
   "outputDirectory": "apps/web/.next",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "nodeVersion": "18.x"
 }
