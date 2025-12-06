@@ -68,7 +68,7 @@ const OpportunityDetailPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [applicationMessage, setApplicationMessage] = useState('');
-  const [proposedPrice, setProposedPrice] = useState(0);
+  const [proposedPrice, setProposedPrice] = useState('');
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -142,7 +142,7 @@ const OpportunityDetailPage: React.FC = () => {
           },
           body: JSON.stringify({
             message: applicationMessage,
-            proposedPrice
+            proposedPrice: Number(proposedPrice)
           })
         }
       );
@@ -346,7 +346,7 @@ const OpportunityDetailPage: React.FC = () => {
                   min="0"
                   step="1000"
                   value={proposedPrice}
-                  onChange={(e) => setProposedPrice(Number(e.target.value))}
+                  onChange={(e) => setProposedPrice(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="金額を入力"
                   required
