@@ -1,0 +1,21 @@
+{
+  "name": "@influencer-tool/shared-types",
+  "version": "1.0.0",
+  "description": "Shared type definitions for frontend and backend",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "echo 'No linting for shared-types'",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'No tests configured for shared-types'"
+  },
+  "keywords": ["types", "shared"],
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

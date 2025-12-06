@@ -1,48 +1,127 @@
+# ============================================
 # Dependencies
+# ============================================
+
 node_modules/
-/.pnp
+.pnpm-store/
+.pnp
 .pnp.js
+pnpm-lock.yaml.bak
 
-# Testing
-/coverage
+# ============================================
+# Build Artifacts
+# ============================================
 
-# Production
-/build
-/dist
-/.next/
-/out/
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+.turbo/
+/.vercel
 
-# Misc
-.DS_Store
+# ============================================
+# Environment & Secrets
+# ============================================
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+.env.backup
 *.pem
 
-# Debug
+# ============================================
+# Database
+# ============================================
+
+*.db
+*.db-journal
+*.sql
+postgres_data/
+postgres_data_dev/
+pgadmin_data/
+backups/
+
+# ============================================
+# IDE & Editor
+# ============================================
+
+.vscode/
+.idea/
+.vs/
+.DS_Store
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+.eslintcache
+.stylelintcache
+
+# ============================================
+# Testing & Coverage
+# ============================================
+
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+*.lcov
+
+# ============================================
+# Temporary & Cache
+# ============================================
+
+.cache/
+.next/cache/
+dist-ssr/
+*.egg-info/
+.pytest_cache/
+.env.test
+*.tmp
+tmp/
+temp/
+
+# ============================================
+# OS & System Files
+# ============================================
+
+Thumbs.db
+Desktop.ini
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ============================================
+# Debug & Logs
+# ============================================
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+*.log
+*.log.*
 
-# Local env files
-.env
-.env*.local
+# ============================================
+# Docker
+# ============================================
 
+docker-compose.override.yml
+.docker/
+
+# ============================================
 # Vercel
+# ============================================
+
 .vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Database
-/prisma/migrations/
-*.db
-*.db-journal
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-Thumbs.db

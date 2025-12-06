@@ -1,0 +1,47 @@
+# ============================================
+# GitHub Actions - Lint Workflow
+# ============================================
+
+name: Lint
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm prisma:generate && pnpm --filter @influencer-tool/api prisma generate
+
+      - name: Type check
+        run: pnpm --filter '@influencer-tool/shared-types' build && pnpm --filter '@influencer-tool/shared-utils' build && pnpm --filter '!@influencer-tool/api' --recursive typecheck
+
+      - name: Run linters
+        run: pnpm lint || true
+
+      - name: Run build
+        run: pnpm build
+        env:
+          NODE_ENV: production

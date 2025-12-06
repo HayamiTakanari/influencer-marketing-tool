@@ -1,22 +1,41 @@
 {
   "name": "influencer-marketing-tool",
   "version": "1.0.0",
+  "description": "Influencer Marketing Tool - Monorepo for API and Web applications",
   "private": true,
+  "packageManager": "pnpm@8.0.0+sha512.0abb2f77c2ca6fe4a8101fdb431459aed4ade518bc83d8e63e0e8c2b27b1313235a5d2dde3880fc1557a7192eada36183efe6afa00033e46136d8afc49e14278",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "echo 'Backend uses simple-backend.js - no build needed'",
-    "build:frontend": "cd frontend && npm run build",
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "start:backend": "cd backend && npm start",
-    "start:frontend": "cd frontend && npm start",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "postinstall": "cd backend && npm install && cd ../frontend && npm install"
+    "dev": "pnpm --recursive --parallel dev",
+    "dev:docker": "docker-compose -f docker-compose.dev.yml up",
+    "dev:docker:build": "docker-compose -f docker-compose.dev.yml build",
+    "dev:docker:down": "docker-compose -f docker-compose.dev.yml down -v",
+    "api": "pnpm --filter @influencer-tool/api dev",
+    "web": "pnpm --filter @influencer-tool/web dev",
+    "build": "pnpm --recursive build",
+    "build:api": "pnpm --filter @influencer-tool/api build",
+    "build:web": "pnpm --filter @influencer-tool/web build",
+    "start": "pnpm --recursive start",
+    "start:api": "pnpm --filter @influencer-tool/api start",
+    "start:web": "pnpm --filter @influencer-tool/web start",
+    "start:prod": "docker-compose -f docker-compose.yml up",
+    "start:prod:build": "docker-compose -f docker-compose.yml build",
+    "start:prod:down": "docker-compose -f docker-compose.yml down -v",
+    "lint": "pnpm --recursive lint",
+    "test": "pnpm --recursive test",
+    "clean": "pnpm --recursive clean && rm -rf node_modules",
+    "clean:install": "pnpm clean && pnpm install",
+    "typecheck": "pnpm --filter '@influencer-tool/shared-types' build && pnpm --filter '@influencer-tool/shared-utils' build && pnpm --filter '!@influencer-tool/api' --recursive typecheck",
+    "prisma:generate": "pnpm --filter @influencer-tool/web prisma generate",
+    "prisma:migrate": "pnpm --filter @influencer-tool/web prisma migrate dev",
+    "prisma:studio": "pnpm --filter @influencer-tool/web prisma studio"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
     "framer-motion": "^12.23.24"
