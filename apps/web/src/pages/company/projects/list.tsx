@@ -124,8 +124,8 @@ const ProjectListPage: React.FC = () => {
         setApplications(applicationsData || []);
 
         // Extract unique categories and platforms from projects
-        const uniqueCategories = [...new Set(projectsArray.map(p => p.category))];
-        const uniquePlatforms = [...new Set(projectsArray.flatMap(p => p.targetPlatforms))];
+        const uniqueCategories = [...new Set(projectsArray.map(p => p.category))] as string[];
+        const uniquePlatforms = [...new Set(projectsArray.flatMap(p => p.targetPlatforms))] as string[];
         setCategories(uniqueCategories);
         setPlatforms(uniquePlatforms);
       } catch (error) {

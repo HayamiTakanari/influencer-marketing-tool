@@ -28,8 +28,8 @@ const AchievementsPage: React.FC = () => {
   const [formData, setFormData] = useState({
     projectName: '',
     brandName: '',
-    purpose: 'SALES' as const,
-    platform: 'INSTAGRAM' as const,
+    purpose: 'SALES' as 'SALES' | 'LEAD_GEN' | 'AWARENESS' | 'BRAND_IMAGE' | 'ENGAGEMENT',
+    platform: 'INSTAGRAM' as 'INSTAGRAM' | 'YOUTUBE' | 'TIKTOK' | 'TWITTER',
     description: '',
     metrics: {
       views: 0,

@@ -71,8 +71,6 @@ const InfluencerDetailPage: React.FC = () => {
   const { id } = router.query;
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-
     const loadData = async () => {
       const userData = localStorage.getItem('user');
       const token = localStorage.getItem('token');
@@ -92,17 +90,13 @@ const InfluencerDetailPage: React.FC = () => {
       }
 
       if (id) {
-        unsubscribe = await fetchInfluencerDetails();
+        await fetchInfluencerDetails();
       }
     };
 
     loadData();
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
+
   }, [id, router]);
 
   const fetchInfluencerDetails = async () => {

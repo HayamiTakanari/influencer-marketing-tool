@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 interface FormInputProps {
   label: string;
   id: string;
+  name?: string;
   type?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -18,6 +19,7 @@ interface FormInputProps {
 export const FormInput: React.FC<FormInputProps> = ({
   label,
   id,
+  name,
   type = 'text',
   value,
   onChange,
@@ -72,6 +74,7 @@ export const FormInput: React.FC<FormInputProps> = ({
         <input
           type={inputType}
           id={id}
+          name={name}
           value={value}
           onChange={onChange}
           required={required}

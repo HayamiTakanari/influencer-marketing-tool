@@ -1534,4 +1534,30 @@ export const getFAQs = async () => {
   }
 };
 
+// Favorite Influencers API
+export const getFavoriteInfluencers = async (influencerIds: string[]) => {
+  try {
+    const response = await api.post('/influencers/favorites', {
+      ids: influencerIds
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching favorite influencers:', error);
+    throw error;
+  }
+};
+
+// Update Favorite Influencers API
+export const updateFavorites = async (favoriteIds: string[]) => {
+  try {
+    const response = await api.post('/user/favorites', {
+      favoriteInfluencers: favoriteIds
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating favorites:', error);
+    throw error;
+  }
+};
+
 export default api;

@@ -45,7 +45,7 @@ const CompanyDashboardPage: React.FC = () => {
 
       try {
         // Fetch dashboard data from backend API
-        const data = await getDashboardData(token);
+        const data = await getDashboardData();
 
         // If API returns null, use default data
         if (data) {

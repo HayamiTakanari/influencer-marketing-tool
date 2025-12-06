@@ -71,19 +71,35 @@ export const useInfluencerRealtime = (influencerId: string) => {
         }
 
         if (influencer) {
-          setData(influencer)
+          // Transform user array to object if needed
+          const transformedInfluencer = {
+            ...influencer,
+            user: Array.isArray(influencer.user) && influencer.user.length > 0
+              ? influencer.user[0]
+              : influencer.user
+          }
+          setData(transformedInfluencer as InfluencerData)
         }
 
         setLoading(false)
 
-        // リアルタイムリスナーを設定
+        // リアルタイムリスナーを設定（新しい API）
         subscription = supabase
-          .from('influencer')
-          .on('*', (payload) => {
-            if (payload.new.id === influencerId) {
-              setData(payload.new)
+          .channel(`influencer-${influencerId}`)
+          .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'influencer', filter: `id=eq.${influencerId}` },
+            (payload) => {
+              if (payload.new) {
+                const transformedData = {
+                  ...payload.new,
+                  user: Array.isArray(payload.new.user) && payload.new.user.length > 0
+                    ? payload.new.user[0]
+                    : payload.new.user
+                }
+                setData(transformedData as InfluencerData)
+              }
             }
-          })
+          )
           .subscribe()
       } catch (err) {
         console.error('Error fetching influencer:', err)

@@ -292,10 +292,10 @@ const CreateProjectPage: React.FC = () => {
   };
 
   const platforms = [
-    { value: 'INSTAGRAM', label: 'Instagram', disabled: true },
-    { value: 'YOUTUBE', label: 'YouTube', disabled: true },
-    { value: 'TIKTOK', label: 'TikTok', disabled: false },
-    { value: 'TWITTER', label: 'X', disabled: true }
+    { value: 'INSTAGRAM', label: 'Instagram', disabled: true, icon: '📸' },
+    { value: 'YOUTUBE', label: 'YouTube', disabled: true, icon: '🎥' },
+    { value: 'TIKTOK', label: 'TikTok', disabled: false, icon: '🎵' },
+    { value: 'TWITTER', label: 'X', disabled: true, icon: '🐦' }
   ];
 
   const shootingAngles = [
