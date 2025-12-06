@@ -60,6 +60,10 @@ interface ProfileData {
   workingStatus?: WorkingStatus;
   workingStatusMessage?: string;
   workingStatusUpdatedAt?: string;
+  user?: {
+    id: string;
+    email: string;
+  };
 }
 
 const ProfilePage: React.FC = () => {
@@ -1197,8 +1201,9 @@ const ProfilePage: React.FC = () => {
                           loading={syncingAccountId === account.id}
                           variant="ghost"
                           size="sm"
-                          icon="🔄"
-                        />
+                        >
+                          🔄 再同期
+                        </Button>
                         <Button
                           onClick={() => {
                             setEditingItem(account);

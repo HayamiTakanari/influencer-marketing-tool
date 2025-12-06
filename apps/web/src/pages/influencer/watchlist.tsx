@@ -213,7 +213,7 @@ const WatchlistPage: React.FC = () => {
                       </Button>
                     </Link>
                     <Button
-                      variant="danger"
+                      variant="secondary"
                       size="sm"
                       onClick={() => handleRemove(watchlist.id)}
                       loading={deleting === watchlist.id}

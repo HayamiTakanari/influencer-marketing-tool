@@ -289,28 +289,28 @@ const ProjectChatPage: React.FC = () => {
   const handleProposeDueDate = (milestoneId: string, proposedDate: string) => {
     if (!user || !project) return;
     
-    setProject(prev => {
+    setProject((prev: Project | null) => {
       if (!prev) return prev;
-      
+
       const updatedMilestones = prev.progress?.milestones.map(milestone => {
         if (milestone.id === milestoneId) {
           return {
             ...milestone,
             proposedDueDate: proposedDate,
-            proposedBy: user.role === "COMPANY" ? "company" : 'influencer',
-            dueDateStatus: user.role === "COMPANY" ? 'proposed_by_client' : 'proposed_by_influencer'
+            proposedBy: user.role === "COMPANY" ? "company" as const : 'influencer' as const,
+            dueDateStatus: (user.role === "COMPANY" ? 'proposed_by_client' : 'proposed_by_influencer') as 'proposed_by_client' | 'proposed_by_influencer'
           };
         }
         return milestone;
-      });
-      
+      }) || [];
+
       return {
         ...prev,
         progress: {
           ...prev.progress!,
-          milestones: updatedMilestones || []
+          milestones: updatedMilestones
         }
-      };
+      } as Project;
     });
     
     // チャットに期日提案メッセージを追加

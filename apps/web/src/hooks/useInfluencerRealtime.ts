@@ -88,13 +88,14 @@ export const useInfluencerRealtime = (influencerId: string) => {
           .channel(`influencer-${influencerId}`)
           .on('postgres_changes',
             { event: '*', schema: 'public', table: 'influencer', filter: `id=eq.${influencerId}` },
-            (payload) => {
+            (payload: any) => {
               if (payload.new) {
+                const newData = payload.new as any;
                 const transformedData = {
-                  ...payload.new,
-                  user: Array.isArray(payload.new.user) && payload.new.user.length > 0
-                    ? payload.new.user[0]
-                    : payload.new.user
+                  ...newData,
+                  user: Array.isArray(newData?.user) && newData?.user.length > 0
+                    ? newData.user[0]
+                    : newData?.user
                 }
                 setData(transformedData as InfluencerData)
               }

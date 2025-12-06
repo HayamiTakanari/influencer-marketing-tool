@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { FaTiktok } from 'react-icons/fa';
+import { FaTiktok, FaInstagram, FaYoutube, FaTwitter } from 'react-icons/fa';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/shared/Card';
 import Button from '../../components/shared/Button';
@@ -53,6 +53,10 @@ interface ProfileData {
   workingStatus?: WorkingStatus;
   workingStatusMessage?: string;
   workingStatusUpdatedAt?: string;
+  user?: {
+    id: string;
+    email: string;
+  };
 }
 
 const ProfilePage: React.FC = () => {
@@ -68,6 +72,8 @@ const ProfilePage: React.FC = () => {
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [oauthConnectionStatus, setOauthConnectionStatus] = useState<any[]>([]);
+  const [connecting, setConnecting] = useState<string | null>(null);
   const router = useRouter();
   const { handleError, handleSuccess } = useErrorHandler();
 
@@ -1022,8 +1028,9 @@ const ProfilePage: React.FC = () => {
                           loading={syncingAccountId === account.id}
                           variant="ghost"
                           size="sm"
-                          icon="🔄"
-                        />
+                        >
+                          🔄 再同期
+                        </Button>
                         <Button
                           onClick={() => {
                             setEditingItem(account);
