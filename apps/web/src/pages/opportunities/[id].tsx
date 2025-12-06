@@ -195,7 +195,7 @@ const OpportunityDetailPage: React.FC = () => {
   }
 
   return (
-    <DashboardLayout title={opportunity.title} subtitle={`${opportunity.client.companyName} - ${opportunity.category}`}>
+    <DashboardLayout title={opportunity.title} subtitle={`${opportunity.client?.companyName || '企業'} - ${opportunity.category}`}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
@@ -217,11 +217,11 @@ const OpportunityDetailPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">企業</p>
-                <p className="text-lg font-semibold text-gray-900">{opportunity.client.companyName}</p>
+                <p className="text-lg font-semibold text-gray-900">{opportunity.client?.companyName || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">業界</p>
-                <p className="text-lg text-gray-900">{opportunity.client.industry || 'N/A'}</p>
+                <p className="text-lg text-gray-900">{opportunity.client?.industry || 'N/A'}</p>
               </div>
             </div>
 
