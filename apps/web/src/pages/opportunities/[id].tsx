@@ -90,7 +90,7 @@ const OpportunityDetailPage: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/projects/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects/${id}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -126,7 +126,7 @@ const OpportunityDetailPage: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api'}/projects/${opportunity.id}/apply`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects/${opportunity.id}/apply`,
         {
           method: 'POST',
           headers: {

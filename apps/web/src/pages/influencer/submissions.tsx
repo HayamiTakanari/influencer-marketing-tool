@@ -61,7 +61,7 @@ const InfluencerSubmissionsPage: React.FC = () => {
       if (!token) return;
 
       // Fetch matched projects
-      const projectsRes = await fetch('http://localhost:5002/api/projects/matched', {
+      const projectsRes = await fetch('http://localhost:3001/api/projects/matched', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -74,7 +74,7 @@ const InfluencerSubmissionsPage: React.FC = () => {
       }
 
       // Fetch submissions
-      const submissionsRes = await fetch('http://localhost:5002/api/submissions/influencer/my-submissions', {
+      const submissionsRes = await fetch('http://localhost:3001/api/submissions/influencer/my-submissions', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -107,7 +107,7 @@ const InfluencerSubmissionsPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5002/api/submissions', {
+      const response = await fetch('http://localhost:3001/api/submissions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

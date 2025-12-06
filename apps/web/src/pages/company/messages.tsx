@@ -68,7 +68,7 @@ const CompanyMessagesPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5002/api/chat/chats', {
+      const response = await fetch('http://localhost:3001/api/chat/chats', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -100,7 +100,7 @@ const CompanyMessagesPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5002/api/chat/messages/${projectId}`, {
+      const response = await fetch(`http://localhost:3001/api/chat/messages/${projectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -112,7 +112,7 @@ const CompanyMessagesPage: React.FC = () => {
         setMessages(Array.isArray(data) ? data : []);
 
         // Mark messages as read
-        await fetch(`http://localhost:5002/api/chat/messages/${projectId}/read`, {
+        await fetch(`http://localhost:3001/api/chat/messages/${projectId}/read`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -135,7 +135,7 @@ const CompanyMessagesPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5002/api/chat/messages', {
+      const response = await fetch('http://localhost:3001/api/chat/messages', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

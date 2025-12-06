@@ -49,7 +49,7 @@ const AdminProjectDetail: React.FC = () => {
 
   const fetchProjectDetail = async (projectId: string, token: string) => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const response = await fetch(`${apiBaseUrl}/admin/projects/${projectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,

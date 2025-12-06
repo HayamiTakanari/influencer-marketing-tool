@@ -45,7 +45,7 @@ const MessagesPage: React.FC = () => {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem('token');
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const response = await fetch(`${apiBaseUrl}/chat/chats`, {
         headers: {
           'Authorization': `Bearer ${token}`,

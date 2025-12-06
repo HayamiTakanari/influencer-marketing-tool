@@ -181,7 +181,7 @@ const ProjectDetailPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5002/api/submissions/project/${projectId}`, {
+      const response = await fetch(`http://localhost:3001/api/submissions/project/${projectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -205,7 +205,7 @@ const ProjectDetailPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5002/api/submissions/${submissionId}/approve`, {
+      const response = await fetch(`http://localhost:3001/api/submissions/${submissionId}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -244,7 +244,7 @@ const ProjectDetailPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5002/api/submissions/${submissionId}/revision`, {
+      const response = await fetch(`http://localhost:3001/api/submissions/${submissionId}/revision`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -283,7 +283,7 @@ const ProjectDetailPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5002/api/submissions/${submissionId}/reject`, {
+      const response = await fetch(`http://localhost:3001/api/submissions/${submissionId}/reject`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -406,7 +406,7 @@ const ProjectDetailPage: React.FC = () => {
 
                       console.log('Sending data:', dataToSend);
 
-                      const response = await fetch(`http://localhost:5002/api/projects/${project.id}`, {
+                      const response = await fetch(`http://localhost:3001/api/projects/${project.id}`, {
                         method: 'PUT',
                         headers: {
                           'Authorization': `Bearer ${token}`,
@@ -1562,7 +1562,7 @@ const ProjectDetailPage: React.FC = () => {
                     setSendingMessage(true);
                     try {
                       const token = localStorage.getItem('token');
-                      const response = await fetch(`http://localhost:5002/api/messages`, {
+                      const response = await fetch(`http://localhost:3001/api/messages`, {
                         method: 'POST',
                         headers: {
                           'Authorization': `Bearer ${token}`,
@@ -1609,7 +1609,7 @@ const ProjectDetailPage: React.FC = () => {
                   try {
                     setCompleting(true);
                     const token = localStorage.getItem('token');
-                    const response = await fetch(`http://localhost:5002/api/projects/${project.id}/status`, {
+                    const response = await fetch(`http://localhost:3001/api/projects/${project.id}/status`, {
                       method: 'PUT',
                       headers: {
                         'Authorization': `Bearer ${token}`,
