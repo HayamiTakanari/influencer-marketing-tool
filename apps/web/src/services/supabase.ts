@@ -87,11 +87,13 @@ export const fetchInfluencerById = async (
       return null
     }
 
-    if (data && data.user && Array.isArray(data.user)) {
-      data.user = data.user[0] || undefined
+    if (data) {
+      if (data.user && Array.isArray(data.user)) {
+        (data as any).user = data.user[0] || undefined
+      }
     }
     
-    return data as InfluencerWithRelations
+    return data as unknown as InfluencerWithRelations
   } catch (err) {
     console.error('Error fetching influencer:', err)
     return null
@@ -135,10 +137,10 @@ export const fetchAllInfluencers = async (): Promise<
 
     const transformed = (data || []).map(item => ({
       ...item,
-      user: Array.isArray(item.user) ? item.user[0] : item.user
+      user: Array.isArray((item as any).user) ? (item as any).user[0] : (item as any).user
     }))
     
-    return transformed as InfluencerWithRelations[]
+    return transformed as unknown as InfluencerWithRelations[]
   } catch (err) {
     console.error('Error fetching influencers:', err)
     return []
@@ -184,10 +186,10 @@ export const searchInfluencers = async (
 
     const transformed = (data || []).map(item => ({
       ...item,
-      user: Array.isArray(item.user) ? item.user[0] : item.user
+      user: Array.isArray((item as any).user) ? (item as any).user[0] : (item as any).user
     }))
     
-    return transformed as InfluencerWithRelations[]
+    return transformed as unknown as InfluencerWithRelations[]
   } catch (err) {
     console.error('Error searching influencers:', err)
     return []

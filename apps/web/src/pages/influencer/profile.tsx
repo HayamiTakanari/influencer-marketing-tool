@@ -56,6 +56,7 @@ interface ProfileData {
   user?: {
     id: string;
     email: string;
+    profileImage?: string;
   };
 }
 

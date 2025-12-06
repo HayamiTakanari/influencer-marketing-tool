@@ -27,10 +27,18 @@ export const runAccessibilityCheck = async (): Promise<{
         description: violation.description,
         help: violation.help,
         helpUrl: violation.helpUrl,
-        nodes: violation.nodes.map(node => ({
-          html: node.html,
-          target: Array.isArray(node.target) ? node.target : (typeof node.target === 'string' ? [node.target] : []),
-        })),
+        nodes: violation.nodes.map(node => {
+          let target: string[] = [];
+          if (Array.isArray((node as any).target)) {
+            target = (node as any).target.flat().filter((t: any) => typeof t === 'string');
+          } else if (typeof (node as any).target === 'string') {
+            target = [(node as any).target];
+          }
+          return {
+            html: node.html,
+            target,
+          };
+        }),
       })),
       passes: results.passes.length,
       incomplete: results.incomplete.length,

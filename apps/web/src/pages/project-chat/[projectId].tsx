@@ -343,21 +343,21 @@ const ProjectChatPage: React.FC = () => {
           return {
             ...milestone,
             dueDate: milestone.proposedDueDate,
-            dueDateStatus: 'agreed',
+            dueDateStatus: 'agreed' as const,
             proposedDueDate: undefined,
             proposedBy: undefined
           };
         }
         return milestone;
-      });
+      }) || [];
       
       return {
         ...prev,
         progress: {
           ...prev.progress!,
-          milestones: updatedMilestones || []
+          milestones: updatedMilestones
         }
-      };
+      } as Project;
     });
     
     // チャットに合意メッセージを追加

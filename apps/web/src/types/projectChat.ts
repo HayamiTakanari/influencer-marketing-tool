@@ -5,7 +5,7 @@ export interface Message {
   content: string;
   createdAt: string;
   senderId: string;
-  messageType: 'text' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request' | 'direct_comment';
+  messageType: 'text' | 'video' | 'file' | 'conte' | 'revised_conte' | 'initial_video' | 'revised_video' | 'conte_revision_request' | 'direct_comment' | 'nda_approved';
   sender: {
     id: string;
     role: "COMPANY" | 'INFLUENCER';
