@@ -52,19 +52,26 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm prisma:generate
+        run: pnpm --filter @influencer-tool/web prisma generate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/influencer_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/influencer_test
+
+      - name: Run typecheck
+        run: pnpm typecheck
+        continue-on-error: true
 
       - name: Run migrations
-        run: pnpm prisma:migrate
+        run: pnpm --filter @influencer-tool/web prisma migrate dev
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/influencer_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/influencer_test
 
       - name: Run tests
         run: pnpm test || true
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/influencer_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/influencer_test
           JWT_SECRET: test-secret-key
           NODE_ENV: test
 

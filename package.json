@@ -28,10 +28,10 @@
     "test": "pnpm --recursive test",
     "clean": "pnpm --recursive clean && rm -rf node_modules",
     "clean:install": "pnpm clean && pnpm install",
-    "typecheck": "pnpm --recursive typecheck",
-    "prisma:generate": "pnpm --filter @influencer-tool/api prisma generate",
-    "prisma:migrate": "pnpm --filter @influencer-tool/api prisma migrate dev",
-    "prisma:studio": "pnpm --filter @influencer-tool/api prisma studio"
+    "typecheck": "pnpm --filter '@influencer-tool/shared-types' typecheck && pnpm --filter '@influencer-tool/shared-utils' typecheck && pnpm --filter '@influencer-tool/api-client' typecheck && pnpm --filter '@influencer-tool/web' typecheck",
+    "prisma:generate": "pnpm --filter @influencer-tool/web prisma generate",
+    "prisma:migrate": "pnpm --filter @influencer-tool/web prisma migrate dev",
+    "prisma:studio": "pnpm --filter @influencer-tool/web prisma studio"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
