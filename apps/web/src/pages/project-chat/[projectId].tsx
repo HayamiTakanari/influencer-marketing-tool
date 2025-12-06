@@ -381,28 +381,28 @@ const ProjectChatPage: React.FC = () => {
   const handleRejectDueDate = (milestoneId: string) => {
     if (!user || !project) return;
     
-    setProject(prev => {
+    setProject((prev: Project | null) => {
       if (!prev) return prev;
-      
+
       const updatedMilestones = prev.progress?.milestones.map(milestone => {
         if (milestone.id === milestoneId) {
           return {
             ...milestone,
-            dueDateStatus: 'not_set',
+            dueDateStatus: 'not_set' as const,
             proposedDueDate: undefined,
             proposedBy: undefined
           };
         }
         return milestone;
-      });
-      
+      }) || [];
+
       return {
         ...prev,
         progress: {
           ...prev.progress!,
-          milestones: updatedMilestones || []
+          milestones: updatedMilestones
         }
-      };
+      } as Project;
     });
     
     // チャットに拒否メッセージを追加

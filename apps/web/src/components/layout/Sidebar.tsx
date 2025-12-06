@@ -27,10 +27,11 @@ interface NavigationItem {
 }
 
 interface SidebarProps {
-  isOpen: boolean;
-  onToggle: () => void;
+  isOpen?: boolean;
+  onToggle?: () => void;
   user: any;
   onLogout: () => void;
+  favoriteCount?: number;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, user, onLogout }) => {
