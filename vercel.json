@@ -1,14 +1,14 @@
 {
-  "buildCommand": "corepack enable && pnpm install --recursive && cd apps/web && pnpm run build",
-  "installCommand": "corepack enable && pnpm install --recursive",
-  "outputDirectory": "apps/web/.next",
-  "framework": "nextjs",
-  "nodeVersion": "18.x",
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+      "src": "/(.*)",
+      "dest": "/apps/web/$1"
     }
   ]
 }
