@@ -1,0 +1,77 @@
+# ============================================
+# バックエンド（API） - マルチステージビルド
+# ============================================
+
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# pnpm をインストール
+RUN npm install -g pnpm
+
+# 依存関係ファイルをコピー
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY apps/api/package.json apps/api/
+COPY packages/ packages/
+
+# 依存関係をインストール
+RUN pnpm install --frozen-lockfile
+
+# ソースコードをコピー
+COPY apps/api/src apps/api/src
+COPY apps/api/tsconfig.json apps/api/
+COPY apps/api/prisma apps/api/prisma
+
+# Prisma クライアントを生成
+WORKDIR /app/apps/api
+RUN pnpm prisma generate
+
+# ビルド
+RUN pnpm build
+
+# ============================================
+# Stage 2: Runtime
+FROM node:20-alpine
+
+WORKDIR /app
+
+# pnpm をインストール
+RUN npm install -g pnpm
+
+# 本番依存関係のみをインストール
+ENV NODE_ENV=production
+
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY apps/api/package.json apps/api/
+COPY packages/shared-types packages/shared-types/
+COPY packages/shared-utils packages/shared-utils/
+
+RUN pnpm install --frozen-lockfile --prod
+
+# ビルド成果物をコピー
+COPY --from=builder /app/apps/api/dist apps/api/dist
+COPY --from=builder /app/apps/api/prisma apps/api/prisma
+COPY --from=builder /app/apps/api/node_modules apps/api/node_modules
+COPY --from=builder /app/packages/shared-types/dist packages/shared-types/dist
+COPY --from=builder /app/packages/shared-utils/dist packages/shared-utils/dist
+
+WORKDIR /app/apps/api
+
+# ヘルスチェック
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)});"
+
+# ポート3001でリッスン
+EXPOSE 3001
+
+# ユーザーを作成（セキュリティ対策）
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+USER nodejs
+
+CMD ["node", "dist/index.js"]

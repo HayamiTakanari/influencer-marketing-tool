@@ -1,0 +1,18 @@
+{
+  "name": "@influencer-tool/shared-utils",
+  "version": "1.0.0",
+  "description": "Shared utility functions for frontend and backend",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["utilities", "shared"],
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,1357 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  COMPANY
+  INFLUENCER
+  ADMIN
+}
+
+enum UserStatus {
+  PROVISIONAL // 仮登録（メール認証完了）
+  VERIFICATION_PENDING // 本人確認待ち（書類提出済み）
+  VERIFIED // 本人確認完了
+  SUSPENDED // 停止中
+  DELETED // 削除済み
+}
+
+enum VerificationStatus {
+  PENDING // 審査待ち
+  APPROVED // 承認
+  REJECTED // 却下
+  RESUBMIT_REQUIRED // 再提出が必要
+}
+
+enum DocumentType {
+  BUSINESS_REGISTRATION // 登記簿謄本（企業用）
+  ID_DOCUMENT // 身分証明書（インフルエンサー用）
+  INVOICE_DOCUMENT // インボイス書類
+}
+
+enum VerificationType {
+  EMAIL // メール認証
+  DOCUMENT // 書類認証
+  SNS // SNS認証
+  IDENTITY // 本人確認（インフルエンサー）
+  BUSINESS // 事業者確認（企業）
+}
+
+enum Platform {
+  INSTAGRAM
+  YOUTUBE
+  TIKTOK
+  TWITTER
+  FACEBOOK
+}
+
+enum ProjectStatus {
+  PENDING
+  MATCHED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AchievementPurpose {
+  SALES // 売上目的
+  LEAD_GEN // 集客目的
+  AWARENESS // 認知拡大目的
+  BRAND_IMAGE // ブランドイメージ向上
+  ENGAGEMENT // エンゲージメント向上
+}
+
+enum ServiceType {
+  PHOTOGRAPHY // 撮影
+  VIDEO_EDITING // 動画編集
+  CONTENT_CREATION // コンテンツ制作
+  POSTING // 投稿
+  STORY_CREATION // ストーリー制作
+  CONSULTATION // コンサルティング
+  LIVE_STREAMING // ライブ配信
+  EVENT_APPEARANCE // イベント出演
+}
+
+enum InquiryStatus {
+  PENDING // 返答待ち
+  ACCEPTED // 承諾
+  DECLINED // 辞退
+  EXPIRED // 期限切れ
+}
+
+enum MilestoneType {
+  VIDEO_COMPLETION // 動画完成
+  FINAL_APPROVAL // 最終承認
+  PUBLISH_DATE // 投稿日
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  NOT_SPECIFIED
+}
+
+enum WorkingStatus {
+  AVAILABLE // 積極的に受付中
+  BUSY // 選んで受付中
+  UNAVAILABLE // 現在多忙
+  BREAK // 長期休暇中
+}
+
+enum CompanyMemberRole {
+  ADMIN // 管理者権限
+  PROJECT_MANAGER // プロジェクト担当権限
+  ACCOUNTING // 経理担当権限
+  VIEWER // 閲覧権限
+}
+
+enum OnboardingStep {
+  DASHBOARD
+  INFLUENCER_SEARCH
+  PROJECT_CREATION
+  SCOUTING
+  MATCHING_FLOW
+  BILLING
+  COMPLETED
+}
+
+model User {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  password        String
+  role            UserRole
+  status          UserStatus @default(PROVISIONAL)
+  isVerified      Boolean    @default(false)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  company             Company?
+  influencer          Influencer?
+  teamMembers         TeamMember[]
+  sentMessages        Message[]                @relation("sender")
+  receivedMessages    Message[]                @relation("receiver")
+  notifications       Notification[]
+  reviewsGiven        Review[]                 @relation("ReviewGiven")
+  reviewsReceived     Review[]                 @relation("ReviewReceived")
+  securityLogs        SecurityLog[]
+  verificationRecords VerificationRecord[]
+  emailTokens         EmailVerificationToken[]
+  companyMembers      CompanyMember[]
+  onboardingProgress  OnboardingProgress?
+  subscriptions       UserSubscription[]       @relation("UserSubscriptions")
+  notificationSettings NotificationSettings?  @relation("NotificationSettings")
+  systemLogs          SystemLog[]              @relation("SystemLogs")
+  supportTickets      SupportTicket[]          @relation("SupportTickets")
+  dataExports         DataExport[]             @relation("DataExports")
+  legalAcknowledgments UserLegalAcknowledgment[] @relation("UserLegalAcknowledgments")
+  documentConsents    DocumentConsent[]        @relation("DocumentConsents")
+}
+
+// 企業プロフィール（Chapter 1 - ユーザー登録・審査）
+model Company {
+  id                 String     @id @default(cuid())
+  userId             String     @unique
+  companyName        String
+  legalNumber        String? // 法人番号
+  representativeName String?
+  contactName        String? // 担当者名
+  industry           String?
+  address            String?
+  phoneNumber        String?
+  website            String? // Webサイト
+  description        String? // 会社概要
+  logoUrl            String?
+  // SNS Accounts - URLs
+  instagramUrl       String?
+  tiktokUrl          String?
+  youtubeUrl         String?
+  twitterUrl         String?
+  // SNS Accounts - User IDs
+  instagramUserId    String?
+  tiktokUserId       String?
+  youtubeUserId      String?
+  twitterUserId      String?
+  isVerified         Boolean    @default(false)
+  verifiedAt         DateTime?
+  status             UserStatus @default(PROVISIONAL)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  // Relations
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankAccounts          BankAccount[]
+  verificationDocuments VerificationDocument[]
+  members               CompanyMember[]
+  auditLogs             AuditLog[]
+
+  // Project Relations
+  projects              Project[]
+  applications          Application[]
+  submissions           Submission[]
+  reviews               Review[]
+  bulkInquiries         BulkInquiry[]
+  favorites             Favorite[]             @relation("CompanyFavorites")
+  scouts                Scout[]                @relation("CompanyScouts")
+  invoices              Invoice[]              @relation("CompanyInvoices")
+
+  @@index([userId])
+  @@index([isVerified])
+}
+
+// インフルエンサーの銀行口座情報
+model BankAccount {
+  id            String   @id @default(cuid())
+  companyId     String?
+  influencerId  String?
+  accountHolder String
+  bankName      String
+  branchName    String
+  accountNumber String
+  accountType   String // CHECKING, SAVINGS
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  company    Company?    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  influencer Influencer? @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([influencerId])
+}
+
+
+
+model Influencer {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  displayName  String
+  bio          String?
+  gender       Gender    @default(NOT_SPECIFIED)
+  birthDate    DateTime?
+  phoneNumber  String?
+  address      String?
+  prefecture   String?
+  city         String?
+  categories   String[] // 美容、ファッション、グルメなど
+  priceMin     Int? // 最低単価（円）
+  priceMax     Int? // 最高単価（円）
+  isRegistered Boolean   @default(false)
+  lastUpdated  DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // 稼働状況 (Chapter 1-8)
+  workingStatus           WorkingStatus @default(AVAILABLE)
+  workingStatusMessage    String? // 稼働状況メッセージ
+  workingStatusUpdatedAt  DateTime?
+
+  // 希望条件 (Chapter 1-8)
+  preferredMinPrice       Int? // 希望最低報酬
+  preferredMaxPrice       Int? // 希望最高報酬
+  preferredCategories     String[]
+  preferredPlatforms      Platform[]
+  preferredMinDays        Int? // 最短対応日数
+  preferredMessageUpdated DateTime?
+
+  // インボイス情報 (Chapter 1-10)
+  invoiceRegistrationNumber String? // 適格請求書発行事業者登録番号
+  invoiceRegisteredAt       DateTime?
+
+  // Relations
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialAccounts        SocialAccount[]
+  applications          Application[]
+  projects              Project[]
+  portfolio             Portfolio[]
+  submissions           Submission[]
+  reviews               Review[]
+  achievements          Achievement[]
+  servicePricing        ServicePricing[]
+  inquiryResponses      InquiryResponse[]
+  bankAccounts          BankAccount[]
+  verificationDocuments VerificationDocument[]
+  watchlists            Watchlist[]            @relation("InfluencerWatchlist")
+  favorites             Favorite[]             @relation("InfluencerFavorites")
+  invoices              Invoice[]              @relation("InfluencerInvoices")
+  scouts                Scout[]                @relation("InfluencerScouts")
+}
+
+model SocialAccount {
+  id             String   @id @default(cuid())
+  influencerId   String
+  platform       Platform
+  username       String
+  profileUrl     String
+  followerCount  Int      @default(0)
+  engagementRate Float? // エンゲージメント率（%）
+  isVerified     Boolean  @default(false)
+  isConnected    Boolean  @default(false) // OAuth連携済みフラグ
+  lastSynced     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // OAuth関連
+  accessToken    String? // 暗号化して保存
+  refreshToken   String? // 暗号化して保存
+  tokenExpiresAt DateTime? // トークンの有効期限
+  platformUserId String? // SNSプラットフォーム側のユーザーID
+
+  // Relations
+  influencer Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([influencerId, platform])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members TeamMember[]
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  isOwner  Boolean  @default(false)
+  joinedAt DateTime @default(now())
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+}
+
+model Project {
+  id                String        @id @default(cuid())
+  companyId   String
+  title             String
+  description       String
+  category          String
+  budget            Int
+  targetPlatforms   Platform[]
+  targetPrefecture  String?
+  targetCity        String?
+  targetGender      Gender?
+  targetAgeMin      Int?
+  targetAgeMax      Int?
+  targetFollowerMin Int?
+  targetFollowerMax Int?
+  status            ProjectStatus @default(PENDING)
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // 追加情報（企業が登録する詳細）
+  deliverables           String?
+  requirements           String?
+  additionalInfo         String?
+  advertiserName         String?
+  brandName              String?
+  productName            String?
+  productUrl             String?
+  productPrice           Int?
+  productFeatures        String?
+  campaignObjective      String?
+  campaignTarget         String?
+  postingPeriodStart     DateTime?
+  postingPeriodEnd       DateTime?
+  postingMedia           String[]  @default([])
+  messageToConvey        String[]  @default([])
+  shootingAngle          String?
+  packagePhotography     String?
+  productOrientationSpecified String?
+  musicUsage             String?
+  brandContentSettings   String?
+  advertiserAccount      String?
+  desiredHashtags        String[]  @default([])
+  ngItems                String?
+  legalRequirements      String?
+  notes                  String?
+  secondaryUsage         String?
+  secondaryUsageScope    String?
+  secondaryUsagePeriod   String?
+  insightDisclosure      String?
+  referenceUrl           String?
+  prohibitedMatters      String?
+  hashtagInstruction     String?
+  mentionInstruction     String?
+  remarks                String?
+
+  // Relations
+  company   Company           @relation(fields: [companyId], references: [id])
+  applications        Application[]
+  matchedInfluencer   Influencer?      @relation(fields: [matchedInfluencerId], references: [id])
+  matchedInfluencerId String?
+  messages            Message[]
+  transaction         Transaction?
+  submissions         Submission[]
+  reviews             Review[]
+  schedule            ProjectSchedule?
+  watchlists          Watchlist[]      @relation("ProjectWatchlist")
+  chats               Chat[]           @relation("ProjectChats")
+  contracts           Contract[]       @relation("ProjectContracts")
+  invoices            Invoice[]        @relation("ProjectInvoices")
+  cancellations       Cancellation[]   @relation("ProjectCancellations")
+  scouts              Scout[]          @relation("ProjectScouts")
+}
+
+model Application {
+  id            String   @id @default(cuid())
+  projectId     String
+  influencerId  String
+  companyId   String
+  message       String?
+  proposedPrice Int?
+  isAccepted    Boolean  @default(false)
+  appliedAt     DateTime @default(now())
+
+  // Relations
+  project    Project    @relation(fields: [projectId], references: [id])
+  influencer Influencer @relation(fields: [influencerId], references: [id])
+  company   Company     @relation(fields: [companyId], references: [id])
+
+  @@unique([projectId, influencerId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  projectId  String
+  // chatId     String? // Chapter 4: チャット関連 - Commented out due to database sync issues
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  // Relations
+  project  Project @relation(fields: [projectId], references: [id])
+  // chat     Chat?   @relation("ChatMessages", fields: [chatId], references: [id], onDelete: SetNull)  // Commented out due to database sync issues
+  sender   User    @relation("sender", fields: [senderId], references: [id])
+  receiver User    @relation("receiver", fields: [receiverId], references: [id])
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  projectId       String   @unique
+  amount          Int // 金額（円）
+  fee             Int // 手数料（円）
+  stripePaymentId String   @unique
+  status          String // pending, completed, failed, refunded
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model Submission {
+  id              String    @id @default(cuid())
+  projectId       String
+  influencerId    String
+  companyId   String
+  submissionUrl   String // URL to submitted content/video
+  submissionType  String // video, image, content, post, etc
+  submissionNotes String? // Notes or description from influencer
+  status          String    @default("PENDING") // PENDING, APPROVED, REVISION_REQUESTED, REJECTED
+  approvalNotes   String? // Company notes on approval/rejection
+  submittedAt     DateTime  @default(now())
+  approvedAt      DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  project    Project    @relation(fields: [projectId], references: [id])
+  influencer Influencer @relation(fields: [influencerId], references: [id])
+  company   Company     @relation(fields: [companyId], references: [id])
+
+  @@index([projectId])
+  @@index([influencerId])
+  @@index([companyId])
+}
+
+model Portfolio {
+  id           String    @id @default(cuid())
+  influencerId String
+  title        String
+  description  String?
+  imageUrl     String?
+  link         String?
+  platform     Platform?
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  influencer Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+}
+
+enum NotificationType {
+  APPLICATION_RECEIVED
+  APPLICATION_ACCEPTED
+  APPLICATION_REJECTED
+  PROJECT_MATCHED
+  MESSAGE_RECEIVED
+  PAYMENT_COMPLETED
+  PROJECT_STATUS_CHANGED
+  TEAM_INVITATION
+  SYSTEM_ANNOUNCEMENT
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  data      Json? // Additional data for the notification
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  projectId    String
+  reviewerId   String // User who gives the review
+  revieweeId   String // User being reviewed (influencer or client)
+  influencerId String? // If reviewing influencer
+  companyId   String? // If reviewing client
+  rating       Int // 1-5 stars
+  comment      String?
+  // isPublic     Boolean  @default(true) // Commented out due to database sync issues
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reviewer   User        @relation("ReviewGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee   User        @relation("ReviewReceived", fields: [revieweeId], references: [id], onDelete: Cascade)
+  influencer Influencer? @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  company   Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, reviewerId]) // One review per project per reviewer
+  @@index([revieweeId, rating])
+  @@index([influencerId, rating])
+  @@index([companyId, rating])
+}
+
+// v3.0 新機能: インフルエンサー実績管理
+model Achievement {
+  id           String             @id @default(cuid())
+  influencerId String
+  projectName  String
+  brandName    String
+  purpose      AchievementPurpose
+  platform     Platform
+  description  String?
+  metrics      Json? // 成果指標: {views: 1000, likes: 100, shares: 50, conversions: 5}
+  budget       Int? // 予算
+  duration     String? // 実施期間
+  imageUrl     String? // 実績画像
+  link         String? // 実績URL
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  // Relations
+  influencer Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@index([influencerId, purpose])
+  @@index([platform, purpose])
+}
+
+// v3.0 新機能: インフルエンサー料金体系
+model ServicePricing {
+  id           String      @id @default(cuid())
+  influencerId String
+  serviceType  ServiceType
+  price        Int // 料金（円）
+  unit         String      @default("per_post") // 単位: per_post, per_hour, per_day
+  description  String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  influencer Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([influencerId, serviceType])
+  @@index([influencerId, isActive])
+}
+
+// v3.0 新機能: 一斉問い合わせ
+model BulkInquiry {
+  id               String        @id @default(cuid())
+  companyId   String
+  title            String
+  description      String
+  budget           Int?
+  deadline         DateTime?
+  requiredServices ServiceType[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Relations
+  company   Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  responses InquiryResponse[]
+
+  @@index([companyId, createdAt])
+}
+
+// v3.0 新機能: 問い合わせ回答
+model InquiryResponse {
+  id            String        @id @default(cuid())
+  inquiryId     String
+  influencerId  String
+  status        InquiryStatus @default(PENDING)
+  proposedPrice Int?
+  message       String?
+  availableFrom DateTime?
+  availableTo   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  inquiry    BulkInquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  influencer Influencer  @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([inquiryId, influencerId])
+  @@index([inquiryId, status])
+  @@index([influencerId, status])
+}
+
+// v3.0 新機能: スケジュール管理
+model ProjectSchedule {
+  id          String   @id @default(cuid())
+  projectId   String   @unique
+  publishDate DateTime // 投稿日
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestones Milestone[]
+
+  @@index([publishDate])
+}
+
+// v3.0 新機能: マイルストーン管理
+model Milestone {
+  id               String        @id @default(cuid())
+  scheduleId       String
+  type             MilestoneType
+  title            String
+  description      String?
+  dueDate          DateTime
+  isCompleted      Boolean       @default(false)
+  completedAt      DateTime?
+  notificationSent Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Relations
+  schedule ProjectSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, dueDate])
+  @@index([dueDate, isCompleted])
+  @@index([dueDate, notificationSent])
+}
+
+// Chapter 1: ユーザー登録・審査（メール認証）
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([token])
+}
+
+// Chapter 1: 本人確認（書類認証）
+model VerificationDocument {
+  id              String             @id @default(cuid())
+  companyId       String?
+  influencerId    String?
+  documentType    DocumentType
+  documentUrl     String // S3 URL
+  fileName        String?
+  fileSize        Int? // ファイルサイズ（バイト）
+  status          VerificationStatus @default(PENDING)
+  rejectionReason String? // 却下理由
+  uploadedAt      DateTime           @default(now())
+  reviewedAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  // Relations
+  company    Company?    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  influencer Influencer? @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, status])
+  @@index([influencerId, status])
+  @@index([documentType, status])
+}
+
+// 包括的な認証記録（メール、書類、SNS認証を追跡）
+model VerificationRecord {
+  id         String             @id @default(cuid())
+  userId     String
+  type       VerificationType
+  status     VerificationStatus @default(PENDING)
+  verifiedAt DateTime?
+  expiresAt  DateTime?
+  metadata   Json? // SNS認証の場合はplatform, username, followerCountなど
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId, type, status])
+  @@index([type, status])
+}
+
+// セキュリティログ管理
+enum SecurityEventType {
+  XSS_ATTACK
+  SQL_INJECTION
+  COMMAND_INJECTION
+  CSRF_ATTACK
+  BRUTE_FORCE
+  SUSPICIOUS_ACTIVITY
+  CSP_VIOLATION
+  AUTHENTICATION_FAILURE
+  AUTHORIZATION_FAILURE
+  DATA_BREACH_ATTEMPT
+  MALWARE_UPLOAD
+  RATE_LIMIT_EXCEEDED
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecurityStatus {
+  DETECTED
+  INVESTIGATING
+  RESOLVED
+  FALSE_POSITIVE
+  IGNORED
+}
+
+// セキュリティインシデントログ
+model SecurityLog {
+  id        String            @id @default(cuid())
+  eventType SecurityEventType
+  severity  SecuritySeverity
+  status    SecurityStatus    @default(DETECTED)
+
+  // 攻撃者情報
+  ipAddress String
+  userAgent String?
+  userId    String?
+  sessionId String?
+
+  // リクエスト情報
+  url     String
+  method  String  @default("GET")
+  headers Json?
+  payload String? // 攻撃ペイロード（部分的）
+
+  // 検出情報
+  detectionEngine  String @default("XSS_ENGINE")
+  confidence       Int    @default(0) // 0-100
+  riskScore        Int    @default(0) // 0-100
+  detectedPatterns Json? // 検出されたパターン
+
+  // 地理的情報
+  country String?
+  region  String?
+  city    String?
+
+  // タイムスタンプ
+  detectedAt DateTime  @default(now())
+  resolvedAt DateTime?
+  updatedAt  DateTime  @updatedAt
+
+  // 関連情報
+  incidentId  String? // 関連インシデントID
+  parentLogId String? // 親ログID（関連攻撃）
+
+  // アクション
+  actionTaken String? // 実行されたアクション
+  blocked     Boolean @default(false)
+  notified    Boolean @default(false)
+
+  // メタデータ
+  metadata Json? // 追加情報
+  notes    String? // 管理者メモ
+
+  // Relations
+  user      User?         @relation(fields: [userId], references: [id])
+  parentLog SecurityLog?  @relation("SecurityLogHierarchy", fields: [parentLogId], references: [id])
+  childLogs SecurityLog[] @relation("SecurityLogHierarchy")
+
+  @@index([eventType, detectedAt])
+  @@index([severity, detectedAt])
+  @@index([ipAddress, detectedAt])
+  @@index([userId, detectedAt])
+  @@index([status, detectedAt])
+  @@index([incidentId])
+  @@index([detectedAt])
+}
+
+// セキュリティ統計情報（日次集計）
+model SecurityStats {
+  id   String   @id @default(cuid())
+  date DateTime @unique @db.Date
+
+  // 攻撃統計
+  totalAttacks  Int @default(0)
+  xssAttacks    Int @default(0)
+  sqlInjections Int @default(0)
+  bruteForce    Int @default(0)
+  otherAttacks  Int @default(0)
+
+  // 重要度別統計
+  criticalEvents Int @default(0)
+  highEvents     Int @default(0)
+  mediumEvents   Int @default(0)
+  lowEvents      Int @default(0)
+
+  // 地理的統計
+  topCountries Json? // 攻撃元上位国
+  topRegions   Json? // 攻撃元上位地域
+
+  // IP統計
+  uniqueIPs      Int   @default(0)
+  blockedIPs     Int   @default(0)
+  topAttackerIPs Json? // 上位攻撃者IP
+
+  // ユーザー統計
+  affectedUsers   Int   @default(0)
+  suspiciousUsers Json? // 疑わしいユーザー
+
+  // システム統計
+  avgResponseTime   Float? // 平均検出時間
+  falsePositives    Int    @default(0)
+  resolvedIncidents Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
+
+// IPアドレスブラックリスト
+model IPBlacklist {
+  id        String  @id @default(cuid())
+  ipAddress String  @unique
+  cidr      String? // CIDR notation for IP ranges
+
+  // ブロック理由
+  reason        String
+  severity      SecuritySeverity
+  firstDetected DateTime
+  lastActivity  DateTime
+
+  // 統計情報
+  attackCount     Int @default(1)
+  blockedRequests Int @default(0)
+
+  // ブロック設定
+  isActive  Boolean   @default(true)
+  expiresAt DateTime? // 自動解除日時
+  permanent Boolean   @default(false)
+
+  // 地理的情報
+  country String?
+  region  String?
+  asn     String? // Autonomous System Number
+  isp     String?
+
+  // 管理情報
+  addedBy String? // 追加した管理者ID
+  notes   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ipAddress])
+  @@index([isActive, expiresAt])
+  @@index([country])
+  @@index([lastActivity])
+}
+
+// セキュリティルール管理
+model SecurityRule {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  // ルール定義
+  ruleType   SecurityEventType
+  pattern    String // 検出パターン (正規表現等)
+  severity   SecuritySeverity
+  confidence Int               @default(50) // 0-100
+
+  // ルール設定
+  isActive   Boolean @default(true)
+  autoBlock  Boolean @default(false)
+  autoNotify Boolean @default(true)
+
+  // 統計情報
+  matchCount     Int       @default(0)
+  falsePositives Int       @default(0)
+  lastMatched    DateTime?
+
+  // 管理情報
+  createdBy String? // 作成者ID
+  version   Int     @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ruleType, isActive])
+  @@index([isActive, severity])
+}
+
+// Chapter 1-3: 企業の複数担当者管理
+model CompanyMember {
+  id        String              @id @default(cuid())
+  companyId String
+  userId    String
+  role      CompanyMemberRole
+  status    String              @default("ACTIVE") // ACTIVE, INACTIVE, PENDING
+  invitedAt DateTime            @default(now())
+  acceptedAt DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([companyId, status])
+  @@index([userId])
+}
+
+// Chapter 1-3: 企業メンバーの操作履歴
+model AuditLog {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String   // 操作を行ったユーザーID
+  action    String   // CREATE, UPDATE, DELETE, INVITE, REMOVE_MEMBER
+  entityType String  // Project, Member, Document, etc.
+  entityId  String?  // 対象エンティティのID
+  details   Json?    // 変更内容の詳細
+  ipAddress String?  // オペレーションのIP
+  createdAt DateTime @default(now())
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
+
+// Chapter 1-12: オンボーディング進捗管理
+model OnboardingProgress {
+  id     String   @id @default(cuid())
+  userId String   @unique
+  role   UserRole
+
+  // 完了ステップ
+  completedSteps OnboardingStep[]
+
+  // スキップ状態
+  skipped Boolean @default(false)
+  skippedAt DateTime?
+
+  // 進捗管理
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([role, completedAt])
+}
+
+// Chapter 2-7: ウォッチリスト機能（インフルエンサーがプロジェクトを保存）
+model Watchlist {
+  id           String   @id @default(cuid())
+  influencerId String
+  projectId    String
+  savedAt      DateTime @default(now())
+  notes        String? // インフルエンサーのメモ
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  influencer Influencer @relation("InfluencerWatchlist", fields: [influencerId], references: [id], onDelete: Cascade)
+  project    Project    @relation("ProjectWatchlist", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([influencerId, projectId])
+  @@index([influencerId, savedAt])
+  @@index([projectId])
+}
+
+// Chapter 2-7: お気に入り機能（企業がインフルエンサーを保存）
+model Favorite {
+  id           String   @id @default(cuid())
+  companyId   String
+  influencerId String
+  savedAt      DateTime @default(now())
+  notes        String? // 企業のメモ
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  company   Company     @relation("CompanyFavorites", fields: [companyId], references: [id], onDelete: Cascade)
+  influencer Influencer @relation("InfluencerFavorites", fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, influencerId])
+  @@index([companyId, savedAt])
+  @@index([influencerId])
+}
+
+// Chapter 4: チャット（メッセージスレッド）
+model Chat {
+  id            String    @id @default(cuid())
+  projectId     String
+  participantId String
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  project   Project   @relation("ProjectChats", fields: [projectId], references: [id], onDelete: Cascade)
+  // messages  Message[] @relation("ChatMessages") // Commented out due to database sync issues
+
+  @@unique([projectId, participantId])
+  @@index([projectId])
+  @@index([participantId])
+}
+
+// Chapter 5: 契約書管理
+model Contract {
+  id            String    @id @default(cuid())
+  projectId     String
+  templateName  String? // 契約書テンプレート名
+  status        String    @default("PENDING") // PENDING, SIGNED, REJECTED, EXPIRED
+  documentUrl   String? // S3 URL
+  signingUrl    String? // DocuSign等の署名URL
+  signedAt      DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  project Project @relation("ProjectContracts", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId])
+  @@index([status, createdAt])
+}
+
+// Chapter 3: スカウト機能
+model Scout {
+  id             String    @id @default(cuid())
+  projectId      String
+  influencerId   String
+  companyId   String
+  message        String? // スカウトメッセージ
+  status         String    @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  respondedAt    DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  project    Project    @relation("ProjectScouts", fields: [projectId], references: [id], onDelete: Cascade)
+  influencer Influencer @relation("InfluencerScouts", fields: [influencerId], references: [id], onDelete: Cascade)
+  company   Company     @relation("CompanyScouts", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, influencerId])
+  @@index([status, createdAt])
+  @@index([influencerId, status])
+}
+
+// Chapter 7: 請求書管理
+model Invoice {
+  id             String    @id @default(cuid())
+  projectId      String
+  companyId   String
+  influencerId   String
+  amount         Int // 請求金額（円）
+  tax            Int? // 消費税
+  totalAmount    Int // 合計金額
+  dueDate        DateTime
+  status         String    @default("PENDING") // PENDING, SENT, PAID, OVERDUE, CANCELLED
+  invoiceNumber  String    @unique // INV-20240101-001など
+  documentUrl    String? // S3 URL
+  paidAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  project    Project    @relation("ProjectInvoices", fields: [projectId], references: [id], onDelete: Cascade)
+  company   Company     @relation("CompanyInvoices", fields: [companyId], references: [id], onDelete: Cascade)
+  influencer Influencer @relation("InfluencerInvoices", fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId])
+  @@index([companyId, status])
+  @@index([influencerId, status])
+  @@index([dueDate])
+}
+
+// Chapter 10: キャンセル・返金管理
+model Cancellation {
+  id             String   @id @default(cuid())
+  projectId      String   @unique
+  reason         String // キャンセル理由
+  cancelledBy    String // COMPANY or INFLUENCER
+  status         String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  refundAmount   Int? // 返金額
+  approvalNotes  String?
+  cancelledAt    DateTime @default(now())
+  approvedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  project Project @relation("ProjectCancellations", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([status, cancelledAt])
+}
+
+// Chapter 11: 料金プラン
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String   @unique // STARTER, PROFESSIONAL, ENTERPRISE等
+  description String?
+  price       Int // 月額料金（円）
+  billingCycle String  @default("monthly") // monthly, yearly
+
+  // 特徴・制限
+  maxProjects     Int // 作成可能プロジェクト数
+  maxTeamMembers  Int // チームメンバー上限
+  features        String[] // 機能リスト
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  subscriptions UserSubscription[]
+
+  @@index([isActive])
+}
+
+// Chapter 11: ユーザーサブスクリプション
+model UserSubscription {
+  id             String    @id @default(cuid())
+  userId         String
+  planId         String
+  status         String    @default("ACTIVE") // ACTIVE, CANCELLED, EXPIRED
+  startDate      DateTime  @default(now())
+  endDate        DateTime?
+  nextBillingAt  DateTime?
+  autoRenew      Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user User             @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId, status])
+  @@index([status, endDate])
+}
+
+// Chapter 12: 通知システム（拡張）
+model NotificationSettings {
+  id     String  @id @default(cuid())
+  userId String  @unique
+
+  // 通知設定
+  emailNotifications      Boolean @default(true)
+  pushNotifications       Boolean @default(true)
+  inAppNotifications      Boolean @default(true)
+
+  // 通知タイプ別設定
+  applicationNotify       Boolean @default(true)
+  messageNotify           Boolean @default(true)
+  paymentNotify           Boolean @default(true)
+  projectStatusNotify     Boolean @default(true)
+  scoutNotify             Boolean @default(true)
+
+  // 通知頻度
+  notificationFrequency   String  @default("INSTANT") // INSTANT, DAILY, WEEKLY
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation("NotificationSettings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Chapter 13: 操作ログ（システム運用）
+model SystemLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String // CREATE_PROJECT, ACCEPT_APPLICATION等
+  entityType String  // Project, Application, etc
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User? @relation("SystemLogs", fields: [userId], references: [id])
+
+  @@index([action, createdAt])
+  @@index([userId, createdAt])
+  @@index([entityType, createdAt])
+}
+
+// Chapter 15: サポートチケット
+model SupportTicket {
+  id          String   @id @default(cuid())
+  userId      String
+  subject     String
+  description String
+  category    String // BUG, FEATURE_REQUEST, BILLING, OTHER
+  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority    String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  attachment  String? // S3 URL
+
+  assignedTo  String? // 対応者のユーザーID
+  resolvedAt  DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User? @relation("SupportTickets", fields: [userId], references: [id])
+
+  @@index([status, priority, createdAt])
+  @@index([userId, status])
+}
+
+// Chapter 17: データエクスポート・管理
+model DataExport {
+  id           String   @id @default(cuid())
+  userId       String
+  dataType     String // PROJECTS, APPLICATIONS, PAYMENTS, REVIEWS, ALL
+  format       String   @default("CSV") // CSV, JSON, PDF
+  status       String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  fileUrl      String?
+  expiresAt    DateTime?
+
+  requestedAt  DateTime @default(now())
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation("DataExports", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, completedAt])
+}
+
+// Chapter 18: 法的文書
+model LegalDocument {
+  id           String   @id @default(cuid())
+  documentType String // TERMS_OF_SERVICE, PRIVACY_POLICY, COOKIE_POLICY, etc
+  title        String
+  content      String // HTML content
+  version      Int     @default(1)
+
+  effectiveDate DateTime
+  isActive      Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  userAcknowledgments UserLegalAcknowledgment[] @relation("UserAcknowledgments")
+  consents            DocumentConsent[]         @relation("ConsentsReceived")
+
+  @@unique([documentType, version])
+  @@index([documentType, isActive])
+}
+
+// Chapter 14: ユーザー同意管理
+model DocumentConsent {
+  id           String   @id @default(cuid())
+  userId       String
+  documentId   String
+  consentedAt  DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  // Relations
+  user     User          @relation("DocumentConsents", fields: [userId], references: [id], onDelete: Cascade)
+  document LegalDocument @relation("ConsentsReceived", fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId])
+  @@index([userId])
+  @@index([documentId])
+}
+
+// Chapter 18: ユーザーの法的文書確認
+model UserLegalAcknowledgment {
+  id          String   @id @default(cuid())
+  userId      String
+  documentId  String
+
+  acknowledgedAt DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user     User            @relation("UserLegalAcknowledgments", fields: [userId], references: [id], onDelete: Cascade)
+  document LegalDocument   @relation("UserAcknowledgments", fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId])
+  @@index([userId])
+  @@index([documentId])
+}
