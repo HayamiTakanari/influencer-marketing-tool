@@ -29,7 +29,7 @@ export const runAccessibilityCheck = async (): Promise<{
         helpUrl: violation.helpUrl,
         nodes: violation.nodes.map(node => ({
           html: node.html,
-          target: node.target,
+          target: Array.isArray(node.target) ? node.target : (typeof node.target === 'string' ? [node.target] : []),
         })),
       })),
       passes: results.passes.length,

@@ -87,6 +87,10 @@ export const fetchInfluencerById = async (
       return null
     }
 
+    if (data && data.user && Array.isArray(data.user)) {
+      data.user = data.user[0] || undefined
+    }
+    
     return data as InfluencerWithRelations
   } catch (err) {
     console.error('Error fetching influencer:', err)
@@ -129,7 +133,12 @@ export const fetchAllInfluencers = async (): Promise<
       return []
     }
 
-    return (data || []) as InfluencerWithRelations[]
+    const transformed = (data || []).map(item => ({
+      ...item,
+      user: Array.isArray(item.user) ? item.user[0] : item.user
+    }))
+    
+    return transformed as InfluencerWithRelations[]
   } catch (err) {
     console.error('Error fetching influencers:', err)
     return []
@@ -173,7 +182,12 @@ export const searchInfluencers = async (
       return []
     }
 
-    return (data || []) as InfluencerWithRelations[]
+    const transformed = (data || []).map(item => ({
+      ...item,
+      user: Array.isArray(item.user) ? item.user[0] : item.user
+    }))
+    
+    return transformed as InfluencerWithRelations[]
   } catch (err) {
     console.error('Error searching influencers:', err)
     return []
@@ -188,16 +202,17 @@ export const subscribeToInfluencerChanges = (
   onChangeCallback: (data: InfluencerWithRelations) => void
 ) => {
   const subscription = supabase
-    .from('influencer')
-    .on('*', async (payload) => {
-      if (payload.new.id === influencerId) {
+    .channel(`influencer:${influencerId}`)
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'influencer', filter: `id=eq.${influencerId}` },
+      async (payload) => {
         // 完全なデータを再度取得
         const updated = await fetchInfluencerById(influencerId)
         if (updated) {
           onChangeCallback(updated)
         }
       }
-    })
+    )
     .subscribe()
 
   return () => {
@@ -213,9 +228,10 @@ export const subscribeToSocialAccountChanges = (
   onChangeCallback: (accounts: SocialAccount[]) => void
 ) => {
   const subscription = supabase
-    .from('socialAccount')
-    .on('*', async (payload) => {
-      if (payload.new?.influencerId === influencerId) {
+    .channel(`socialAccount:${influencerId}`)
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'socialAccount', filter: `influencerId=eq.${influencerId}` },
+      async (payload) => {
         const { data, error } = await supabase
           .from('socialAccount')
           .select('*')
@@ -225,7 +241,7 @@ export const subscribeToSocialAccountChanges = (
           onChangeCallback(data as SocialAccount[])
         }
       }
-    })
+    )
     .subscribe()
 
   return () => {

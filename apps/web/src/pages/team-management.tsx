@@ -7,6 +7,7 @@ import Button from '../components/shared/Button';
 import LoadingState from '../components/common/LoadingState';
 import EmptyState from '../components/common/EmptyState';
 import ErrorState from '../components/common/ErrorState';
+import Sidebar from '../components/layout/Sidebar';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 
 interface TeamMember {
