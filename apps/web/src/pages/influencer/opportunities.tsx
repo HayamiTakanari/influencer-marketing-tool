@@ -25,7 +25,14 @@ interface Project {
   startDate: string;
   endDate: string;
   isApplied?: boolean;
-  client: {
+  company?: {
+    id: string;
+    name?: string;
+    companyName?: string;
+    industry?: string;
+    contactName?: string;
+  };
+  client?: {
     companyName: string;
     user: {
       email: string;
@@ -42,6 +49,10 @@ const OpportunitiesPage: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const router = useRouter();
   const { handleError } = useErrorHandler();
+
+  const getCompanyName = (project: Project) => {
+    return project.company?.companyName || project.company?.name || project.client?.companyName || '企業名未設定';
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -161,7 +172,7 @@ const OpportunitiesPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">企業</p>
-                        <p className="font-semibold text-gray-900">{project.client?.companyName}</p>
+                        <p className="font-semibold text-gray-900">{getCompanyName(project)}</p>
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">対象プラットフォーム</p>
