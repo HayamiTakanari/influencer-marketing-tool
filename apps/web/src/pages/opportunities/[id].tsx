@@ -25,7 +25,14 @@ interface OpportunityDetail {
   startDate: string;
   endDate: string;
   createdAt: string;
-  client: {
+  company?: {
+    id: string;
+    name?: string;
+    companyName?: string;
+    industry?: string;
+    contactName?: string;
+  };
+  client?: {
     id: string;
     companyName: string;
     industry: string;
@@ -171,6 +178,20 @@ const OpportunityDetailPage: React.FC = () => {
     });
   };
 
+  const formatPlatform = (platform: string) => {
+    const platformMap: { [key: string]: string } = {
+      'INSTAGRAM': 'Instagram',
+      'YOUTUBE': 'YouTube',
+      'TIKTOK': 'TikTok',
+      'TWITTER': 'X (Twitter)',
+      'FACEBOOK': 'Facebook',
+      'TWITCH': 'Twitch',
+      'PINTEREST': 'Pinterest',
+      'LINKEDIN': 'LinkedIn'
+    };
+    return platformMap[platform] || platform;
+  };
+
   if (!user) return null;
 
   if (loading) {
@@ -194,8 +215,11 @@ const OpportunityDetailPage: React.FC = () => {
     );
   }
 
+  const companyName = opportunity.company?.companyName || opportunity.company?.name || opportunity.client?.companyName || '企業';
+  const industry = opportunity.company?.industry || opportunity.client?.industry || 'N/A';
+
   return (
-    <DashboardLayout title={opportunity.title} subtitle={`${opportunity.client?.companyName || '企業'} - ${opportunity.category}`}>
+    <DashboardLayout title={opportunity.title} subtitle={`${companyName} - ${opportunity.category}`}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
@@ -217,11 +241,11 @@ const OpportunityDetailPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">企業</p>
-                <p className="text-lg font-semibold text-gray-900">{opportunity.client?.companyName || 'N/A'}</p>
+                <p className="text-lg font-semibold text-gray-900">{companyName}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">業界</p>
-                <p className="text-lg text-gray-900">{opportunity.client?.industry || 'N/A'}</p>
+                <p className="text-lg text-gray-900">{industry}</p>
               </div>
             </div>
 
@@ -259,7 +283,7 @@ const OpportunityDetailPage: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               {opportunity.targetPlatforms && opportunity.targetPlatforms.map((platform) => (
                 <span key={platform} className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-                  {platform}
+                  {formatPlatform(platform)}
                 </span>
               ))}
             </div>
